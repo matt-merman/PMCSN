@@ -1,33 +1,39 @@
-typedef struct tipo_servente {
-    int status;  // {0=IDLE, 1=BUSY}
-    struct centro *centro;
-    double tempoServizio;
-} servente;
+// typedef struct server_t {
+//     int status;  // {0=IDLE, 1=BUSY}
+//     struct block *block;
+//     double serviceTime;
+// } server;
 
-enum tipo_centro {
+enum block_types {
     PRIMO,
     SECONDO,
     DESSERT,
     CASSA_FAST,
     CASSA_STD,
-    MANGIARE
+    CONSUMAZIONE
 };
 
-struct clock_t {
-    double corrente;  // Tempo attuale di simulazione
-    double successivo;     // Tempo attuale del prossimo evento, sia arrivo che completamento
-    double prossimoArrivo;  // Tempo attuale del prossimo arrivo
+struct clock_t{
+    double arrival;                 /* next arrival time                   */
+    double completion;              /* next completion time                */
+    double current;                 /* current time                        */
+    double next;                    /* next (most imminent) event time     */
+    double last;                    /* last arrival time                   */
+} clock;
+
+struct area{
+    double node;                    /* time integrated number in the node  */
+    double queue;                   /* time integrated number in the queue */
+    double service;                 /* time integrated number in service   */
 };
 
-struct centro {
-    enum tipo_centro tipo;
-    int dipInCoda;
-    int dipNeiCentri;
-    int arriviTotali;
-    int completamentiTotali;
+struct block {
+    enum block_types type;
+    long completed_jobs;  //job completati
+	long jobs; //job nel centro
 };
 
-struct dipendente {
-    double prossimoArrivo; // tempo prima del prossimo arrivo in secondi.
-    struct dipendente *successivo;
-};
+// struct job {
+//     double arrival;
+//     struct job *next;
+// };

@@ -1,100 +1,110 @@
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <stdio.h>
-
-#include "../utils/constants.h"
-#include "../utils/structs.h"
-#include "../libs/rvgs.h"
 #include "../libs/rngs.h"
+#include "../libs/rvgs.h"
+#include "../utils/constants.h"
+#include "../utils/helpers.h"
+//#include "../utils/structs.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-// ogni blocco è un centro del nostro modello
-// i vari blocchi sono definiti nella variabile tipo_centro
-struct centro centri[NUM_CENTRI];
+//ogni blocco è un centro del nostro modello
+//i vari blocchi sono definiti nella variabile block_types
+struct block blocks[3];
 
-// genera il tempo di arrivo con una Exponential di media ARRIVI_MEDI pesata per la probabilità di entrare nel primo...
-double getArrival(double corrente)
+int	startSimulation(void)
 {
-    double prossimoArrivo = corrente;
-    SelectStream(0);
-    prossimoArrivo += Exponential(1 / (ARRIVI_MEDI * P_PRIMO_FUORI)); // TODO: forse qui bisogna prendere l'arrivo, poi dopo si suddivide tra primi e secondi. Quindi senza moltiplicare per P_PRIMO_FUORI
-    return prossimoArrivo;
+	struct clock_t	*system_clock;
+
+	//inizializzo il clock globale (vedi in struct.h)
+	system_clock = malloc(sizeof(struct clock_t));
+	if (system_clock == NULL)
+	{
+		printf("Error Malloc\n");
+		return (-1);
+	}
+	system_clock->current = START;
+	system_clock->arrival = getArrival(START);
+	system_clock->completion = INF;
+	
+    /* ---------------------------------------------------------- 
+     * Next-event Simulation di durata O_P con FIFO M/M/1
+     * ---------------------------------------------------------- 
+    */
+	
+    PlantSeeds(123456789);
+	
+    long completed_jobs = 0;  //job completati
+	long block_jobs = 0; //job nel centro
+	
+	struct area		*block_area;
+    block_area = malloc(sizeof(struct area));
+	if (block_area == NULL)
+	{
+		printf("Error Malloc\n");
+		return (-1);
+	}
+	
+    //struttura dati usata per per calcolare i time-averaged number rispettivamente
+    //nel nodo, in coda e in servizio. Sono calcolati come integrali (base*altezza)
+    block_area->node = 0;
+	block_area->queue = 0;
+	block_area->service = 0;
+
+    //avvio simulazione 
+	while ((system_clock->arrival < PERIODO) || (block_jobs > 0))
+	{
+		system_clock->next = min(system_clock->arrival,
+									system_clock->completion);
+
+		if (block_jobs > 0)
+		{
+            //aggiorna statistiche
+        	block_area->node += (system_clock->next - system_clock->current) * block_jobs;
+			block_area->queue += (system_clock->next - system_clock->current)
+				* (block_jobs - 1);
+			block_area->service += (system_clock->next - system_clock->current);
+		}
+
+        //porto avanti il tempo del sistema fino al primo evento (arrivo || completamento)
+		system_clock->current = system_clock->next;
+
+        //se l'evento da processare è un arrivo
+		if (system_clock->current == system_clock->arrival)
+		{ 
+        	block_jobs++;
+            //genero un nuovo arrivo
+			system_clock->arrival = getArrival(system_clock->current);
+			//ho concluso il tempo di simulazione
+            if (system_clock->arrival > PERIODO)
+			{
+				system_clock->last = system_clock->current;
+				system_clock->arrival = INF;
+			}
+			if (block_jobs == 1)
+				system_clock->completion = system_clock->current
+					+ getService(PRIMO);
+		}
+        //se l'evento è un completamento
+		else
+		{
+            //aggiorno i numeri nel centro
+        	completed_jobs++;
+			block_jobs--;
+			if (block_jobs > 0)
+				system_clock->completion = system_clock->current
+					+ getService(PRIMO);
+			else
+				system_clock->completion = INF;
+		}
+	}
+
+    showStatistics(completed_jobs, system_clock, block_area);	
+    return (0);
 }
 
-int avviaSimulazione(void)
+int	main(void)
 {
-    int i = 0;
-    // for (; i < NUM_CENTRI; i++) {
-
-    // inizializzo il solo blocco dei 'primi'
-
-    centri[i].tipo = i;
-    centri[i].dipNeiCentri = 0;
-    centri[i].dipInCoda = 0;
-    centri[i].arriviTotali = 0;
-    centri[i].completamentiTotali = 0;
-
-    switch (i)
-    {
-
-    case 0:
-    case 1:
-    case 2:
-
-        servente s;
-        s.status = IDLE;
-        s.centro = &centri[i];
-        s.tempoServizio = S_PRIMO;
-
-        // case 3: case 4:
-
-        //     for (int i = 0; i < NUM_CASSE; i++) {
-
-        //         servente s;
-        //         s.status = IDLE;
-        //         s.centro = &centri[i];
-        //         s.time_online = 0.0;
-        //         s.last_online = 0.0;
-
-        //     }
-
-        // case 5:
-
-        //     for (int i = 0; i < POSTI_A_SEDERE; i++) {
-
-        //         servente s;
-        //         s.status = IDLE;
-        //         s.centro = &centri[i];
-        //         s.time_online = 0.0;
-        //         s.last_online = 0.0;
-
-        //     }
-    }
-
-    // inizializzo il clock globale (vedi in struct.h)
-    struct clock_t *clock = malloc(sizeof(struct clock_t));
-    if (clock == NULL)
-    {
-        printf("Error Malloc\n");
-        return -1;
-    }
-
-    clock->corrente = START;
-    // genero il primo tempo di arrivo al sistema
-    clock->prossimoArrivo = getArrival(clock->corrente);
-    printf("First arriving: %f\n", clock->prossimoArrivo);
-
-    // eseguo simulazione ad orizzonte finito di durata 4h = PERIODO
-    while (clock->prossimoArrivo <= PERIODO)
-    {
-        break;
-    }
-
-    return 0;
-}
-
-int main(void)
-{
-    avviaSimulazione();
-    return 0;
+	startSimulation();
+	return (0);
 }

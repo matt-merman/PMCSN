@@ -4,7 +4,7 @@
  * Language        : ANSI C
  * Latest Revision : 11-03-96
  * -------------------------------------------------------------- 
- */
+*/
 
 #if !defined( _RVGS_ )
 #define _RVGS_

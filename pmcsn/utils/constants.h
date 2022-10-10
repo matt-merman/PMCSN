@@ -1,4 +1,4 @@
-#define NUM_CENTRI 6
+#define BLOCKS 6
 #define START 0
 #define NUM_CASSE 2
 #define POSTI_A_SEDERE 1000
@@ -8,7 +8,8 @@
 
 #define N 2500                  // numero di utenti
 #define PERIODO (3*60*60)       // periodo di osservazione in [s]
-#define ARRIVI_MEDI 0.2314      // Arrivi al secondo dall'esterno(lambda)
+#define INF 100*PERIODO
+#define LAMBDA 0.2314      // Arrivi al secondo dall'esterno(lambda)
 
 //probabilità di arrivo nei tre time slots 
 #define P_ARRIVO_SLOT_1 0.28
