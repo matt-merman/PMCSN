@@ -1,13 +1,13 @@
-#define BLOCKS 6
+#define BLOCKS 3
 #define START 0
 #define NUM_CASSE 2
 #define POSTI_A_SEDERE 1000
 
-#define IDLE 0
-#define BUSY 1
+#define ARRIVAL 0
+#define COMPLETE 1
 
 #define N 2500                  // numero di utenti
-#define PERIODO (3*60*60)       // periodo di osservazione in [s]
+#define PERIODO (60*60*3)       // periodo di osservazione in [s]
 #define INF 100*PERIODO
 #define LAMBDA 0.2314      // Arrivi al secondo dall'esterno(lambda)
 

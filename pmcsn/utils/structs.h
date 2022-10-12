@@ -13,12 +13,19 @@ enum block_types {
     CONSUMAZIONE
 };
 
+typedef struct event_t{
+    enum block_types blockType;
+    double time;
+    int type; //0 = arrival; 1 = completion
+} event;
+
 struct clock_t{
     double arrival;                 /* next arrival time                   */
     double completion;              /* next completion time                */
     double current;                 /* current time                        */
-    double next;                    /* next (most imminent) event time     */
+    event* next;             /* next (most imminent) event time     */
     double last;                    /* last arrival time                   */
+    int type;
 } clock;
 
 struct area{
@@ -29,9 +36,13 @@ struct area{
 
 struct block {
     enum block_types type;
-    long completed_jobs;  //job completati
+    long completedJobs;  //job completati
 	long jobs; //job nel centro
+    struct area * blockArea;
+    long completion;
+    long arrival;
 };
+
 
 // struct job {
 //     double arrival;
