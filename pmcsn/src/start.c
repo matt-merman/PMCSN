@@ -12,105 +12,60 @@
 struct block	blocks[BLOCKS];
 
 //lista contenente tutti gli eventi
-int				n = 1000;
-event			eventList[1000];
+event			eventList[N];
 
-void	complete(int blockType, struct clock_t *c)
-{
-	event	*newEvent;
-
-	switch (blockType)
+double completePrimoSecondo(event * newEvent, struct clock_t * c, int blockType){
+	if (blocks[blockType].jobs > 0)
 	{
-	case PRIMO:
-		//aggiorno i numeri nel centro
-		blocks[PRIMO].completedJobs++;
-		blocks[PRIMO].jobs--;
-		if (blocks[PRIMO].jobs > 0)
-		{
-			newEvent = createEvent(PRIMO, COMPLETE, c->current, 0);
-			if (newEvent->time > PERIODO)
-			{
-				c->last = c->current;
-				c->arrival = INF;
-			}
-			insertElement(eventList, newEvent, n);
-		}
-		//genera arrivo ai 'secondi'
-		newEvent = createEvent(SECONDO, ARRIVAL, c->current, 1);
-		break ;
-	case SECONDO:
-		//aggiorno i numeri nel centro
-		blocks[SECONDO].completedJobs++;
-		blocks[SECONDO].jobs--;
-		if (blocks[SECONDO].jobs > 0)
-		{
-			newEvent = createEvent(SECONDO, COMPLETE, c->current, 0);
-			if (newEvent->time > PERIODO)
-			{
-				c->last = c->current;
-				c->arrival = INF;
-			}
-			insertElement(eventList, newEvent, n);
-		}
-		//genera arrivo ai 'dessert'
-		newEvent = createEvent(DESSERT, ARRIVAL, c->current, 1);
-		break ;
-	case DESSERT:
-		//aggiorno i numeri nel centro
-		blocks[DESSERT].completedJobs++;
-		blocks[DESSERT].jobs--;
-		if (blocks[DESSERT].jobs > 0)
-		{
-			newEvent = createEvent(DESSERT, COMPLETE, c->current, 0);
-			break ;
-		}
-		else
-			return ;
-	}
-	if (newEvent->time > PERIODO)
-	{
-		c->last = c->current;
-		c->arrival = INF;
-	}
-	insertElement(eventList, newEvent, n);
-}
-void	arrival(int blockType, struct clock_t *c)
-{
-	event	*newEvent;
-
-	switch (blockType)
-	{
-	case PRIMO:
-		blocks[PRIMO].jobs++;
-		newEvent = createEvent(PRIMO, ARRIVAL, c->current, LAMBDA
-				* P_PRIMO_FUORI);
-		insertElement(eventList, newEvent, n);
+		newEvent = createEvent(blockType, COMPLETE, c->current);
 		if (newEvent->time > PERIODO)
 		{
 			c->last = c->current;
 			c->arrival = INF;
 		}
-		if (blocks[PRIMO].jobs == 1)
-		{
-			newEvent = createEvent(PRIMO, COMPLETE, c->current, 0);
-			break ;
-		}
-		else
-			return ;
+		insertElement(eventList, newEvent, N);
+	}
+	//genera una probabilità da usare nell'inoltro del job al prossimo centro
+	return Uniform(0, 1);
+}
+void	complete(int blockType, struct clock_t *c)
+{
+	event	*newEvent;
+	double p;
+
+	//aggiorno i numeri nel centro
+	blocks[blockType].completedJobs++;
+	blocks[blockType].jobs--;
+	
+	switch (blockType)
+	{
+	case PRIMO:
+		p = completePrimoSecondo(newEvent, c, blockType);
+		//l'arrivo va nei 'secondi'
+		if (p < P_SECONDO_PRIMO)
+			newEvent = createEvent(SECONDO, IMMEDIATE_ARRIVAL, c->current);
+		//l'arrivo va nei 'dessert'
+		else if (p > P_SECONDO_PRIMO && p < P_SECONDO_PRIMO + P_DESSERT_PRIMO)
+			newEvent = createEvent(DESSERT, IMMEDIATE_ARRIVAL, c->current);
+		//l'arrivo va nelle casse
+		else	
+			return;
+			//newEvent = createEvent(SECONDO, IMMEDIATE_ARRIVAL, c->current);
+		break ;
 	case SECONDO:
-		blocks[SECONDO].jobs++;
-		if (blocks[SECONDO].jobs == 1)
-		{
-			newEvent = createEvent(SECONDO, COMPLETE, c->current, 0);
-			break ;
-		}
+		p = completePrimoSecondo(newEvent, c, blockType);
+		//l'arrivo va nei 'dessert'
+		if (p < P_DESSERT_SECONDO)
+			newEvent = createEvent(DESSERT, IMMEDIATE_ARRIVAL, c->current);
+		//l'arrivo va nelle casse
 		else
-			return ;
+			return;
+			//newEvent = createEvent(SECONDO, IMMEDIATE_ARRIVAL, c->current);
+		break ;
 	case DESSERT:
-		blocks[DESSERT].jobs++;
-		if (blocks[DESSERT].jobs == 1)
+		if (blocks[DESSERT].jobs > 0)
 		{
-			newEvent = createEvent(DESSERT, COMPLETE, c->current, 0);
+			newEvent = createEvent(DESSERT, COMPLETE, c->current);
 			break ;
 		}
 		else
@@ -121,7 +76,55 @@ void	arrival(int blockType, struct clock_t *c)
 		c->last = c->current;
 		c->arrival = INF;
 	}
-	insertElement(eventList, newEvent, n);
+	insertElement(eventList, newEvent, N);
+}
+
+void	arrival(int blockType, struct clock_t *c)
+{
+	event	*newEvent;
+	double p;
+
+	blocks[blockType].jobs++;
+
+	switch (blockType)
+	{
+	case PRIMO: case SECONDO:
+		p = Uniform(0, 1);
+		//l'arrivo va nei 'primi'
+		if (p < P_PRIMO_FUORI)
+			newEvent = createEvent(PRIMO, ARRIVAL, c->current);
+		//l'arrivo va nei 'secondi'
+		else
+			newEvent = createEvent(SECONDO, ARRIVAL, c->current);
+
+		insertElement(eventList, newEvent, N);
+		if (newEvent->time > PERIODO)
+		{
+			c->last = c->current;
+			c->arrival = INF;
+		}
+		if (blocks[blockType].jobs == 1)
+		{
+			newEvent = createEvent(blockType, COMPLETE, c->current);
+			break ;
+		}
+		else
+			return ;
+	case DESSERT:
+		if (blocks[DESSERT].jobs == 1)
+		{
+			newEvent = createEvent(DESSERT, COMPLETE, c->current);
+			break ;
+		}
+		else
+			return ;
+	}
+	if (newEvent->time > PERIODO)
+	{
+		c->last = c->current;
+		c->arrival = INF;
+	}
+	insertElement(eventList, newEvent, N);
 }
 
 void	initBlocks(void)
@@ -136,12 +139,10 @@ void	initBlocks(void)
 		}
 		//struttura dati usata per per calcolare i time-averaged number rispettivamente
 		//nel nodo,in coda e in servizio.Sono calcolati come integrali
-		blocks[index].blockArea->node = 0;
-		blocks[index].blockArea->queue = 0;
-		blocks[index].blockArea->service = 0;
-		blocks[index].type = index;
+	    memset(blocks[index].blockArea, 0x0, sizeof(struct area));
 		blocks[index].completedJobs = 0;
 		blocks[index].jobs = 0;
+
 	}
 }
 
@@ -149,7 +150,7 @@ int	gitMinEventIndex(void)
 {
 	int index = 0;
 	double min = eventList[index].time;
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < N; i++)
 	{
 		if (min < 0)
 		{
@@ -171,6 +172,7 @@ int	startSimulation(void)
 {
 	struct clock_t	*system_clock;
 	int				indexEvent;
+	double p;
 
 	//inizializzo il clock globale (vedi in struct.h)
 	system_clock = malloc(sizeof(struct clock_t));
@@ -180,17 +182,25 @@ int	startSimulation(void)
 		return (-1);
 	}
 	system_clock->current = START;
-	system_clock->arrival = getArrival(START, (LAMBDA * P_PRIMO_FUORI));
-	system_clock->type = 0;
+	system_clock->arrival = getArrival(START, LAMBDA);
+	p = Uniform(0, 1);
+	//l'arrivo va nei 'primi'
+	if (p < P_PRIMO_FUORI)
+		system_clock->type = 0;
+	//l'arrivo va nei 'secondi'
+	else
+		system_clock->type = 1;
+
 	system_clock->completion = INF;
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < N; i++)
 	{
 		eventList[i].time = -1;
 	}
 	//aggiungo il primo evento di arrivo alla lista degli eventi
-	eventList[0].blockType = 0;
+	eventList[0].blockType = system_clock->type;
 	eventList[0].type = ARRIVAL;
-	eventList[0].time = getArrival(START, (LAMBDA * P_PRIMO_FUORI));
+	eventList[0].time = getArrival(START, LAMBDA);
+	
 	PlantSeeds(123456789);
 	initBlocks();
 	/* ---------------------------------------------------------- 
@@ -215,7 +225,7 @@ int	startSimulation(void)
 		}
 		//porto avanti il tempo del sistema fino al primo evento
 		system_clock->current = system_clock->next->time;
-		if (system_clock->next->type == ARRIVAL)
+		if (system_clock->next->type == ARRIVAL || system_clock->next->type == IMMEDIATE_ARRIVAL)
 			arrival(system_clock->next->blockType, system_clock);
 		else
 			complete(system_clock->next->blockType, system_clock);

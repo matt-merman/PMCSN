@@ -1,9 +1,3 @@
-// typedef struct server_t {
-//     int status;  // {0=IDLE, 1=BUSY}
-//     struct block *block;
-//     double serviceTime;
-// } server;
-
 enum block_types {
     PRIMO,
     SECONDO,
@@ -35,16 +29,7 @@ struct area{
 };
 
 struct block {
-    enum block_types type;
     long completedJobs;  //job completati
 	long jobs; //job nel centro
     struct area * blockArea;
-    long completion;
-    long arrival;
 };
-
-
-// struct job {
-//     double arrival;
-//     struct job *next;
-// };

@@ -58,7 +58,7 @@ void	showStatistics(long int index, struct clock_t *clock, struct area *area)
 			/ clock->current);
 	printf("   average # in the queue .. = %6.2f\n",
 			area->queue / clock->current);
-	printf("   utilization ............. = %6.2f\n",
+	printf("   utilization ............. = %6.4f\n",
 			area->service / clock->current);
 }
 
@@ -76,7 +76,7 @@ void	insertElement(event list[], event *elem, int len)
 	}
 }
 
-event	*createEvent(enum block_types blockType, int type, double time, double lambda)
+event	*createEvent(enum block_types blockType, int type, double time)
 {
 	event *newEvent = (event*)malloc(sizeof(struct event_t));
 	if (newEvent == NULL)
@@ -87,7 +87,9 @@ event	*createEvent(enum block_types blockType, int type, double time, double lam
 	newEvent->blockType = blockType;
 	newEvent->type = type;
 	if (type == ARRIVAL)
-		newEvent->time = getArrival(time, lambda);
+		newEvent->time = getArrival(time, LAMBDA);
+	else if(type == IMMEDIATE_ARRIVAL)
+		newEvent->time = time;
 	else
 		newEvent->time = time + getService(blockType, blockType+1);
 	 
