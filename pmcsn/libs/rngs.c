@@ -158,7 +158,9 @@ static int  initialized   = 0;          /* test for stream initialization */
 {
   long   i;
   long   x;
-  double u;
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+  double u; /* no warnings for this one */
+#pragma GCC diagnostic pop
   char   ok = 0;  
 
   SelectStream(0);                  /* select the default stream */

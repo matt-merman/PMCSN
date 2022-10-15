@@ -1,2 +1,2 @@
 all:
-	gcc -Wall -Wextra ../libs/rngs.c ../libs/rvgs.c start.c -lm -o start -g
+	gcc -Wall -Wextra ../libs/*.c *.c ../utils/*.c -lm -o start -g

@@ -1,16 +1,12 @@
-#define BLOCKS 3
+#define BLOCKS 5
 #define START 0
 #define NUM_CASSE 2
 #define POSTI_A_SEDERE 1000
 #define N (BLOCKS * (1 + POSTI_A_SEDERE))
 
-#define ARRIVAL 0
-#define COMPLETE 1
-#define IMMEDIATE_ARRIVAL 2
-
-#define USER 2500                  // numero di utenti
+#define USER 2500                  // number of
 #define PERIODO (60*60)       // periodo di osservazione in [s]
-#define INF 100*PERIODO
+#define INF 100*PERIODO         // max int is 2147483647
 #define LAMBDA 0.2314      // Arrivi da fuori
 
 //probabilità di arrivo nei tre time slots 

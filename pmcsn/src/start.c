@@ -1,137 +1,113 @@
-#include "../libs/rngs.h"
-#include "../libs/rvgs.h"
-#include "../utils/constants.h"
-#include "../utils/helpers.h"
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "start.h"
 
 //ogni blocco è un centro del nostro modello
-//i vari blocchi sono definiti nella variabile block_types
-struct block	blocks[BLOCKS];
+//i vari blocchi sono definiti nella variabile block_type
+block	blocks[BLOCKS];
 
 //lista contenente tutti gli eventi
-event			eventList[N];
+event	eventList[N];
 
-double completePrimoSecondo(event * newEvent, struct clock_t * c, int blockType){
-	if (blocks[blockType].jobs > 0)
-	{
-		newEvent = createEvent(blockType, COMPLETE, c->current);
-		if (newEvent->time > PERIODO)
-		{
-			c->last = c->current;
-			c->arrival = INF;
-		}
-		insertElement(eventList, newEvent, N);
-	}
-	//genera una probabilità da usare nell'inoltro del job al prossimo centro
-	return Uniform(0, 1);
-}
-void	complete(int blockType, struct clock_t *c)
+// Nomi dei blocchi
+const char*  names[] = {"Primi", "Secondi e Contorni", "Frutta e Dessert", "Casse Fast", "Casse standard"};// , "Locale Mensa"};
+
+int	main(void)
 {
-	event	*newEvent;
-	double p;
+	startSimulation();
+	return (0);
+}
 
-	//aggiorno i numeri nel centro
-	blocks[blockType].completedJobs++;
-	blocks[blockType].jobs--;
+int	startSimulation(void)
+{
+	clock 	*system_clock;
+	int		indexEvent;
+	double 	p = Random(); // 0<p<1
+
+	//initializing the global clock (see structs.h)
+	system_clock = (clock *) malloc(sizeof(clock));
+	if (system_clock == NULL)
+	{
+		printf("Error allocating system clock\n");
+		return (-1);
+	}
+	initClock(system_clock, p);
+	// adding first ARRIVAL event to eventList
+	initEventList(system_clock, eventList);
+	// initializing multi-stream lehmer generator
+	PlantSeeds(123456789);
+	// initializing each block of the system
+	initBlocks();
+	/* ---------------------------------------------------------- 
+     * Next-event Simulation of duration O_P with BLOCKS nodes FIFO M/M/1
+     * ---------------------------------------------------------- 
+    */
+	while ((system_clock->arrival < PERIODO)) // || (blocks[0].jobs > 0) || (blocks[1].jobs > 0) || (blocks[2].jobs > 0))
+	{
+		area *area;
+
+		indexEvent = getNextEventIndex(eventList);
+		system_clock->next = &eventList[indexEvent]; // setting next 
+		double time = system_clock->next->time;
+		for (int index = 0; index < BLOCKS; index++)
+		{
+			if (blocks[index].jobs > 0)
+			{
+				area = blocks[index].blockArea;
+				// FIXME: THIS IS WRONG!
+				area->node += (time - system_clock->current) * blocks[index].jobs;
+				area->queue += (time - system_clock->current) * (blocks[index].jobs - 1);
+				area->service += (time - system_clock->current);
+			}
+		}
+		// fast-forward time until next event
+		system_clock->current = system_clock->next->time;
+		// Managing the next event (arrival or completion)
+		if (system_clock->next->type == ARRIVAL || system_clock->next->type == IMMEDIATE_ARRIVAL)
+			arrival(system_clock->next->blockType, system_clock);
+		else
+			completion(system_clock->next->blockType, system_clock);
+		eventList[indexEvent].time = -1;
+		// printf("-------------------------\n");
+		// for (int j = 0; j < n; j++){
+		// 	printf("%lf\n", eventList[j].time);
+		// 	printf("%d\n", eventList[j].block_type);
+		// 	printf("%d\n", eventList[j].type);
+		// }
+		// printf("-------------------------\n");
+	}
+
+	// Show statistics
+	for (int i = 0; i < BLOCKS; i++)
+	{
+		printf("%s", blocks[i].name);
+		statistics stats; // stack-allocated
+		calculateStatistics(blocks[i].completedJobs, system_clock, blocks[i].blockArea, &stats);
+		showStatistics(&stats);
+		validateMM1(&blocks[i], &stats); 
+		// here stats are de-allocated
+	}
 	
-	switch (blockType)
-	{
-	case PRIMO:
-		p = completePrimoSecondo(newEvent, c, blockType);
-		//l'arrivo va nei 'secondi'
-		if (p < P_SECONDO_PRIMO)
-			newEvent = createEvent(SECONDO, IMMEDIATE_ARRIVAL, c->current);
-		//l'arrivo va nei 'dessert'
-		else if (p > P_SECONDO_PRIMO && p < P_SECONDO_PRIMO + P_DESSERT_PRIMO)
-			newEvent = createEvent(DESSERT, IMMEDIATE_ARRIVAL, c->current);
-		//l'arrivo va nelle casse
-		else	
-			return;
-			//newEvent = createEvent(SECONDO, IMMEDIATE_ARRIVAL, c->current);
-		break ;
-	case SECONDO:
-		p = completePrimoSecondo(newEvent, c, blockType);
-		//l'arrivo va nei 'dessert'
-		if (p < P_DESSERT_SECONDO)
-			newEvent = createEvent(DESSERT, IMMEDIATE_ARRIVAL, c->current);
-		//l'arrivo va nelle casse
-		else
-			return;
-			//newEvent = createEvent(SECONDO, IMMEDIATE_ARRIVAL, c->current);
-		break ;
-	case DESSERT:
-		if (blocks[DESSERT].jobs > 0)
-		{
-			newEvent = createEvent(DESSERT, COMPLETE, c->current);
-			break ;
+	// Free the heap
+	free(system_clock);
+	for (int i = 0; i < BLOCKS; i++){
+		if (blocks[i].blockArea != NULL){
+			free(blocks[i].blockArea);
 		}
-		else
-			return ;
 	}
-	if (newEvent->time > PERIODO)
-	{
-		c->last = c->current;
-		c->arrival = INF;
-	}
-	insertElement(eventList, newEvent, N);
-}
-
-void	arrival(int blockType, struct clock_t *c)
-{
-	event	*newEvent;
-	double p;
-
-	blocks[blockType].jobs++;
-
-	switch (blockType)
-	{
-	case PRIMO: case SECONDO:
-		p = Uniform(0, 1);
-		//l'arrivo va nei 'primi'
-		if (p < P_PRIMO_FUORI)
-			newEvent = createEvent(PRIMO, ARRIVAL, c->current);
-		//l'arrivo va nei 'secondi'
-		else
-			newEvent = createEvent(SECONDO, ARRIVAL, c->current);
-
-		insertElement(eventList, newEvent, N);
-		if (newEvent->time > PERIODO)
-		{
-			c->last = c->current;
-			c->arrival = INF;
-		}
-		if (blocks[blockType].jobs == 1)
-		{
-			newEvent = createEvent(blockType, COMPLETE, c->current);
-			break ;
-		}
-		else
-			return ;
-	case DESSERT:
-		if (blocks[DESSERT].jobs == 1)
-		{
-			newEvent = createEvent(DESSERT, COMPLETE, c->current);
-			break ;
-		}
-		else
-			return ;
-	}
-	if (newEvent->time > PERIODO)
-	{
-		c->last = c->current;
-		c->arrival = INF;
-	}
-	insertElement(eventList, newEvent, N);
+	return (0);
 }
 
 void	initBlocks(void)
 {
+	int len1 = COUNT_OF(names);
+	int len2 = COUNT_OF(blocks);
+	if (len1 != len2 || len1 != BLOCKS){
+		printf("Correggere: il numero di elementi nei nomi è diverso dal numero di elementi nei blocchi\n");
+		exit(-1);
+	}
+
 	for (int index = 0; index < BLOCKS; index++)
 	{
-		blocks[index].blockArea = malloc(sizeof(struct area));
+		blocks[index].blockArea = malloc(sizeof(area));
 		if (blocks[index].blockArea == NULL)
 		{
 			printf("Error Malloc\n");
@@ -139,116 +115,118 @@ void	initBlocks(void)
 		}
 		//struttura dati usata per per calcolare i time-averaged number rispettivamente
 		//nel nodo,in coda e in servizio.Sono calcolati come integrali
-	    memset(blocks[index].blockArea, 0x0, sizeof(struct area));
+		strncpy(blocks[index].name, names[index], strlen(names[index])+1);
+	    memset(blocks[index].blockArea, 0x0, sizeof(area));
 		blocks[index].completedJobs = 0;
 		blocks[index].jobs = 0;
-
 	}
 }
 
-int	gitMinEventIndex(void)
+void	arrival(int block_type, clock *c)
 {
-	int index = 0;
-	double min = eventList[index].time;
-	for (int i = 0; i < N; i++)
-	{
-		if (min < 0)
-		{
-			index++;
-			min = eventList[index].time;
-			continue ;
-		}
-		if (eventList[i].time < min && eventList[i].time > 0)
-		{
-			min = eventList[i].time;
-			index = i;
-		}
-	}
-
-	return index;
-}
-
-int	startSimulation(void)
-{
-	struct clock_t	*system_clock;
-	int				indexEvent;
 	double p;
 
-	//inizializzo il clock globale (vedi in struct.h)
-	system_clock = malloc(sizeof(struct clock_t));
-	if (system_clock == NULL)
-	{
-		printf("Error Malloc\n");
-		return (-1);
-	}
-	system_clock->current = START;
-	system_clock->arrival = getArrival(START, LAMBDA);
-	p = Uniform(0, 1);
-	//l'arrivo va nei 'primi'
-	if (p < P_PRIMO_FUORI)
-		system_clock->type = 0;
-	//l'arrivo va nei 'secondi'
-	else
-		system_clock->type = 1;
+	blocks[block_type].jobs++;
 
-	system_clock->completion = INF;
-	for (int i = 0; i < N; i++)
+	switch (block_type)
 	{
-		eventList[i].time = -1;
-	}
-	//aggiungo il primo evento di arrivo alla lista degli eventi
-	eventList[0].blockType = system_clock->type;
-	eventList[0].type = ARRIVAL;
-	eventList[0].time = getArrival(START, LAMBDA);
-	
-	PlantSeeds(123456789);
-	initBlocks();
-	/* ---------------------------------------------------------- 
-     * Next-event Simulation di durata O_P con 3 centri FIFO M/M/1
-     * ---------------------------------------------------------- 
-    */
-	while ((system_clock->arrival < PERIODO)) // || (blocks[0].jobs > 0) || (blocks[1].jobs > 0) || (blocks[2].jobs > 0))
-	{
-		indexEvent = gitMinEventIndex();
-		system_clock->next = &eventList[indexEvent];
-		struct area * area;
-		double time = system_clock->next->time;
-		for (int index = 0; index < BLOCKS; index++)
-		{
-			if (blocks[index].jobs > 0)
-			{
-				area = blocks[index].blockArea;
-				area->node += (time - system_clock->current) * blocks[index].jobs;
-				area->queue += (time - system_clock->current) * (blocks[index].jobs - 1);
-				area->service += (time - system_clock->current);
-			}
-		}
-		//porto avanti il tempo del sistema fino al primo evento
-		system_clock->current = system_clock->next->time;
-		if (system_clock->next->type == ARRIVAL || system_clock->next->type == IMMEDIATE_ARRIVAL)
-			arrival(system_clock->next->blockType, system_clock);
+	// ARRIVALS from outside can go in PRIMO or SECONDO
+	case PRIMO: case SECONDO:
+		p = Random(); // Uniform(0,1)
+		// arrival from outside goes into block PRIMO
+		if (p < P_PRIMO_FUORI)
+			createAndInsertEvent(eventList, N, PRIMO, ARRIVAL, c);
+		// arrival from outsidegoes into block SECONDO
 		else
-			complete(system_clock->next->blockType, system_clock);
-		eventList[indexEvent].time = -1;
-		// printf("-------------------------\n");
-		// for (int j = 0; j < n; j++){
-		// 	printf("%lf\n", eventList[j].time);
-		// 	printf("%d\n", eventList[j].blockType);
-		// 	printf("%d\n", eventList[j].type);
-		// }
-		// printf("-------------------------\n");
+			createAndInsertEvent(eventList, N, SECONDO, ARRIVAL, c);
+		
+		// if there is one job in PRIMO or SECONDO, we create a completion event. This must be added to the event list
+		if (blocks[block_type].jobs == 1) // TODO: forse qui bisogna mettere BUSY / IDLE
+			createAndInsertEvent(eventList, N, block_type, COMPLETION, c);
+		break ;
+	case DESSERT:
+		// here cannot arrive jobs from outside
+		if (blocks[DESSERT].jobs == 1)
+			createAndInsertEvent(eventList, N, DESSERT, COMPLETION, c);
+		break ;
+	case CASSA_FAST:
+		if (blocks[CASSA_FAST].jobs == 1)
+			createAndInsertEvent(eventList, N, CASSA_FAST, COMPLETION, c);
+		// here cannot arrive jobs from outside. Only from PRIMO and SECONDO
+		break;
+	case CASSA_STD:
+		// here cannot arrive jobs from outside. Only from SECONDO and DESSERT
+		if (blocks[CASSA_STD].jobs == 1)
+			createAndInsertEvent(eventList, N, CASSA_STD, COMPLETION, c);
+		break;
 	}
-	for (int i = 0; i < BLOCKS; i++)
-	{
-		showStatistics(blocks[i].completedJobs, system_clock,
-				blocks[i].blockArea);
-		printf("\n");
-	}
-	return (0);
 }
 
-int	main(void)
+// When we have a completion event
+void	completion(int blockType, clock *c)
 {
-	startSimulation();
-	return (0);
+	double p;
+
+	// update current and completed jobs
+	blocks[blockType].completedJobs++;
+	blocks[blockType].jobs--;
+	
+	switch (blockType)
+	{
+	case PRIMO:
+		// if there is at least one job in block PRIMO, we complete it
+		if (blocks[blockType].jobs > 0)
+			createAndInsertEvent(eventList, N, PRIMO, COMPLETION, c);
+
+		// we generate a routing probability
+		p = Random();
+
+		// to SECONDO from PRIMO
+		if (p < P_SECONDO_PRIMO)
+			createAndInsertEvent(eventList, N, SECONDO, IMMEDIATE_ARRIVAL, c);
+		// to DESSERT from PRIMO
+		else if (p > P_SECONDO_PRIMO && p < P_SECONDO_PRIMO + P_DESSERT_PRIMO)
+			createAndInsertEvent(eventList, N, DESSERT, IMMEDIATE_ARRIVAL, c);
+		// to CASSA_FAST from PRIMO
+		else
+			createAndInsertEvent(eventList, N, CASSA_FAST, IMMEDIATE_ARRIVAL, c);
+		break ;
+	case SECONDO:
+		// if there is at least one job in the node SECONDO, we complete it
+		if (blocks[blockType].jobs > 0)
+			createAndInsertEvent(eventList, N, SECONDO, COMPLETION, c);
+
+		// routing probability
+		p = Random();
+
+		// to DESSERT from SECONDO
+		if (p < P_DESSERT_SECONDO)
+			createAndInsertEvent(eventList, N, DESSERT, IMMEDIATE_ARRIVAL, c);
+		else if (1) // TODO: il dipendente ha preso due piatti
+			createAndInsertEvent(eventList, N, CASSA_STD, IMMEDIATE_ARRIVAL, c);
+		else // TODO: il dipendente ha preso solo un piatto...
+			createAndInsertEvent(eventList, N, CASSA_FAST, IMMEDIATE_ARRIVAL, c);
+		break;
+	case DESSERT:
+		// if there is at least one job in the node DESSERT, we complete it
+		if (blocks[DESSERT].jobs > 0)
+			createAndInsertEvent(eventList, N, DESSERT, COMPLETION, c);
+		// now we must go to CASSA_STD
+		createAndInsertEvent(eventList, N, CASSA_STD, IMMEDIATE_ARRIVAL, c);
+		break;
+	case CASSA_FAST:
+		// if there is at least one job in the node CASSA_FAST, we complete it
+		if (blocks[CASSA_FAST].jobs > 0)
+			createAndInsertEvent(eventList, N, CASSA_FAST, COMPLETION, c);
+		// TODO: from here we go to the seats space
+		// createAndInsertEvent(eventList, N, CONSUMAZIONE, IMMEDIATE_ARRIVAL, c);
+		break;
+	case CASSA_STD:
+		// if there is at least one job in the node CASSA_STD, we complete it
+		if (blocks[CASSA_STD].jobs > 0)
+			createAndInsertEvent(eventList, N, CASSA_STD, COMPLETION, c);
+		// TODO: also from here we go to the seats
+		// createAndInsertEvent(eventList, N, CONSUMAZIONE, IMMEDIATE_ARRIVAL, c);
+		break;
+	}
 }
