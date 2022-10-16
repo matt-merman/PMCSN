@@ -6,7 +6,7 @@
 
 #define USER 2500                  // number of
 #define HOUR (60*60)
-#define PERIODO (HOUR)       // periodo di osservazione in [s]
+#define PERIODO (3*HOUR)       // periodo di osservazione in [s]
 #define INF 100*PERIODO         // max int is 2147483647
 #define LAMBDA ((double) USER/(double) PERIODO)     // Arrivi da fuori
 

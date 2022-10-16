@@ -82,7 +82,7 @@ int	startSimulation(void)
 		//if (system_clock->arrival <= PERIODO)
 		//	printf("Next arrival time: %lf\n", system_clock->arrival);
 		// use \r instad of \n to print in one line
-		printf("Next Arrival time: %lf Cut-Off Time: %d jobs in blocks [%ld, %ld, %ld, %ld, %ld, %ld]\n", system_clock->arrival, PERIODO, 
+		printf("Next Arrival time: %lf Cut-Off Time: %d jobs in blocks [%ld, %ld, %ld, %ld, %ld, %ld]\r", system_clock->arrival, PERIODO, 
 				blocks[PRIMO].jobs, 
 				blocks[SECONDO].jobs, 
 				blocks[DESSERT].jobs,
