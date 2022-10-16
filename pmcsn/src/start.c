@@ -64,15 +64,25 @@ int	startSimulation(void)
 		system_clock->current = system_clock->next->time;
 		// Managing the next event (arrival or completion)
 		// FIND_SEGFAULT("prima di arrivi/completamenti");
-		if (system_clock->next->type == ARRIVAL || system_clock->next->type == IMMEDIATE_ARRIVAL)
-			arrival(system_clock->next->blockType, system_clock);
-		else
-			completion(system_clock->next->blockType, system_clock);
+		switch(system_clock->next->type){
+			case ARRIVAL:
+				outsideArrival(system_clock);
+				break;
+			case IMMEDIATE_ARRIVAL:
+				arrival(system_clock->next->blockType, system_clock);
+				break;
+			case COMPLETION:
+				completion(system_clock->next->blockType, system_clock);
+				break;
+			default:
+				break;
+		}
+			
 		clearEvent(eventIndex);
 		//if (system_clock->arrival <= PERIODO)
 		//	printf("Next arrival time: %lf\n", system_clock->arrival);
 		// use \r instad of \n to print in one line
-		printf("Next Arrival time: %lf Cut-Off Time: %d jobs in blocks [%ld, %ld, %ld, %ld, %ld, %ld]\r", system_clock->arrival, PERIODO, 
+		printf("Next Arrival time: %lf Cut-Off Time: %d jobs in blocks [%ld, %ld, %ld, %ld, %ld, %ld]\n", system_clock->arrival, PERIODO, 
 				blocks[PRIMO].jobs, 
 				blocks[SECONDO].jobs, 
 				blocks[DESSERT].jobs,
@@ -135,30 +145,41 @@ void	initBlocks(void)
 	}
 }
 
+void 	outsideArrival(clock *c)
+{
+	double p = Random();
+	if (p < P_PRIMO_FUORI){
+		blocks[PRIMO].jobs++;
+		createAndInsertEvent(OUTSIDE, PRIMO, ARRIVAL, c);
+		if (blocks[PRIMO].jobs == 1)
+			createAndInsertEvent(PRIMO, INSIDE, COMPLETION, c);
+	} else {
+		blocks[SECONDO].jobs++;
+		createAndInsertEvent(OUTSIDE, SECONDO, ARRIVAL, c);
+		if (blocks[SECONDO].jobs == 1) // TODO: forse qui bisogna mettere BUSY / IDLE
+			createAndInsertEvent(SECONDO, INSIDE, COMPLETION, c);
+	}
+}
+
 void	arrival(block_type target_block, clock *c)
 {
-	double p;
 	// increase number of job in the block by 1
-	if (isClockTerminated() && target_block == PRIMO){
-		return;
-	}
+	// if (isClockTerminated() && target_block == PRIMO){
+	// 	return;
+	// }
 	blocks[target_block].jobs++;
 
 	switch (target_block)
 	{
 	// ARRIVALS from outside can go in PRIMO or SECONDO
-	case PRIMO: case SECONDO:
-		p = Random(); // Uniform(0,1)
-		// arrival from outside goes into block PRIMO
-		if (p < P_PRIMO_FUORI)
-			createAndInsertEvent(OUTSIDE, PRIMO, ARRIVAL, c);
-		// arrival from outside goes into block SECONDO
-		else
-			createAndInsertEvent(OUTSIDE, SECONDO, ARRIVAL, c);
-		
+	case PRIMO: 
+		if (blocks[PRIMO].jobs == 1)
+			createAndInsertEvent(PRIMO, INSIDE, COMPLETION, c);
+		break;
+	case SECONDO:
 		// if there is one job in PRIMO or SECONDO, we create a completion event. This must be added to the event list
-		if (blocks[target_block].jobs == 1) // TODO: forse qui bisogna mettere BUSY / IDLE
-			createAndInsertEvent(target_block, INSIDE, COMPLETION, c);
+		if (blocks[SECONDO].jobs == 1) // TODO: forse qui bisogna mettere BUSY / IDLE
+			createAndInsertEvent(SECONDO, INSIDE, COMPLETION, c);
 		break ;
 	case DESSERT:
 		// here cannot arrive jobs from outside
