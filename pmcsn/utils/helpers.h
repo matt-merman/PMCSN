@@ -13,6 +13,7 @@
 #define MIN(x,y) ((x) > (y) ? (y) : (x))
 #define IS_EQUAL(x, y) ((MAX((x),(y)) - MIN((x),(y)) <= EPSILON) ? 1 : 0)
 #define IS_NOT_EQUAL(x, y) ((MAX((x),(y)) - MIN((x),(y)) <= EPSILON) ? 0 : 1)
+#define FIND_SEGFAULT(x) printf("I'm here: %s\n", (x))
 
 double	min(double a, double c);
 double	getArrival(double current, double lambda);

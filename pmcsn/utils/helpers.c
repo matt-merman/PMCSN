@@ -14,7 +14,7 @@ double	getArrival(double current, double lambda)
 
 	arrival = current;
 	SelectStream(0);
-	arrival += Exponential(1 / lambda);
+	arrival += Exponential(1/lambda);
 	return (arrival);
 }
 
