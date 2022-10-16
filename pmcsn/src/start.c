@@ -40,19 +40,27 @@ int	startSimulation(void)
      * Next-event Simulation of duration O_P with BLOCKS nodes FIFO M/M/1
      * ---------------------------------------------------------- 
     */
-	while ((system_clock->arrival < PERIODO)) // || (blocks[0].jobs > 0) || (blocks[1].jobs > 0) || (blocks[2].jobs > 0))
+   	// TODO: ci fermiamo quando il prossimo arrivo e' maggiore del periodo
+	while ((system_clock->arrival < PERIODO) || areThereRemainingJobs())
 	{
 		area *area;
 
 		indexEvent = getNextEventIndex(eventList);
 		system_clock->next = &eventList[indexEvent]; // setting next 
+		if (system_clock->next == NULL) {
+			system_clock->arrival = INF;
+			break;
+		}
 		double time = system_clock->next->time;
+		if (system_clock->next->type == ARRIVAL)
+		{
+			system_clock->arrival = time;
+		}
 		for (int index = 0; index < BLOCKS; index++)
 		{
 			if (blocks[index].jobs > 0)
 			{
 				area = blocks[index].blockArea;
-				// FIXME: THIS IS WRONG!
 				area->node += (time - system_clock->current) * blocks[index].jobs;
 				area->queue += (time - system_clock->current) * (blocks[index].jobs - 1);
 				area->service += (time - system_clock->current);
@@ -66,6 +74,15 @@ int	startSimulation(void)
 		else
 			completion(system_clock->next->blockType, system_clock);
 		eventList[indexEvent].time = -1;
+		/*if (system_clock->arrival <= PERIODO)
+			printf("Next arrival time: %lf\n", system_clock->arrival);*/
+		printf("Next Arrival time: %lf Period: %d Current time: %lf jobs in blocks [%ld, %ld, %ld, %ld, %ld, %d]\n", system_clock->arrival, PERIODO, system_clock->current, 
+				blocks[PRIMO].jobs, 
+				blocks[SECONDO].jobs, 
+				blocks[DESSERT].jobs,
+				blocks[CASSA_FAST].jobs,
+				blocks[CASSA_STD].jobs, 
+				0);
 		// printf("-------------------------\n");
 		// for (int j = 0; j < n; j++){
 		// 	printf("%lf\n", eventList[j].time);
@@ -122,10 +139,10 @@ void	initBlocks(void)
 	}
 }
 
-void	arrival(int block_type, clock *c)
+void	arrival(block_type block_type, clock *c)
 {
 	double p;
-
+	// increase number of job in the block by 1
 	blocks[block_type].jobs++;
 
 	switch (block_type)
@@ -163,11 +180,11 @@ void	arrival(int block_type, clock *c)
 }
 
 // When we have a completion event
-void	completion(int blockType, clock *c)
+void	completion(block_type blockType, clock *c)
 {
 	double p;
 
-	// update current and completed jobs
+	// update current and completed jobs in the block which has completed service
 	blocks[blockType].completedJobs++;
 	blocks[blockType].jobs--;
 	
@@ -229,4 +246,16 @@ void	completion(int blockType, clock *c)
 		// createAndInsertEvent(eventList, N, CONSUMAZIONE, IMMEDIATE_ARRIVAL, c);
 		break;
 	}
+}
+
+int areThereRemainingJobs()
+{
+	
+	for (int i = 0; i < BLOCKS; i++){
+		if (eventList[i].time!=-1){
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }

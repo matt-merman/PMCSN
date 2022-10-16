@@ -8,4 +8,4 @@ event*	createEvent(block_type blockType, event_type type, double time);
 void 	createAndInsertEvent(event list[], int len, block_type blockType, event_type eventType, clock *c);
 
 void    initClock(clock *system_clock, double p);
-void    checkClockTermination(clock *system_clock, event *e);
+int    checkClockTermination(clock *system_clock, event *e);

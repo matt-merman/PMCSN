@@ -7,7 +7,7 @@
 #define USER 2500                  // number of
 #define PERIODO (60*60)       // periodo di osservazione in [s]
 #define INF 100*PERIODO         // max int is 2147483647
-#define LAMBDA 0.2314      // Arrivi da fuori
+#define LAMBDA 0.01      // Arrivi da fuori
 
 //probabilità di arrivo nei tre time slots 
 #define P_ARRIVO_SLOT_1 0.28
@@ -47,4 +47,5 @@
 // Tempo (di servizio) per consumare il pasto e liberare il posto a sedere.
 #define S_CONSUMAZIONE (10*60) //10 min [s]
 
-
+#define TRUE 1
+#define FALSE 0

@@ -78,7 +78,7 @@ void 	initClock(clock *system_clock, double p)
 {
 	system_clock->current = START;
 	system_clock->arrival = getArrival(START, LAMBDA); // generate the first arrival from outside
-
+	// printf("First arrival: %lf\n", system_clock->arrival);
 	// The first job arrived goes into "first course"
 	if (p < P_PRIMO_FUORI)
 		system_clock->type = 0;
@@ -90,19 +90,24 @@ void 	initClock(clock *system_clock, double p)
 }
 
 // if time of event is greater than termination period, we stop the arrival flow.
-void checkClockTermination(clock *c, event *e)
+int checkClockTermination(clock *c, event *e)
 {
 	if (e->time > PERIODO)
 	{
 		c->last = c->current;
 		c->arrival = INF; // the next arrival will arrive at infinity
+		return TRUE;
 	}
+	return FALSE;
 }
 // creates an event, check if it's time is after the observation period and inserts it in the list.
 void 	createAndInsertEvent(event list[], int len, block_type blockType, event_type eventType, clock *c)
 {
 	event * e = createEvent(blockType, eventType, c->current);
-	checkClockTermination(c, e);
+	if(checkClockTermination(c, e)){
+		free(e);
+		return;
+	}
 	insertEvent(list, e, len);
 }
 

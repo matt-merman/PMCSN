@@ -9,8 +9,8 @@
 #include <string.h>
 
 double  completePrimoSecondo(event *newEvent, clock *c, int blockType);
-void	completion(int blockType, clock *c);
-void	arrival(int blockType, clock *c);
+void	completion(block_type blockType, clock *c);
+void	arrival(block_type blockType, clock *c);
 void	initBlocks(void);
-
+int     areThereRemainingJobs();
 int	    startSimulation(void);
