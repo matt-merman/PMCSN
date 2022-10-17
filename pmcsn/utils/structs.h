@@ -7,10 +7,7 @@ typedef enum block_types_t {
     DESSERT,
     CASSA_FAST,
     CASSA_STD,
-    CONSUMAZIONE,
-    OUTSIDE, // this is used when entering or exiting the network
-    INSIDE, // at the time of a completion with different routing possibility, we do not now where the job will go
-    DUMMY
+    CONSUMAZIONE
 } block_type;
 
 typedef enum event_type_t {
@@ -57,5 +54,15 @@ typedef struct statistics_t {
     float queuePopulation;
     float utilization;
 } statistics;
+
+typedef struct sum_t {               /* accumulated sums of                */
+    double service;                  /*   service times                    */
+    long   served;                   /*   number served                    */
+} sum;
+
+typedef struct server_t {
+    int status;  // {0=IDLE, 1=BUSY}
+    sum *sum;
+} server;
 
 #endif

@@ -143,15 +143,19 @@ int isClockTerminated()
 }
 
 // creates an event, check if it's time is after the observation period and inserts it in the list.
-void 	createAndInsertEvent(block_type target, event_type eventType, clock *c)
+double 	createAndInsertEvent(block_type target, event_type eventType, clock *c)
 {
 	event * e = createEvent(target, eventType, c->current);
 	// if we have a new outside arrival but in a time after the observation period, we skip it.
 	if(eventType == ARRIVAL && tryTerminateClock(c, e->time)){
 		free(e);
-		return;
+		return 0;
 	}
 	insertEvent(e);
+	// return value needed in multi-server blocks
+	//return (e->time - c->current); 
+	return e->time; 
+
 }
 
 event* getEvent(int eventIndex)

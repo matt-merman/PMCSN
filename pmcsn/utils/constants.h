@@ -5,7 +5,7 @@
 #define N (BLOCKS * (1 + POSTI_A_SEDERE))
 
 #define USER 2500                  // number of
-#define HOUR (60*60*3)
+#define HOUR (60*60)
 #define PERIODO (3*HOUR)       // periodo di osservazione in [s]
 #define INF 100*PERIODO         // max int is 2147483647
 #define LAMBDA ((double) USER/(double) PERIODO)     // Arrivi da fuori
@@ -29,11 +29,11 @@
 // Una volta preso il dessert, c'è il 100% di probabilità di andare alla cassa
 #define P_CASSA_DESSERT = 1.0
 
-// Probabilità di aver preso un solo piatto (primo o secondo)
-#define P_PIATTO [(P_PRIMO_FUORI * P_CASSA_PRIMO) + (P_SECONDO_FUORI * P_CASSA_SECONDO)]   
-// Probabilità di aver preso più di un piatto
-#define P_PIATTI [(P_PRIMO_FUORI * P_SECONDO_PRIMO * P_CASSA_SECONDO) + (P_PRIMO_FUORI * P_DESSERT_PRIMO) + (P_SECONDO_FUORI * P_DESSERT_SECONDO) + \
-                    + (P_PRIMO_FUORI * P_SECONDO_PRIMO + P_DESSERT_SECONDO)]
+// P(CASSA FAST DAI SECONDI) = P(ARRIVO DA FUORI AI SECONDI) * P (CASSA DAI SECONDI)
+#define P_CASSA_FAST_SECONDO (P_SECONDO_FUORI * P_CASSA_SECONDO)
+// P(CASSA STD DAI SECONDI) = P(ARRIVO AI SECONDI DAI PRIMI) * P (CASSA DAI SECONDI)
+#define P_CASSA_STD_SECONDO (P_SECONDO_PRIMO * P_CASSA_SECONDO)
+
 // Probabilità di mangiare altrove
 #define P_ALTROVE 0.18
 
@@ -50,3 +50,6 @@
 
 #define TRUE 1
 #define FALSE 0
+
+#define IDLE 0
+#define BUSY 1

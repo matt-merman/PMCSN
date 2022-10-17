@@ -1,4 +1,5 @@
 #include "helpers.h"
+#include "structs.h"
 
 double	min(double a, double c)
 {
@@ -51,15 +52,15 @@ void calculateStatistics(long int completedJobs, clock *clock, area *area, stati
 	stats->utilization = area->service / clock->current;
 }
 
-void	showStatistics(block *blocks, clock *clock)
+void showStatistics(block **blocks, clock *clock, server **servers)
 {
 
 	printf("\n====================================================================================================\n");
 	for (int i = 0; i < BLOCKS; i++)
 	{
-		printf("%s", blocks[i].name);
+		printf("%s", blocks[i]->name);
 		statistics stats; // stack-allocated
-		calculateStatistics(blocks[i].completedJobs, clock, blocks[i].blockArea, &stats);
+		calculateStatistics(blocks[i]->completedJobs, clock, blocks[i]->blockArea, &stats);
 		printf(": %ld people\n", stats.completedJobs);
 		printf("\taverage interarrival time = %6.2f\ts\n", stats.interarrivalTime);
 		printf("\taverage node wait ....... = %6.2f\ts\n", stats.wait);
@@ -68,9 +69,23 @@ void	showStatistics(block *blocks, clock *clock)
 		printf("\taverage # in the node ... = %6.2f\tpeople\n", stats.nodePopulation);
 		printf("\taverage # in the queue .. = %6.2f\tpeople\n", stats.queuePopulation);
 		printf("\tutilization ............. = %6.4f\t-\n", stats.utilization);
-		validateMM1(&blocks[i], &stats); 
+		validateMM1(blocks[i], &stats); 
 		// here stats are de-allocated
 	}
+
+	printf("\nthe server statistics are:\n\n");
+	printf("    server     utilization     avg service        share\n");
+	// WARNING: to better show the server statics a limited number of them are printed
+	//for (int s = 0; s < POSTI_A_SEDERE; s++){	
+	for (int s = 0; s < 10; s++){	
+		printf("%8d %14.3f %15.2f %15.3f\n", 
+				s, 
+				servers[s]->sum->service / clock->current, 
+				servers[s]->sum->service / servers[s]->sum->served,
+            	(double) servers[s]->sum->served / blocks[CONSUMAZIONE]->completedJobs);
+	}
+  	printf("\n");
+
 }
 
 void validateMM1(block* block, statistics* stats){
@@ -86,10 +101,19 @@ void validateMM1(block* block, statistics* stats){
 	}
 }
 
-void clearMem(block *blocks){
+void clearMem(block **blocks, server **servers){
 	for (int i = 0; i < BLOCKS; i++){
-		if (blocks[i].blockArea != NULL){
-			free(blocks[i].blockArea);
+		if (blocks[i]->blockArea != NULL){
+			free(blocks[i]->blockArea);
 		}
+	}
+	for (int i = 0; i < POSTI_A_SEDERE; i++){
+		if (servers[i]->sum != NULL){
+			free(servers[i]->sum);
+		}
+		if (servers[i] != NULL){
+			free(servers[i]);
+		}
+		
 	}
 }

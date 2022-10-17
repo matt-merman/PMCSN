@@ -5,7 +5,7 @@ void    initEventList(clock* system_clock);
 int	    getNextEventIndex();
 void	insertEvent(event *elem);
 event*	createEvent(block_type target, event_type type, double time);
-void 	createAndInsertEvent(block_type target, event_type eventType, clock *c);
+double 	createAndInsertEvent(block_type target, event_type eventType, clock *c);
 
 void    initClock(clock *system_clock, double p);
 int     tryTerminateClock(clock *system_clock, double time);
