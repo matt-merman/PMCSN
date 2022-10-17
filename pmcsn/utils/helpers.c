@@ -51,16 +51,26 @@ void calculateStatistics(long int completedJobs, clock *clock, area *area, stati
 	stats->utilization = area->service / clock->current;
 }
 
-void	showStatistics(statistics *stats)
+void	showStatistics(block *blocks, clock *clock)
 {
-	printf(": %ld people\n", stats->completedJobs);
-	printf("\taverage interarrival time = %6.2f\ts\n", stats->interarrivalTime);
-	printf("\taverage node wait ....... = %6.2f\ts\n", stats->wait);
-	printf("\taverage queue delay ..... = %6.2f\ts\n", stats->delay);
-	printf("\taverage service time .... = %6.2f\ts\n", stats->serviceTime);
-	printf("\taverage # in the node ... = %6.2f\tpeople\n", stats->nodePopulation);
-	printf("\taverage # in the queue .. = %6.2f\tpeople\n", stats->queuePopulation);
-	printf("\tutilization ............. = %6.4f\t-\n", stats->utilization);
+
+	printf("\n====================================================================================================\n");
+	for (int i = 0; i < BLOCKS; i++)
+	{
+		printf("%s", blocks[i].name);
+		statistics stats; // stack-allocated
+		calculateStatistics(blocks[i].completedJobs, clock, blocks[i].blockArea, &stats);
+		printf(": %ld people\n", stats.completedJobs);
+		printf("\taverage interarrival time = %6.2f\ts\n", stats.interarrivalTime);
+		printf("\taverage node wait ....... = %6.2f\ts\n", stats.wait);
+		printf("\taverage queue delay ..... = %6.2f\ts\n", stats.delay);
+		printf("\taverage service time .... = %6.2f\ts\n", stats.serviceTime);
+		printf("\taverage # in the node ... = %6.2f\tpeople\n", stats.nodePopulation);
+		printf("\taverage # in the queue .. = %6.2f\tpeople\n", stats.queuePopulation);
+		printf("\tutilization ............. = %6.4f\t-\n", stats.utilization);
+		validateMM1(&blocks[i], &stats); 
+		// here stats are de-allocated
+	}
 }
 
 void validateMM1(block* block, statistics* stats){
@@ -73,5 +83,13 @@ void validateMM1(block* block, statistics* stats){
 	{
 		printf("Population of block    %18s: %6.2lf,\tbut it's not equal to queue plus service population: \t%6.2lf\n",
 			   block->name, stats->nodePopulation, stats->queuePopulation + stats->utilization);
+	}
+}
+
+void clearMem(block *blocks){
+	for (int i = 0; i < BLOCKS; i++){
+		if (blocks[i].blockArea != NULL){
+			free(blocks[i].blockArea);
+		}
 	}
 }

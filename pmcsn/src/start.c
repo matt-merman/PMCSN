@@ -89,33 +89,15 @@ int	startSimulation(void)
 				blocks[CASSA_FAST].jobs,
 				blocks[CASSA_STD].jobs, 
 				blocks[CONSUMAZIONE].jobs);
-		// printf("-------------------------\n");
-		// for (int j = 0; j < n; j++){
-		// 	printf("%lf\n", eventList[j].time);
-		// 	printf("%d\n", eventList[j].block_type);
-		// 	printf("%d\n", eventList[j].type);
-		// }
-		// printf("-------------------------\n");
 	}
-	printf("\n====================================================================================================\n");
+	
 	// Show statistics
-	for (int i = 0; i < BLOCKS; i++)
-	{
-		printf("%s", blocks[i].name);
-		statistics stats; // stack-allocated
-		calculateStatistics(blocks[i].completedJobs, system_clock, blocks[i].blockArea, &stats);
-		showStatistics(&stats);
-		validateMM1(&blocks[i], &stats); 
-		// here stats are de-allocated
-	}
+	showStatistics(blocks, system_clock);
 	
 	// Free the heap
 	free(system_clock);
-	for (int i = 0; i < BLOCKS; i++){
-		if (blocks[i].blockArea != NULL){
-			free(blocks[i].blockArea);
-		}
-	}
+	clearMem(blocks);
+
 	return (0);
 }
 
@@ -148,17 +130,16 @@ void	initBlocks(void)
 void 	outsideArrival(clock *c)
 {
 	double p = Random();
-	if (p < P_PRIMO_FUORI){
-		blocks[PRIMO].jobs++;
-		createAndInsertEvent(OUTSIDE, PRIMO, ARRIVAL, c);
-		if (blocks[PRIMO].jobs == 1)
-			createAndInsertEvent(PRIMO, INSIDE, COMPLETION, c);
-	} else {
-		blocks[SECONDO].jobs++;
-		createAndInsertEvent(OUTSIDE, SECONDO, ARRIVAL, c);
-		if (blocks[SECONDO].jobs == 1) // TODO: forse qui bisogna mettere BUSY / IDLE
-			createAndInsertEvent(SECONDO, INSIDE, COMPLETION, c);
-	}
+	int block_type;
+	if (p < P_PRIMO_FUORI)
+		block_type = PRIMO;
+	else
+		block_type = SECONDO;
+	
+	blocks[block_type].jobs++;
+	createAndInsertEvent(block_type, ARRIVAL, c);
+	if (blocks[block_type].jobs == 1) // TODO: forse qui bisogna mettere BUSY / IDLE
+		createAndInsertEvent(block_type, COMPLETION, c);
 }
 
 void	arrival(block_type target_block, clock *c)
@@ -168,44 +149,11 @@ void	arrival(block_type target_block, clock *c)
 	// 	return;
 	// }
 	blocks[target_block].jobs++;
-
-	switch (target_block)
-	{
-	// ARRIVALS from outside can go in PRIMO or SECONDO
-	case PRIMO: 
-		if (blocks[PRIMO].jobs == 1)
-			createAndInsertEvent(PRIMO, INSIDE, COMPLETION, c);
-		break;
-	case SECONDO:
-		// if there is one job in PRIMO or SECONDO, we create a completion event. This must be added to the event list
-		if (blocks[SECONDO].jobs == 1) // TODO: forse qui bisogna mettere BUSY / IDLE
-			createAndInsertEvent(SECONDO, INSIDE, COMPLETION, c);
-		break ;
-	case DESSERT:
-		// here cannot arrive jobs from outside
-		if (blocks[DESSERT].jobs == 1)
-			createAndInsertEvent(DESSERT, CASSA_STD, COMPLETION, c);
-		break ;
-	case CASSA_FAST:
-		if (blocks[CASSA_FAST].jobs == 1)
-			createAndInsertEvent(CASSA_FAST, CONSUMAZIONE, COMPLETION, c);
-		// here cannot arrive jobs from outside. Only from PRIMO and SECONDO
-		break;
-	case CASSA_STD:
-		// here cannot arrive jobs from outside. Only from SECONDO and DESSERT
-		if (blocks[CASSA_STD].jobs == 1)
-			createAndInsertEvent(CASSA_STD, CONSUMAZIONE, COMPLETION, c);
-		break;
-	case CONSUMAZIONE:
-		if (blocks[CONSUMAZIONE].jobs == 1)
-			createAndInsertEvent(CONSUMAZIONE, OUTSIDE, COMPLETION, c);
-		break;
-	default:
-		break;
-	}
+	// IMMEDIATE_ARRIVAL starts from SECONDO. PRIMO has only external arrivals 
+	if (blocks[target_block].jobs == 1)
+		createAndInsertEvent(target_block, COMPLETION, c);
 }
 
-// When we have a completion event
 void	completion(block_type blockType, clock *c)
 {
 	double p;
@@ -213,67 +161,42 @@ void	completion(block_type blockType, clock *c)
 	// update current and completed jobs in the block which has completed service
 	blocks[blockType].completedJobs++;
 	blocks[blockType].jobs--;
-	
+	// if there is at least one more job in blockType, we complete it
+	if (blocks[blockType].jobs > 0)
+		createAndInsertEvent(blockType, COMPLETION, c);
 	switch (blockType)
 	{
 	case PRIMO:
-		// if there is at least one more job in block PRIMO, we complete it
-		if (blocks[blockType].jobs > 0)
-			createAndInsertEvent(PRIMO, INSIDE, COMPLETION, c);
-
-		// we generate a routing probability
-		p = Random();
-
-		// to SECONDO from PRIMO
-		if (p < P_SECONDO_PRIMO)
-			createAndInsertEvent(PRIMO, SECONDO, IMMEDIATE_ARRIVAL, c);
-		// to DESSERT from PRIMO
-		else if (p > P_SECONDO_PRIMO && p < P_SECONDO_PRIMO + P_DESSERT_PRIMO)
-			createAndInsertEvent(PRIMO, DESSERT, IMMEDIATE_ARRIVAL, c);
-		// to CASSA_FAST from PRIMO
-		else
-			createAndInsertEvent(PRIMO, CASSA_FAST, IMMEDIATE_ARRIVAL, c);
-		break ;
-	case SECONDO:
-		// if there is at least one job in the node SECONDO, we complete it
-		if (blocks[blockType].jobs > 0)
-			createAndInsertEvent(SECONDO, INSIDE, COMPLETION, c);
-
 		// routing probability
 		p = Random();
-
+		// to SECONDO from PRIMO
+		if (p < P_SECONDO_PRIMO)
+			createAndInsertEvent(SECONDO, IMMEDIATE_ARRIVAL, c);
+		// to DESSERT from PRIMO
+		else if (p > P_SECONDO_PRIMO && p < P_SECONDO_PRIMO + P_DESSERT_PRIMO)
+			createAndInsertEvent(DESSERT, IMMEDIATE_ARRIVAL, c);
+		// to CASSA_FAST from PRIMO
+		else
+			createAndInsertEvent(CASSA_FAST, IMMEDIATE_ARRIVAL, c);
+		break ;
+	case SECONDO:
+		// routing probability
+		p = Random();
 		// to DESSERT from SECONDO
 		if (p < P_DESSERT_SECONDO)
-			createAndInsertEvent(SECONDO, DESSERT, IMMEDIATE_ARRIVAL, c);
+			createAndInsertEvent(DESSERT, IMMEDIATE_ARRIVAL, c);
 		else if (1) // TODO: il dipendente ha preso due piatti
-			createAndInsertEvent(SECONDO, CASSA_STD, IMMEDIATE_ARRIVAL, c);
+			createAndInsertEvent(CASSA_STD, IMMEDIATE_ARRIVAL, c);
 		else // TODO: il dipendente ha preso solo un piatto...
-			createAndInsertEvent(SECONDO, CASSA_FAST, IMMEDIATE_ARRIVAL, c);
+			createAndInsertEvent(CASSA_FAST, IMMEDIATE_ARRIVAL, c);
 		break;
 	case DESSERT:
-		// if there is at least one job in the node DESSERT, we complete it
-		if (blocks[DESSERT].jobs > 0)
-			createAndInsertEvent(DESSERT, CASSA_STD, COMPLETION, c);
-		// now we must go to CASSA_STD
-		createAndInsertEvent(DESSERT, CASSA_STD, IMMEDIATE_ARRIVAL, c);
+		// now we must go to CASSA_STD: if a user passes by DESSERT, he/she owns at least two plates 
+		createAndInsertEvent(CASSA_STD, IMMEDIATE_ARRIVAL, c);
 		break;
-	case CASSA_FAST:
-		// if there is at least one job in the node CASSA_FAST, we complete it
-		if (blocks[CASSA_FAST].jobs > 0)
-			createAndInsertEvent(CASSA_FAST, CONSUMAZIONE, COMPLETION, c);
+	case CASSA_FAST: case CASSA_STD:
 		// from here we go to the seats space
-		createAndInsertEvent(CASSA_FAST, CONSUMAZIONE, IMMEDIATE_ARRIVAL, c);
-		break;
-	case CASSA_STD:
-		// if there is at least one job in the node CASSA_STD, we complete it
-		if (blocks[CASSA_STD].jobs > 0)
-			createAndInsertEvent(CASSA_STD, CONSUMAZIONE, COMPLETION, c);
-		// also from here we go to the seats
-		createAndInsertEvent(CASSA_STD, CONSUMAZIONE, IMMEDIATE_ARRIVAL, c);
-		break;
-	case CONSUMAZIONE:
-		if (blocks[CONSUMAZIONE].jobs > 0)
-			createAndInsertEvent(CONSUMAZIONE, OUTSIDE, COMPLETION, c);
+		createAndInsertEvent(CONSUMAZIONE, IMMEDIATE_ARRIVAL, c);
 		break;
 	default:
 		break;

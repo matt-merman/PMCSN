@@ -73,16 +73,12 @@ char * to_str(block_type btype){
 			return "CASSA_STD";
 		case CONSUMAZIONE:
 			return "CONSUMAZIONE";
-		case OUTSIDE:
-			return "OUTSIDE";
-		case INSIDE:
-			return "INSIDE";
 		default:
 			return "";
 	}
 }
 
-event	*createEvent(block_type source, block_type target, event_type type, double time)
+event	*createEvent(block_type target, event_type type, double time)
 {
 	// char* source_str = to_str(source); 
 	// char* target_str = to_str(target);
@@ -103,9 +99,9 @@ event	*createEvent(block_type source, block_type target, event_type type, double
 		newEvent->time = time;
 		//printf("New arrival from block %s to block %s. Time: %lf s\n", source_str, target_str, newEvent->time);
 	} else{
-		newEvent->blockType = source;
-		int stream = source + 1; 
-		newEvent->time = time + getService(source, stream);
+		newEvent->blockType = target;
+		int stream = target + 1; 
+		newEvent->time = time + getService(target, stream);
 		//printf("New completion from block %s to %s. Time: %lf s\n", source_str, target_str, newEvent->time);
 	}
 	return newEvent;
@@ -147,9 +143,9 @@ int isClockTerminated()
 }
 
 // creates an event, check if it's time is after the observation period and inserts it in the list.
-void 	createAndInsertEvent(block_type source, block_type target, event_type eventType, clock *c)
+void 	createAndInsertEvent(block_type target, event_type eventType, clock *c)
 {
-	event * e = createEvent(source, target, eventType, c->current);
+	event * e = createEvent(target, eventType, c->current);
 	// if we have a new outside arrival but in a time after the observation period, we skip it.
 	if(eventType == ARRIVAL && tryTerminateClock(c, e->time)){
 		free(e);

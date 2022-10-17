@@ -9,7 +9,8 @@ typedef enum block_types_t {
     CASSA_STD,
     CONSUMAZIONE,
     OUTSIDE, // this is used when entering or exiting the network
-    INSIDE // at the time of a completion with different routing possibility, we do not now where the job will go
+    INSIDE, // at the time of a completion with different routing possibility, we do not now where the job will go
+    DUMMY
 } block_type;
 
 typedef enum event_type_t {

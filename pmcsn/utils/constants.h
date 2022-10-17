@@ -5,7 +5,7 @@
 #define N (BLOCKS * (1 + POSTI_A_SEDERE))
 
 #define USER 2500                  // number of
-#define HOUR (60*60)
+#define HOUR (60*60*3)
 #define PERIODO (3*HOUR)       // periodo di osservazione in [s]
 #define INF 100*PERIODO         // max int is 2147483647
 #define LAMBDA ((double) USER/(double) PERIODO)     // Arrivi da fuori
