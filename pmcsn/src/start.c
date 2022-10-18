@@ -7,6 +7,11 @@ block	*blocks[BLOCKS];
 // servers array in 'CONSUMAZIONE' block
 server *servers[POSTI_A_SEDERE];
 
+// variable used to check if the refusing jobs percentage in 'CONSUMAZIONE' 
+// is equal to P_ALTROVE
+double checkVar;
+double totalJobs;
+
 // Nomi dei blocchi
 const char*  names[] = {"Primi", "Secondi e Contorni", "Frutta e Dessert", "Casse Fast", "Casse standard", "Locale Mensa"};
 
@@ -20,12 +25,30 @@ int	main(void)
 	return (0);
 }
 
+int 	findBusyServer()
+{
+	for (int i = 0; i < POSTI_A_SEDERE; i++){
+		if (servers[i]->status == BUSY)
+			return i;
+	}
+	return -1;
+}
+
+int 	findIdleServer()
+{
+	for (int i = 0; i < POSTI_A_SEDERE; i++){
+		if (servers[i]->status == IDLE)
+			return i;
+	}
+	return -1;
+}
+
 int	startSimulation(void)
 {
 	clock 	*system_clock;
 	int		eventIndex;
 	double 	p = Random(); // 0<p<1
-
+	checkVar = 0, totalJobs = 0;
 	//initializing the global clock (see structs.h)
 	system_clock = (clock *) malloc(sizeof(clock));
 	if (system_clock == NULL)
@@ -41,7 +64,7 @@ int	startSimulation(void)
 	// initializing each block of the system
 	initBlocks();
    	// TODO: ci fermiamo quando il prossimo arrivo e' maggiore del periodo
-	while ((system_clock->arrival < PERIODO) || areThereMoreEvents())
+	while ((system_clock->arrival < PERIODO) || areThereMoreEvents() || (findBusyServer() != -1))
 	{
 		area *area;
 		// FIND_SEGFAULT("prima di prendere index");
@@ -96,6 +119,9 @@ int	startSimulation(void)
 	}
 	// Show statistics
 	showStatistics(blocks, system_clock, servers);
+	
+	printf("Percentage of rejected jobs: %lf\n", checkVar/totalJobs);
+
 	// Free the heap
 	free(system_clock);
 	clearMem(blocks, servers);
@@ -140,16 +166,6 @@ void	initBlocks(void)
 	}
 }
 
-// return the index of an idle server
-int 	findServer()
-{
-	for (int i = 0; i < POSTI_A_SEDERE; i++){
-		if (servers[i]->status == IDLE)
-			return i;
-	}
-	return -1;
-}
-
 void 	outsideArrival(clock *c)
 {
 	double p = Random();
@@ -171,11 +187,12 @@ void	arrival(block_type target_block, clock *c)
 	// if (isClockTerminated() && target_block == PRIMO){
 	// 	return;
 	// }
-	blocks[target_block]->jobs++;
 	if (target_block == CONSUMAZIONE){
-		int s = findServer();
+		int s = findIdleServer();
+		totalJobs++;
 		// found an idle server
 		if (s != -1){
+			blocks[target_block]->jobs++;
 			double serviceTime = createAndInsertEvent(target_block, COMPLETION, c);
 			servers[s]->sum->service += serviceTime;
 			servers[s]->sum->served ++;
@@ -183,9 +200,10 @@ void	arrival(block_type target_block, clock *c)
 		}else{
 			// enqueue the job if there's a queue
 			// or discard it
-			// ...
+			checkVar++;
 		}
 	}else{
+		blocks[target_block]->jobs++;
 		// IMMEDIATE_ARRIVAL starts from SECONDO. PRIMO has only external arrivals 
 		if (blocks[target_block]->jobs == 1)
 			createAndInsertEvent(target_block, COMPLETION, c);
@@ -201,7 +219,7 @@ void	completion(block_type blockType, clock *c)
 	blocks[blockType]->completedJobs++;
 	blocks[blockType]->jobs--;
 	// if there is at least one more job in blockType, we complete it
-	if (blocks[blockType]->jobs > 0)
+	if ((blockType != CONSUMAZIONE) && (blocks[blockType]->jobs > 0))
 		createAndInsertEvent(blockType, COMPLETION, c);
 	switch (blockType)
 	{
@@ -238,10 +256,9 @@ void	completion(block_type blockType, clock *c)
 		createAndInsertEvent(CONSUMAZIONE, IMMEDIATE_ARRIVAL, c);
 		break;
 	case CONSUMAZIONE:
-		s = findServer();
-		// set an idle a server
-		if (s > 0)
-			servers[s-1]->status = IDLE;
+		s = findBusyServer();
+		if (s != -1)
+			servers[s]->status = IDLE;
 		break;
 	default:
 		break;

@@ -69,20 +69,17 @@ void showStatistics(block **blocks, clock *clock, server **servers)
 		printf("\taverage # in the node ... = %6.2f\tpeople\n", stats.nodePopulation);
 		printf("\taverage # in the queue .. = %6.2f\tpeople\n", stats.queuePopulation);
 		printf("\tutilization ............. = %6.4f\t-\n", stats.utilization);
-		validateMM1(blocks[i], &stats); 
+		validateMM1(blocks[i], &stats);
 		// here stats are de-allocated
 	}
 
 	printf("\nthe server statistics are:\n\n");
-	printf("    server     utilization     avg service        share\n");
-	// WARNING: to better show the server statics a limited number of them are printed
-	//for (int s = 0; s < POSTI_A_SEDERE; s++){	
-	for (int s = 0; s < 10; s++){	
-		printf("%8d %14.3f %15.2f %15.3f\n", 
+	printf("    server     utilization     avg service\n");
+	for (int s = 0; s < POSTI_A_SEDERE; s++){	
+		printf("%8d %14.3f %15.2f\n", 
 				s, 
 				servers[s]->sum->service / clock->current, 
-				servers[s]->sum->service / servers[s]->sum->served,
-            	(double) servers[s]->sum->served / blocks[CONSUMAZIONE]->completedJobs);
+				servers[s]->sum->service / servers[s]->sum->served);
 	}
   	printf("\n");
 

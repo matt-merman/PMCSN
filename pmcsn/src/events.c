@@ -153,7 +153,6 @@ double 	createAndInsertEvent(block_type target, event_type eventType, clock *c)
 	}
 	insertEvent(e);
 	// return value needed in multi-server blocks
-	//return (e->time - c->current); 
 	return e->time; 
 
 }
@@ -175,12 +174,10 @@ void clearEvent(int eventIndex)
 
 int areThereMoreEvents()
 {
-	
 	for (int i = 0; i < BLOCKS; i++){
 		if (eventList[i].time!=-1){
 			return TRUE;
 		}
 	}
-
 	return FALSE;
 }

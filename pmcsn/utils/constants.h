@@ -1,7 +1,7 @@
 #define BLOCKS 6
 #define START 0
 #define NUM_CASSE 2
-#define POSTI_A_SEDERE 1000
+#define POSTI_A_SEDERE 50
 #define N (BLOCKS * (1 + POSTI_A_SEDERE))
 
 #define USER 2500                  // number of
@@ -25,14 +25,11 @@
 
 #define P_DESSERT_SECONDO 0.45  // probabilità di prendere il dessert dopo aver preso il secondo
 #define P_CASSA_SECONDO 0.55    // probabilità di andare alla cassa dopo aver preso il secondo
+#define P_CASSA_FAST_SECONDO (P_SECONDO_FUORI * P_CASSA_SECONDO)
+#define P_CASSA_STD_SECONDO (P_PRIMO_FUORI * P_CASSA_SECONDO)
 
 // Una volta preso il dessert, c'è il 100% di probabilità di andare alla cassa
 #define P_CASSA_DESSERT = 1.0
-
-// P(CASSA FAST DAI SECONDI) = P(ARRIVO DA FUORI AI SECONDI) * P (CASSA DAI SECONDI)
-#define P_CASSA_FAST_SECONDO (P_SECONDO_FUORI * P_CASSA_SECONDO)
-// P(CASSA STD DAI SECONDI) = P(ARRIVO AI SECONDI DAI PRIMI) * P (CASSA DAI SECONDI)
-#define P_CASSA_STD_SECONDO (P_SECONDO_PRIMO * P_CASSA_SECONDO)
 
 // Probabilità di mangiare altrove
 #define P_ALTROVE 0.18
