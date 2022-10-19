@@ -20,13 +20,14 @@ typedef struct event_t{
     block_type blockType;
     double time;
     event_type type; //0 = arrival; 1 = completion
+    // int target_server; // 1 if is M/M/1
 } event;
 
 typedef struct clock_t{
     double arrival;                 /* next arrival time                   */
     double completion;              /* next completion time                */
     double current;                 /* current time                        */
-    event* next;             /* next (most imminent) event time     */
+    event* next;                    /* next (most imminent) event time     */
     double last;                    /* last arrival time                   */
     int type;
 } clock;

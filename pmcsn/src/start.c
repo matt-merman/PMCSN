@@ -92,12 +92,15 @@ int	startSimulation(void)
 		// FIND_SEGFAULT("prima di arrivi/completamenti");
 		switch(system_clock->next->type){
 			case ARRIVAL:
+				// outsideArrival(system_clock, server_id);
 				outsideArrival(system_clock);
 				break;
 			case IMMEDIATE_ARRIVAL:
+				// arrival(system_clock->next->blockType, server_id);
 				arrival(system_clock->next->blockType, system_clock);
 				break;
 			case COMPLETION:
+				// completion(system_clock->next->blockType, system_clock, server_id);
 				completion(system_clock->next->blockType, system_clock);
 				break;
 			default:
@@ -165,29 +168,40 @@ void	initBlocks(void)
 	   	memset(servers[s]->sum, 0x0, sizeof(sum));
 	}
 }
-
+// void outsideArrival(clock *c, int server_id)
 void 	outsideArrival(clock *c)
 {
 	double p = Random();
 	int block_type;
-	if (p < P_PRIMO_FUORI)
+	if (p < P_PRIMO_FUORI){
 		block_type = PRIMO;
-	else
+		// if (server_id < 1 || server_id > SERVER_PRIMI) {
+		// 		printf("Error: server_id out of bound for block_type %s", to_str(block_type));
+		// 		exit(-1);
+		// }
+	}	
+	else{
 		block_type = SECONDO;
+		// if (server_id < 1 || server_id > SERVER_SECONDI) {
+		// 		printf("Error: server_id out of bound for block_type %s", to_str(block_type));
+		// 		exit(-1);
+		// }
+	}
 	
 	blocks[block_type]->jobs++;
 	createAndInsertEvent(block_type, ARRIVAL, c);
 	if (blocks[block_type]->jobs == 1) // TODO: forse qui bisogna mettere BUSY / IDLE
 		createAndInsertEvent(block_type, COMPLETION, c);
 }
-
+// void arrival(block_type target_block, clock *c, int server_id)
 void	arrival(block_type target_block, clock *c)
 {
 	// increase number of job in the block by 1
-	// if (isClockTerminated() && target_block == PRIMO){
-	// 	return;
-	// }
 	if (target_block == CONSUMAZIONE){
+		// if (server_id < 1 || server_id > POSTI_A_SEDERE) {
+		// 		printf("Error: server_id out of bound for block_type %s", to_str(target_block));
+		// 		exit(-1);
+		// }
 		int s = findIdleServer();
 		totalJobs++;
 		// found an idle server
@@ -203,18 +217,22 @@ void	arrival(block_type target_block, clock *c)
 			checkVar++;
 		}
 	}else{
+	// if (server_id < 1 || server_id > ?) { // TODO:  nel limite superiore fare la distinzione tra i vari blocchi. Ad esempio prendere il MAX tra i vari numeri di serventi.
+	// 		printf("Error: server_id out of bound for block_type %s", to_str(target_block));
+	// 		exit(-1);
+	// }
 		blocks[target_block]->jobs++;
 		// IMMEDIATE_ARRIVAL starts from SECONDO. PRIMO has only external arrivals 
 		if (blocks[target_block]->jobs == 1)
 			createAndInsertEvent(target_block, COMPLETION, c);
 	}
 }
-
+// void completion(block_type blockType, clock *c, int server_id)
 void	completion(block_type blockType, clock *c)
 {
 	double p;
 	int s;
-
+	// TODO: Add check for server_id
 	// update current and completed jobs in the block which has completed service
 	blocks[blockType]->completedJobs++;
 	blocks[blockType]->jobs--;

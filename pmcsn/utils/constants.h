@@ -1,19 +1,24 @@
 #define BLOCKS 6
 #define START 0
-#define NUM_CASSE 2
+// Parameters for multiserver
+#define SERVER_PRIMI 1
+#define SERVER_SECONDI 1
+#define SERVER_DESSERT 1
+#define NUM_CASSE_FAST 1
+#define NUM_CASSE_STD 1
 #define POSTI_A_SEDERE 50
 #define N (BLOCKS * (1 + POSTI_A_SEDERE))
 
-#define USER 2500                  // number of
+#define USER 2500                                   // number of mean user in observation period
 #define HOUR (60*60)
-#define PERIODO (3*HOUR)       // periodo di osservazione in [s]
-#define INF 100*PERIODO         // max int is 2147483647
-#define LAMBDA ((double) USER/(double) PERIODO)     // Arrivi da fuori
+#define PERIODO (3*HOUR)                            // observation period in seconds
+#define INF 100*PERIODO                             // max int is 2147483647
+#define LAMBDA ((double) USER/(double) PERIODO)     // Mean outside arrivals
 
-//probabilità di arrivo nei tre time slots 
-#define P_ARRIVO_SLOT_1 0.28
-#define P_ARRIVO_SLOT_2 0.55
-#define P_ARRIVO_SLOT_3 0.17
+// TODO: probabilità di arrivo nei tre time slots 
+#define P_ARRIVO_SLOT_1 0.28 // maybe (double) USER * 0.20 /(double) PERIODO
+#define P_ARRIVO_SLOT_2 0.55 // maybe (double) USER * 0.55 /(double) PERIODO
+#define P_ARRIVO_SLOT_3 0.17 // maybe (double) USER * 0.25 /(double) PERIODO
 
 //notazione probabilità di routing: P_[dest]_[source]
 #define P_PRIMO_FUORI 0.75      // Probabilità di prendere il primo arrivando da fuori
@@ -31,10 +36,10 @@
 // Una volta preso il dessert, c'è il 100% di probabilità di andare alla cassa
 #define P_CASSA_DESSERT = 1.0
 
-// Probabilità di mangiare altrove
+// TODO: Probabilità di mangiare altrove
 #define P_ALTROVE 0.18
 
-// Tempi di servizio [s]
+// Service time for each server in each block
 #define S_PRIMO 15
 #define S_SECONDO 15
 #define S_DESSERT 10 //Il dessert è già impiattato, quindi si impiega meno tempo.
