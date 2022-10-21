@@ -1,13 +1,6 @@
 #define BLOCKS 6
 #define START 0
-// Parameters for multiserver
-#define SERVER_PRIMI 1
-#define SERVER_SECONDI 1
-#define SERVER_DESSERT 1
-#define NUM_CASSE_FAST 1
-#define NUM_CASSE_STD 1
-#define POSTI_A_SEDERE 50
-#define N (BLOCKS * (1 + POSTI_A_SEDERE))
+#define N (BLOCKS * 100)
 
 #define USER 2500                                   // number of mean user in observation period
 #define HOUR (60*60)
@@ -37,7 +30,7 @@
 #define P_CASSA_DESSERT = 1.0
 
 // TODO: Probabilità di mangiare altrove
-#define P_ALTROVE 0.18
+#define P_ALTROVE 0.05
 
 // Service time for each server in each block
 #define S_PRIMO 15
@@ -55,3 +48,7 @@
 
 #define IDLE 0
 #define BUSY 1
+
+#define CONFIG_1 1
+#define CONFIG_2 2
+#define CONFIG_3 3

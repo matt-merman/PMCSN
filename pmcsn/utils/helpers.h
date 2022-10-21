@@ -20,6 +20,6 @@ double	getArrival(double current, double lambda);
 double	getService(block_type type, int stream);
 void    calculateStatistics(long int completedJobs, clock* clock, area *area, statistics *stats);
 void 	validateMM1(block *block, statistics* stats);
-void    clearMem(block **blocks, server **servers);
-void	showStatistics(block **blocks, clock *clock, server **servers);
+void    clearMem(block **blocks);
+void	showStatistics(block **blocks, clock *clock);
 

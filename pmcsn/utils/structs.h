@@ -38,13 +38,6 @@ typedef struct area_t{
     double service;                 /* time integrated number in service   */
 } area;
 
-typedef struct block_t {
-    char name[32];
-    long completedJobs;
-	long jobs;                      /* jobs currently in the node */
-    area * blockArea;
-} block;
-
 typedef struct statistics_t {
     long int completedJobs;
     float interarrivalTime;
@@ -65,5 +58,14 @@ typedef struct server_t {
     int status;  // {0=IDLE, 1=BUSY}
     sum *sum;
 } server;
+
+typedef struct block_t {
+    char name[32];
+    long completedJobs;
+	long jobs;                      /* jobs currently in the node */
+    area * blockArea;
+    server **servers;                // pointer to eventually multi-server
+    int num_servers;
+} block;
 
 #endif

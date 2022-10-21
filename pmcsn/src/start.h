@@ -10,8 +10,7 @@
 
 double  completePrimoSecondo(event *newEvent, clock *c, int blockType);
 void	completion(block_type blockType, clock *c);
-void	arrival(block_type blockType, clock *c);
-void 	outsideArrival(clock *c);
+void	arrival(block_type blockType, clock *c, int arrival);
 void	initBlocks(void);
 int     areThereMoreEvents();
 int	    startSimulation(void);

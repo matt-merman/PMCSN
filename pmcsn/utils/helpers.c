@@ -52,7 +52,7 @@ void calculateStatistics(long int completedJobs, clock *clock, area *area, stati
 	stats->utilization = area->service / clock->current;
 }
 
-void showStatistics(block **blocks, clock *clock, server **servers)
+void showStatistics(block **blocks, clock *clock)
 {
 
 	printf("\n====================================================================================================\n");
@@ -70,16 +70,16 @@ void showStatistics(block **blocks, clock *clock, server **servers)
 		printf("\taverage # in the queue .. = %6.2f\tpeople\n", stats.queuePopulation);
 		printf("\tutilization ............. = %6.4f\t-\n", stats.utilization);
 		validateMM1(blocks[i], &stats);
-		// here stats are de-allocated
-	}
-
-	printf("\nthe server statistics are:\n\n");
-	printf("    server     utilization     avg service\n");
-	for (int s = 0; s < POSTI_A_SEDERE; s++){	
-		printf("%8d %14.3f %15.2f\n", 
-				s, 
-				servers[s]->sum->service / clock->current, 
-				servers[s]->sum->service / servers[s]->sum->served);
+		if (blocks[i]->num_servers > 0){
+			printf("\n\tMulti-server statistics:\n\n");
+			printf("\t    server     utilization     avg service\n");
+		}
+		for (int s = 0; s < blocks[i]->num_servers; s++){	
+			printf("\t%8d %14.3f %15.2f\n", 
+					s, 
+					blocks[i]->servers[s]->sum->service / clock->current, 
+					blocks[i]->servers[s]->sum->service / blocks[i]->servers[s]->sum->served);
+		}
 	}
   	printf("\n");
 
@@ -88,29 +88,28 @@ void showStatistics(block **blocks, clock *clock, server **servers)
 void validateMM1(block* block, statistics* stats){
 	if (IS_NOT_EQUAL(stats->wait, stats->delay + stats->serviceTime))
 	{
-		printf("Response time of block %18s: %6.2lf s,\tbut it's not equal to queue delay plus service time: \t%6.2lf s\n",
+		printf("\tResponse time of block %18s: %6.2lf s,\tbut it's not equal to queue delay plus service time: \t%6.2lf s\n",
 			   block->name, stats->wait, stats->delay + stats->serviceTime);
 	}
 	if (IS_NOT_EQUAL(stats->nodePopulation, stats->queuePopulation + stats->utilization))
 	{
-		printf("Population of block    %18s: %6.2lf,\tbut it's not equal to queue plus service population: \t%6.2lf\n",
+		printf("\tPopulation of block    %18s: %6.2lf,\tbut it's not equal to queue plus service population: \t%6.2lf\n",
 			   block->name, stats->nodePopulation, stats->queuePopulation + stats->utilization);
 	}
 }
 
-void clearMem(block **blocks, server **servers){
+void clearMem(block **blocks){
 	for (int i = 0; i < BLOCKS; i++){
 		if (blocks[i]->blockArea != NULL){
 			free(blocks[i]->blockArea);
 		}
-	}
-	for (int i = 0; i < POSTI_A_SEDERE; i++){
-		if (servers[i]->sum != NULL){
-			free(servers[i]->sum);
+		for (int j = 0; j < blocks[i]->num_servers; j++){
+			if (blocks[i]->servers[j]->sum != NULL){
+				free(blocks[i]->servers[j]->sum);
+			}
+			if (blocks[i]->servers[j] != NULL){
+				free(blocks[i]->servers[j]);
+			}
 		}
-		if (servers[i] != NULL){
-			free(servers[i]);
-		}
-		
 	}
 }
