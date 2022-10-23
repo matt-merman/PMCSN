@@ -161,6 +161,7 @@ int isClockTerminated()
 }
 
 // creates an event, check if it's time is after the observation period and inserts it in the list.
+// returns the time at which the event will occur
 double 	createAndInsertEvent(block_type target, int server_id, event_type eventType, clock *c)
 {
 	event * e = createEvent(target, server_id, eventType, c->current);

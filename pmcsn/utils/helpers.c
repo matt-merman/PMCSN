@@ -41,8 +41,9 @@ double	getService(block_type type, int stream)
 	}
 }
 
-void calculateStatistics(long int completedJobs, clock *clock, area *area, statistics *stats){
-	stats->completedJobs = completedJobs;
+void calculateStatistics(block *block, clock *clock, area *area, statistics *stats){
+    double completedJobs = (double) (block->completedJobs - block->rejectedJobs);
+	stats->completedJobs = (long) completedJobs;
 	stats->interarrivalTime = clock->last / completedJobs;
 	stats->wait = area->node / completedJobs;
 	stats->delay = area->queue / completedJobs;
@@ -62,8 +63,8 @@ void showStatistics(block **blocks, clock *clock)
 	{
 		printf("%s", blocks[i]->name);
 		statistics stats; // stack-allocated
-		calculateStatistics(blocks[i]->completedJobs, clock, blocks[i]->blockArea, &stats);
-		printf(": %ld people\n", stats.completedJobs);
+		calculateStatistics(blocks[i], clock, blocks[i]->blockArea, &stats);
+		printf(": %ld people served\n", stats.completedJobs);
 		// job averaged
 		printf("\taverage interarrival time = %6.2f\ts\n", stats.interarrivalTime);
 		printf("\taverage node wait ....... = %6.2f\ts\n", stats.wait);
@@ -74,15 +75,18 @@ void showStatistics(block **blocks, clock *clock)
 		printf("\taverage # in the queue .. = %6.2f\tpeople\n", stats.queuePopulation);
 		printf("\ttraffic intensity ....... = %6.4f\t-\n", stats.trafficIntensity);
 		printf("\tutilization ............. = %6.4f\t-\n", stats.utilization);
+        if (i == CONSUMAZIONE) {
+            printf("\tlost customers .......... = %d\tpeople\n", blocks[i]->rejectedJobs);
+        }
 		validateMM1(blocks[i], &stats);
 		if (blocks[i]->num_servers > 0){
 			printf("\n\tMulti-server statistics:\n\n");
 			printf("\t    server     trafficIntensity     avg service\n");
 		}
-		for (int s = 0; s < blocks[i]->num_servers; s++){	
-			printf("\t%8d %14.3f %15.2f\n", 
-					s, 
-					blocks[i]->servers[s]->sum->service / clock->current, 
+		for (int s = 0; s < blocks[i]->num_servers; s++){
+			printf("\t%8d %14.3f %15.2f\n",
+					s,
+					blocks[i]->servers[s]->sum->service / clock->current, // FIXME: utilizzazione =
 					blocks[i]->servers[s]->sum->service / blocks[i]->servers[s]->sum->served);
 		}
 	}

@@ -18,7 +18,7 @@
 double	min(double a, double c);
 double	getArrival(double current, double lambda);
 double	getService(block_type type, int stream);
-void    calculateStatistics(long int completedJobs, clock* clock, area *area, statistics *stats);
+void    calculateStatistics(block *block, clock* clock, area *area, statistics *stats);
 void 	validateMM1(block *block, statistics* stats);
 void    clearMem(block **blocks);
 void	showStatistics(block **blocks, clock *clock);

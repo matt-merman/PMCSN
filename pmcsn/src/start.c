@@ -6,10 +6,6 @@
 //i vari blocchi sono definiti nella variabile block_type
 block		*blocks[BLOCKS];
 
-// variable used to check if the refusing jobs percentage in 'CONSUMAZIONE'
-// is equal to P_ALTROVE
-double		rejected_jobs;
-
 // variable setted to configure the network
 int			network_status[] = {0, 0, 0, 0, 0, 0};
 
@@ -73,7 +69,6 @@ int	startSimulation(void)
 	double	time;
 
 	double p = Random(); // 0<p<1
-	rejected_jobs = 0;
 	//initializing the global clock (see structs.h)
 	system_clock = (clock *)malloc(sizeof(clock));
 	if (system_clock == NULL)
@@ -140,7 +135,7 @@ int	startSimulation(void)
     }
 	// Show statistics
 	showStatistics(blocks, system_clock);
-	printf("Percentage of rejected jobs: %lf\n", rejected_jobs / blocks[CONSUMAZIONE]->completedJobs);
+	printf("Percentage of rejected jobs: %lf\n", (double) blocks[CONSUMAZIONE]->rejectedJobs / (double) blocks[CONSUMAZIONE]->completedJobs);
 	// Free the heap
 	free(system_clock);
 	clearMem(blocks);
@@ -164,6 +159,7 @@ void	initBlocks(void)
 		blocks[index] = malloc(sizeof(block));
 		blocks[index]->blockArea = malloc(sizeof(area));
         blocks[index]->type = index;
+        blocks[index]->rejectedJobs = 0;
 		if (blocks[index]->blockArea == NULL || blocks[index] == NULL)
 		{
 			printf("Error Malloc\n");
@@ -185,7 +181,7 @@ void	arrival(event *event, clock *c, event_type arrival_type)
 {
 	int		s_index;
 	server	*s;
-	double	service_time;
+	double	completion_time;
 
     block_type btype = event->blockType;
 	blocks[btype]->jobs++;
@@ -197,15 +193,16 @@ void	arrival(event *event, clock *c, event_type arrival_type)
     {
         s = blocks[btype]->servers[s_index];
         // plus one because index start from zero, but server index start from 1.
-        service_time = createAndInsertEvent(btype, s_index, COMPLETION, c);
-        s->sum->service += service_time;
+        double curr_time = c->current;
+        completion_time = createAndInsertEvent(btype, s_index, COMPLETION, c);
+        s->sum->service += completion_time - curr_time;
         s->sum->served++;
         blocks[btype]->jobsInQueue--; // decrement because one job started service
         // the server s_index will be busy until the event is completed
     } else{
         // all servers are busy, if the node has a queue, the job should go there (we have already done jobsInQueue++)
         if (btype == CONSUMAZIONE){ // in CONSUMAZIONE we lose the job if all servers are busy
-            rejected_jobs++;
+            blocks[btype]->rejectedJobs++;
             blocks[btype]->jobs--;
         }
         // then, when a completion occurrs, a job in queue should go to service
@@ -230,10 +227,8 @@ void	completion(event *event, clock *c)
 	blocks[type]->completedJobs++;
 	blocks[type]->jobs--;
     // shortly after we also decrement jobsInQueue, if > 0.
-    // if there are more than one server
 
-    // FIXME: a volte server_id va fuori range
-    server_id = event->target_server;// findBusyServer(blocks[type]->servers, num);
+    server_id = event->target_server; // we get the target server for completion from the event
     if (server_id != -1) {
         freeBusyServer(blocks[type], server_id);
     } else {
@@ -244,12 +239,13 @@ void	completion(event *event, clock *c)
     if (blocks[type]->jobsInQueue > 0){
         int serv_id = requestIdleServer(blocks[type]);
         if (serv_id != -1){
-            createAndInsertEvent(type, serv_id, COMPLETION, c); // TODO: maybe there is only one server (?)
+            double curr_time = c->current;
+            double completion_time = createAndInsertEvent(type, serv_id, COMPLETION, c);
             blocks[type]->jobsInQueue--; // we scheduled a service so there will be one less job in queue
+            blocks[type]->servers[serv_id]->sum->service += completion_time - curr_time;
+            blocks[type]->servers[serv_id]->sum->served++;
         }
     }
-    //	createAndInsertEvent(type, server_id + 1, COMPLETION, c);
-//	}else if (blocks[type]->jobs > 0) // TODO: from which server will complete???
 
     // after the completion, we schedule an immediate arrival in the right block
 	switch (type)

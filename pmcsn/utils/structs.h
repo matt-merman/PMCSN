@@ -40,14 +40,14 @@ typedef struct area_t{
 
 typedef struct statistics_t {
     long int completedJobs;
-    float interarrivalTime;
-    float wait; // queue + service
-    float delay; // only queue
-    float serviceTime; // only service
-    float nodePopulation;
-    float queuePopulation;
-    float trafficIntensity; // can be greater than 1
-    float utilization; // same as trafficIntensity for sufficiently long observation periods
+    double interarrivalTime;
+    double wait; // queue + service
+    double delay; // only queue
+    double serviceTime; // only service
+    double nodePopulation;
+    double queuePopulation;
+    double trafficIntensity; // can be greater than 1
+    double utilization; // same as trafficIntensity for sufficiently long observation periods
 } statistics;
 
 typedef struct sum_t {               /* accumulated sums of                */
@@ -69,6 +69,7 @@ typedef struct block_t {
     server **servers;                // pointer to eventually multi-server
     int num_servers;
     int jobsInQueue;
+    int rejectedJobs;
 } block;
 
 #endif
