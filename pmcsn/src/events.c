@@ -13,6 +13,7 @@ void 	initEventList(clock* system_clock){
 	//add the first ARRIVAL to the eventList
 	eventList[0].blockType = system_clock->type;
 	eventList[0].type = ARRIVAL;
+	eventList[0].target_server = -1; // we do not know in which server of the multi-server it will go!
 	eventList[0].time = getArrival(START, LAMBDA);
 	printf("First arrival: %lf\n", eventList[0].time);
 }
@@ -24,7 +25,8 @@ int		getNextEventIndex()
 {
 	int index = 0;
 	double min = eventList[index].time;
-	for (int i = 0; i < N; i++)
+    int i;
+	for (i = 0; i < N; i++)
 	{
 		if (min < 0) // found -1
 		{
@@ -48,18 +50,17 @@ void	insertEvent(event *elem)
 {
 	for (int i = 0; i < N; i++)
 	{
-		if (eventList[i].time == -1)
+		event event = eventList[i];
+		if (event.time == -1) // we insert in the first empty spot
 		{
-			eventList[i].time = elem->time;
-			eventList[i].blockType = elem->blockType;
-			eventList[i].type = elem->type;
+			eventList[i] = *elem;
 			return ;
 		}
 	}
 	printf("WARNING: event list is full! Event is lost!");
 }
 
-char * to_str(block_type btype){
+char * toStrBlock(block_type btype){
 	switch (btype){
 		case PRIMO:
 			return "PRIMO";
@@ -78,10 +79,23 @@ char * to_str(block_type btype){
 	}
 }
 
-event	*createEvent(block_type target, event_type type, double time)
+char *toStrEvent(event_type etype) {
+    switch (etype) {
+        case ARRIVAL:
+            return "ARRIVAL";
+        case IMMEDIATE_ARRIVAL:
+            return "IMMEDIATE_ARRIVAL";
+        case COMPLETION:
+            return "COMPLETION";
+        default:
+            return "";
+    }
+}
+
+event	*createEvent(block_type target, int server_id, event_type type, double time)
 {
-	// char* source_str = to_str(source); 
-	// char* target_str = to_str(target);
+	// char* source_str = toStrBlock(source);
+	// char* target_str = toStrBlock(target);
 	
 	event *newEvent = (event*)malloc(sizeof(event));
 	if (newEvent == NULL)
@@ -90,18 +104,22 @@ event	*createEvent(block_type target, event_type type, double time)
 		return newEvent;
 	}
 	newEvent->type = type;
+	
 	if (type == ARRIVAL){
 		newEvent->blockType = target;
 		newEvent->time = getArrival(time, LAMBDA);
+		newEvent->target_server = -1;
 		//printf("New outside arrival to block %s. Time: %lf\n", target_str, newEvent->time);
 	} else if(type == IMMEDIATE_ARRIVAL){
 		newEvent->blockType = target;
 		newEvent->time = time;
+		newEvent->target_server = -1;
 		//printf("New arrival from block %s to block %s. Time: %lf s\n", source_str, target_str, newEvent->time);
 	} else{
 		newEvent->blockType = target;
 		int stream = target + 1; 
 		newEvent->time = time + getService(target, stream);
+		newEvent->target_server = server_id;
 		//printf("New completion from block %s to %s. Time: %lf s\n", source_str, target_str, newEvent->time);
 	}
 	return newEvent;
@@ -143,9 +161,9 @@ int isClockTerminated()
 }
 
 // creates an event, check if it's time is after the observation period and inserts it in the list.
-double 	createAndInsertEvent(block_type target, event_type eventType, clock *c)
+double 	createAndInsertEvent(block_type target, int server_id, event_type eventType, clock *c)
 {
-	event * e = createEvent(target, eventType, c->current);
+	event * e = createEvent(target, server_id, eventType, c->current);
 	// if we have a new outside arrival but in a time after the observation period, we skip it.
 	if(eventType == ARRIVAL && tryTerminateClock(c, e->time)){
 		free(e);

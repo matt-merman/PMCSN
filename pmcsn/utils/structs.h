@@ -20,7 +20,7 @@ typedef struct event_t{
     block_type blockType;
     double time;
     event_type type; //0 = arrival; 1 = completion
-    // int target_server; // 1 if is M/M/1
+    int target_server; // 1 if is M/M/1
 } event;
 
 typedef struct clock_t{
@@ -46,7 +46,8 @@ typedef struct statistics_t {
     float serviceTime; // only service
     float nodePopulation;
     float queuePopulation;
-    float utilization;
+    float trafficIntensity; // can be greater than 1
+    float utilization; // same as trafficIntensity for sufficiently long observation periods
 } statistics;
 
 typedef struct sum_t {               /* accumulated sums of                */
@@ -61,11 +62,13 @@ typedef struct server_t {
 
 typedef struct block_t {
     char name[32];
+    block_type type;
     long completedJobs;
 	long jobs;                      /* jobs currently in the node */
     area * blockArea;
     server **servers;                // pointer to eventually multi-server
     int num_servers;
+    int jobsInQueue;
 } block;
 
 #endif

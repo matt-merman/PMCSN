@@ -49,7 +49,9 @@ void calculateStatistics(long int completedJobs, clock *clock, area *area, stati
 	stats->serviceTime = area->service / completedJobs;
 	stats->nodePopulation = area->node / clock->current;
 	stats->queuePopulation = area->queue / clock->current;
-	stats->utilization = area->service / clock->current;
+	stats->trafficIntensity = area->service / clock->current;
+	// number of jobs * mean service time / last completion time 
+	stats->utilization = completedJobs * stats->serviceTime / clock->current;
 }
 
 void showStatistics(block **blocks, clock *clock)
@@ -62,17 +64,20 @@ void showStatistics(block **blocks, clock *clock)
 		statistics stats; // stack-allocated
 		calculateStatistics(blocks[i]->completedJobs, clock, blocks[i]->blockArea, &stats);
 		printf(": %ld people\n", stats.completedJobs);
+		// job averaged
 		printf("\taverage interarrival time = %6.2f\ts\n", stats.interarrivalTime);
 		printf("\taverage node wait ....... = %6.2f\ts\n", stats.wait);
 		printf("\taverage queue delay ..... = %6.2f\ts\n", stats.delay);
 		printf("\taverage service time .... = %6.2f\ts\n", stats.serviceTime);
+		// time averaged
 		printf("\taverage # in the node ... = %6.2f\tpeople\n", stats.nodePopulation);
 		printf("\taverage # in the queue .. = %6.2f\tpeople\n", stats.queuePopulation);
+		printf("\ttraffic intensity ....... = %6.4f\t-\n", stats.trafficIntensity);
 		printf("\tutilization ............. = %6.4f\t-\n", stats.utilization);
 		validateMM1(blocks[i], &stats);
 		if (blocks[i]->num_servers > 0){
 			printf("\n\tMulti-server statistics:\n\n");
-			printf("\t    server     utilization     avg service\n");
+			printf("\t    server     trafficIntensity     avg service\n");
 		}
 		for (int s = 0; s < blocks[i]->num_servers; s++){	
 			printf("\t%8d %14.3f %15.2f\n", 
@@ -91,10 +96,10 @@ void validateMM1(block* block, statistics* stats){
 		printf("\tResponse time of block %18s: %6.2lf s,\tbut it's not equal to queue delay plus service time: \t%6.2lf s\n",
 			   block->name, stats->wait, stats->delay + stats->serviceTime);
 	}
-	if (IS_NOT_EQUAL(stats->nodePopulation, stats->queuePopulation + stats->utilization))
+	if (IS_NOT_EQUAL(stats->nodePopulation, stats->queuePopulation + stats->trafficIntensity))
 	{
 		printf("\tPopulation of block    %18s: %6.2lf,\tbut it's not equal to queue plus service population: \t%6.2lf\n",
-			   block->name, stats->nodePopulation, stats->queuePopulation + stats->utilization);
+			   block->name, stats->nodePopulation, stats->queuePopulation + stats->trafficIntensity);
 	}
 }
 

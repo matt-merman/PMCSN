@@ -6,3 +6,9 @@ $ chmod u+x run.sh # solo la prima volta
 $ ./run.sh
 ```
 
+oppure
+
+```console
+$ make run
+```
+

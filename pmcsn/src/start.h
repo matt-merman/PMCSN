@@ -8,9 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-double  completePrimoSecondo(event *newEvent, clock *c, int blockType);
-void	completion(block_type blockType, clock *c);
-void	arrival(block_type blockType, clock *c, int arrival);
+void	completion(event *event, clock *c);
+void	arrival(event *event, clock *c, event_type arrival);
 void	initBlocks(void);
-int     areThereMoreEvents();
+int     areThereMoreEvents(void);
 int	    startSimulation(void);

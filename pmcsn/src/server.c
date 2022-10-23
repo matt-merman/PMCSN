@@ -1,32 +1,39 @@
 #include "../utils/constants.h"
 #include "../utils/structs.h"
+#include "events.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-void	initServers(block *blocks, int num)
+int busy_servers[BLOCKS] = {0,0,0,0,0,0};
+
+void	initServers(block *block, int num)
 {
-	server	**multi_servers;
-
-	multi_servers = malloc(num * sizeof(server *));
-	if (multi_servers == NULL)
+    // instantiate space for {num} pointers to server
+    block->servers = (server **) malloc(num * sizeof(server *));
+	if (block->servers == NULL)
 	{
 		printf("Error allocating multi-servers\n");
 		return ;
 	}
-	blocks->num_servers = num;
+    // memset(block->servers, 0, num * sizeof(server *));
+	block->num_servers = num;
 	// multi-server initialization
 	for (int s = 0; s < num; s++)
 	{
-		multi_servers[s] = malloc(sizeof(server));
-		multi_servers[s]->sum = malloc(sizeof(sum));
-		if (multi_servers[s]->sum == NULL || multi_servers[s] == NULL)
+        // TODO: nel debugger CLION puoi vedere gli elementi block->servers con il watch: (server *[2]) *blocks->servers
+        //  sostituisci il 2 con il valore di num
+        block->servers[s] = (server *) malloc(sizeof(server));
+        memset(block->servers[s], 0, sizeof(server));
+        block->servers[s]->sum = (sum *) malloc(sizeof(sum));
+        memset(block->servers[s]->sum, 0, sizeof(sum));
+        if (block->servers[s]->sum == NULL || block->servers[s] == NULL)
 		{
 			printf("Error Malloc\n");
 			return ;
 		}
-		multi_servers[s]->status = IDLE;
+        block->servers[s]->status = IDLE;
 	}
-	blocks->servers = multi_servers;
 }
 
 int	findBusyServer(server **multi_servers, int num)
@@ -38,38 +45,56 @@ int	findBusyServer(server **multi_servers, int num)
 	}
 	return (-1);
 }
-
-int	findIdleServer(server **multi_servers, int num)
+// returns the index (starting from 1) of the first idle server and makes it busy
+// if are all busy returns -1
+int requestIdleServer(block *block)
 {
-	for (int i = 0; i < num; i++)
-	{
-		if (multi_servers[i]->status == IDLE)
-			return (i);
+    server** multi_servers = block->servers;
+    int i;
+    // FIXME: da qualche parte viene deallocato multi_server[2] o forse non viene mai allocato
+    for (i = 0; i < block->num_servers; i++) {
+        if (multi_servers[i]->status == IDLE) {
+            multi_servers[i]->status = BUSY;
+            busy_servers[block->type]++;
+            return i;
+        }
 	}
-	return (-1);
+	return -1;
 }
 
-int getBusyServers(server **multi_servers, int num)
+void freeBusyServer(block *block, int server_index){
+    // Set status to idle!!
+    block->servers[server_index]->status = IDLE;
+    // Decrement busy servers
+    busy_servers[block->type]--;
+}
+
+int getBusyServersNumber(block *block)
 {
-    int count = 0;
-    for (int i = 0; i < num; i++)
-	{
-		if (multi_servers[i]->status == BUSY)
-			count++;
-	}
-	return count;
+	return busy_servers[block->type];
 }
 
 int	areThereMoreServers(block **blocks)
 {
-	int	num;
-
-	for (int s = 0; s < BLOCKS; s++)
+	int s;
+    for (s = 0; s < BLOCKS; s++)
 	{
-		num = blocks[s]->num_servers;
-		if (num > 0)
-			if (findBusyServer(blocks[s]->servers, num) != -1)
-				return (TRUE);
+        if(getBusyServersNumber(blocks[s]) > 0){
+            return TRUE;
+        }
 	}
-	return (FALSE);
+	return FALSE;
+}
+
+char * getServerContents(block *block){
+    char *string = (char *) malloc(sizeof(char) * 100);
+    int in_service = busy_servers[block->type];
+    long queue_minus_service = block->jobs - (long) in_service;
+    long in_queue = 0L;
+    if (queue_minus_service > 0L){
+        in_queue = queue_minus_service;
+    }
+
+    sprintf(string, "%s |%ld|(%d)",toStrBlock(block->type), in_queue, busy_servers[block->type]);
+    return string;
 }

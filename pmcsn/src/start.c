@@ -49,7 +49,7 @@ void	setNetworkStatus(int config)
 		break ;
 	}
 }
-
+// updates the time-averaged statistics (number of jobs in service, queue and block)
 void	updateStats(double time, double current)
 {
 	area	*area;
@@ -90,9 +90,8 @@ int	startSimulation(void)
 	setNetworkStatus(CONFIG_2);
 	// initializing each block of the system
 	initBlocks();
-	// TODO: ci fermiamo quando il prossimo arrivo e' maggiore del periodo
-	while ((system_clock->arrival < PERIODO) || areThereMoreEvents()
-		|| areThereMoreServers(blocks))
+	// We stop when next arrival time is greater than observation period and we have no more event to process
+	while (system_clock->arrival < PERIODO || areThereMoreEvents()|| areThereMoreServers(blocks))
 	{
 		// FIND_SEGFAULT("prima di prendere index");
 		eventIndex = getNextEventIndex();
@@ -111,13 +110,14 @@ int	startSimulation(void)
 		switch (system_clock->next->type)
 		{
 		case ARRIVAL:
-			arrival(system_clock->next->blockType, system_clock, ARRIVAL);
+			// qui va passato l'evento non il blockType
+			arrival(system_clock->next, system_clock, ARRIVAL);
 			break ;
 		case IMMEDIATE_ARRIVAL:
-			arrival(system_clock->next->blockType, system_clock, IMMEDIATE_ARRIVAL);
+			arrival(system_clock->next, system_clock, IMMEDIATE_ARRIVAL);
 			break ;
 		case COMPLETION:
-			completion(system_clock->next->blockType, system_clock);
+			completion(system_clock->next, system_clock);
 			break ;
 		default:
 			break ;
@@ -125,17 +125,19 @@ int	startSimulation(void)
 		clearEvent(eventIndex);
 		//if (system_clock->arrival <= PERIODO)
 		//	printf("Next arrival time: %lf\n", system_clock->arrival);
-		// use \r instead of \n to print in one line
-		printf("Next Arrival time: %lf Cut-Off Time: %d jobs in blocks [%ld, %ld, %ld, %ld, %ld, %ld]\r",
-				system_clock->arrival,
-				PERIODO,
-				blocks[PRIMO]->jobs,
-				blocks[SECONDO]->jobs,
-				blocks[DESSERT]->jobs,
-				blocks[CASSA_FAST]->jobs,
-				blocks[CASSA_STD]->jobs,
-				blocks[CONSUMAZIONE]->jobs);
-	}
+        // use \r instead of \n to print in one line
+        printf("Time: %lf Event: %-18s Target Block: %-12s in server: %d\tjobs in blocks [%s, %s, %s, %s, %s, %s]\n",
+               system_clock->arrival,
+               toStrEvent(system_clock->next->type),
+               toStrBlock(system_clock->next->blockType),
+               system_clock->next->target_server,
+               getServerContents(blocks[PRIMO]),
+               getServerContents(blocks[SECONDO]),
+               getServerContents(blocks[DESSERT]),
+               getServerContents(blocks[CASSA_FAST]),
+               getServerContents(blocks[CASSA_STD]),
+               getServerContents(blocks[CONSUMAZIONE]));
+    }
 	// Show statistics
 	showStatistics(blocks, system_clock);
 	printf("Percentage of rejected jobs: %lf\n", rejected_jobs / blocks[CONSUMAZIONE]->completedJobs);
@@ -161,6 +163,7 @@ void	initBlocks(void)
 	{
 		blocks[index] = malloc(sizeof(block));
 		blocks[index]->blockArea = malloc(sizeof(area));
+        blocks[index]->type = index;
 		if (blocks[index]->blockArea == NULL || blocks[index] == NULL)
 		{
 			printf("Error Malloc\n");
@@ -173,76 +176,82 @@ void	initBlocks(void)
 		memset(blocks[index]->blockArea, 0x0, sizeof(area));
 		blocks[index]->completedJobs = 0;
 		blocks[index]->jobs = 0;
-		if (network_status[index] == 1)
-		{
-			blocks[index]->servers = NULL;
-			blocks[index]->num_servers = 0;
-		}
-		else
-			initServers(blocks[index], network_status[index]);
+		// here we ALWAYS instantiate server to avoid sigsegv for mm1 queues
+        initServers(blocks[index], network_status[index]);
 	}
 }
-
-void	arrival(block_type type, clock *c, int arrival)
+// at clock c, occurs an arrival or immediate arrival
+void	arrival(event *event, clock *c, event_type arrival_type)
 {
 	int		s_index;
 	server	*s;
 	double	service_time;
-	int num;
 
-	// if (server_id < 1 || server_id > ?) {
-	// TODO:  nel limite superiore fare la distinzione tra i vari blocchi. Ad esempio prendere il MAX tra i vari numeri di serventi.
-	// 		printf("Error: server_id out of bound for block_type %s", to_str(target_block));
-					// 		exit(-1);
-					// }
-	blocks[type]->jobs++;
-	num = blocks[type]->num_servers;
-	if (num == 0 && blocks[type]->jobs == 1)
-			createAndInsertEvent(type, COMPLETION, c);
-	else if (num > 0){
-		s_index = findIdleServer(blocks[type]->servers, num);
-		if (s_index != -1)
-		{
-			s = blocks[type]->servers[s_index];
-			service_time = createAndInsertEvent(type,
-			COMPLETION, c);
-			s->sum->service += service_time;
-			s->sum->served++;
-			s->status = BUSY;
-		} else{
-			blocks[type]->jobs--;
-			if (type == CONSUMAZIONE)
-				rejected_jobs++;
-		}
-	}
-	// if external arriving occurs create a new one
-	if (arrival == ARRIVAL){
+    block_type btype = event->blockType;
+	blocks[btype]->jobs++;
+    blocks[btype]->jobsInQueue++; // the job goes in the queue first, but if a server is idle, will go there immediately
+	// we retrieve the number of server in the block
+    // TODO: quale indice devo metterci? Lo stesso del job che sta gia dentro
+    s_index = requestIdleServer(blocks[btype]);
+    if (s_index != -1)
+    {
+        s = blocks[btype]->servers[s_index];
+        // plus one because index start from zero, but server index start from 1.
+        service_time = createAndInsertEvent(btype, s_index, COMPLETION, c);
+        s->sum->service += service_time;
+        s->sum->served++;
+        blocks[btype]->jobsInQueue--; // decrement because one job started service
+        // the server s_index will be busy until the event is completed
+    } else{
+        // all servers are busy, if the node has a queue, the job should go there (we have already done jobsInQueue++)
+        if (btype == CONSUMAZIONE){ // in CONSUMAZIONE we lose the job if all servers are busy
+            rejected_jobs++;
+            blocks[btype]->jobs--;
+        }
+        // then, when a completion occurrs, a job in queue should go to service
+    }
+
+	// if internal arrival occurs, create a new arrival
+	if (arrival_type == ARRIVAL){
 		double p = Random();
 		if (p < P_PRIMO_FUORI)
-			createAndInsertEvent(PRIMO, ARRIVAL, c);
+			createAndInsertEvent(PRIMO, -1, ARRIVAL, c); // -1 because we do not know where the event will be scheduled (maybe)
 		else
-			createAndInsertEvent(SECONDO, ARRIVAL, c);
+			createAndInsertEvent(SECONDO, -1, ARRIVAL, c);
 	}
 }
 
-void	completion(block_type type, clock *c)
+void	completion(event *event, clock *c)
 {
 	double p;
-	int s_index;
-	int num; 
-
+	int server_id;
+    // we have completed a job
+    block_type type = event->blockType;
 	blocks[type]->completedJobs++;
 	blocks[type]->jobs--;
-	num = blocks[type]->num_servers;
-	if (num > 0){
-		s_index = findBusyServer(blocks[type]->servers, num);
-		if (s_index != -1)
-			blocks[type]->servers[s_index]->status = IDLE;
-		// TO-FIX: if (getBusyServers(blocks[type]->servers, num) does not work
-		if (getBusyServers(blocks[type]->servers, num>0))
-			createAndInsertEvent(type, COMPLETION, c);
-	}else if (blocks[type]->jobs > 0)
-		createAndInsertEvent(type, COMPLETION, c);
+    // shortly after we also decrement jobsInQueue, if > 0.
+    // if there are more than one server
+
+    // FIXME: a volte server_id va fuori range
+    server_id = event->target_server;// findBusyServer(blocks[type]->servers, num);
+    if (server_id != -1) {
+        freeBusyServer(blocks[type], server_id);
+    } else {
+        printf("This is bad! A completion from who knows from!\n");
+        exit(-1);
+    }
+    // After this completion, we immediately schedule a new completion if there is at least one job in queue
+    if (blocks[type]->jobsInQueue > 0){
+        int serv_id = requestIdleServer(blocks[type]);
+        if (serv_id != -1){
+            createAndInsertEvent(type, serv_id, COMPLETION, c); // TODO: maybe there is only one server (?)
+            blocks[type]->jobsInQueue--; // we scheduled a service so there will be one less job in queue
+        }
+    }
+    //	createAndInsertEvent(type, server_id + 1, COMPLETION, c);
+//	}else if (blocks[type]->jobs > 0) // TODO: from which server will complete???
+
+    // after the completion, we schedule an immediate arrival in the right block
 	switch (type)
 	{
 	case PRIMO:
@@ -250,33 +259,32 @@ void	completion(block_type type, clock *c)
 		p = Random();
 		// to SECONDO from PRIMO
 		if (p < P_SECONDO_PRIMO)
-			createAndInsertEvent(SECONDO, IMMEDIATE_ARRIVAL, c);
+			createAndInsertEvent(SECONDO, -1, IMMEDIATE_ARRIVAL, c);
 		// to DESSERT from PRIMO
 		else if (p > P_SECONDO_PRIMO && p < P_SECONDO_PRIMO + P_DESSERT_PRIMO)
-			createAndInsertEvent(DESSERT, IMMEDIATE_ARRIVAL, c);
+			createAndInsertEvent(DESSERT, -1, IMMEDIATE_ARRIVAL, c);
 		// to CASSA_FAST from PRIMO
 		else
-			createAndInsertEvent(CASSA_FAST, IMMEDIATE_ARRIVAL, c);
+			createAndInsertEvent(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c);
 		break ;
 	case SECONDO:
 		// routing probability
 		p = Random();
 		// to DESSERT from SECONDO
 		if (p < P_DESSERT_SECONDO)
-			createAndInsertEvent(DESSERT, IMMEDIATE_ARRIVAL, c);
-		else if (p > P_DESSERT_SECONDO && p < P_DESSERT_SECONDO
-				+ P_CASSA_STD_SECONDO)
-			createAndInsertEvent(CASSA_STD, IMMEDIATE_ARRIVAL, c);
+			createAndInsertEvent(DESSERT, -1, IMMEDIATE_ARRIVAL, c);
+		else if (p > P_DESSERT_SECONDO && p < P_DESSERT_SECONDO + P_CASSA_STD_SECONDO)
+			createAndInsertEvent(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c);
 		else
-			createAndInsertEvent(CASSA_FAST, IMMEDIATE_ARRIVAL, c);
+			createAndInsertEvent(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c);
 		break ;
 	case DESSERT:
-		// now we must go to CASSA_STD: if a user passes by DESSERT, he / she owns at least two plates 
-		createAndInsertEvent(CASSA_STD, IMMEDIATE_ARRIVAL, c);
+		// now we must go to CASSA_STD: if a user passes by DESSERT, he / she owns at least two plates
+		createAndInsertEvent(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c);
 		break ;
 	case CASSA_FAST:
 	case CASSA_STD:
-		createAndInsertEvent(CONSUMAZIONE, IMMEDIATE_ARRIVAL, c);
+		createAndInsertEvent(CONSUMAZIONE, -1, IMMEDIATE_ARRIVAL, c);
 		break ;
 	default:
 		break ;
