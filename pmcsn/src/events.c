@@ -5,15 +5,12 @@ int terminated = FALSE;
 // this list contains all event to process
 event	eventList[N];
 
-void 	initEventList(clock* system_clock){
+void 	initEventList(int type){
 	for (int i = 0; i < N; i++)
-	{
 		eventList[i].time = -1;
-	}
-	//add the first ARRIVAL to the eventList
-	eventList[0].blockType = system_clock->type;
+	eventList[0].blockType = type;
 	eventList[0].type = ARRIVAL;
-	eventList[0].target_server = -1; // we do not know in which server of the multi-server it will go!
+	eventList[0].target_server = -1;
 	eventList[0].time = getArrival(START, LAMBDA);
 	printf("First arrival: %lf\n", eventList[0].time);
 }
@@ -125,21 +122,23 @@ event	*createEvent(block_type target, int server_id, event_type type, double tim
 	return newEvent;
 }
 
-// initialize the system clock
-void 	initClock(clock *system_clock, double p)
+clock * 	initClock(void)
 {
-	system_clock->current = START;
-	printf("Lambda: %lf\n", LAMBDA);
-	system_clock->arrival = getArrival(START, LAMBDA); // generate the first arrival from outside
-	// printf("First arrival: %lf\n", system_clock->arrival);
-	// The first job arrived goes into "first course"
+	double p = Random();
+	clock *c = (clock *)malloc(sizeof(clock));
+	if (c == NULL)
+	{
+		printf("Error allocating clock\n");
+		return NULL;
+	}
+	c->current = START;
+	c->arrival = getArrival(START, LAMBDA);
+	c->completion = INF;
 	if (p < P_PRIMO_FUORI)
-		system_clock->type = 0;
-	// Otherwise first job arrived goes into "second course"
+		c->type = 0;
 	else
-		system_clock->type = 1;
-
-	system_clock->completion = INF;
+		c->type = 1;
+	return c;
 }
 
 // if time of event is greater than termination period, we stop the arrival flow.

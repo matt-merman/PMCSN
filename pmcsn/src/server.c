@@ -9,24 +9,21 @@ int busy_servers[BLOCKS] = {0,0,0,0,0,0};
 
 void	initServers(block *block, int num)
 {
-    // instantiate space for {num} pointers to server
     block->servers = (server **) malloc(num * sizeof(server *));
 	if (block->servers == NULL)
 	{
 		printf("Error allocating multi-servers\n");
 		return ;
 	}
-    // memset(block->servers, 0, num * sizeof(server *));
-	block->num_servers = num;
-	// multi-server initialization
+    memset(block->servers, 0x0, num * sizeof(server *));
 	for (int s = 0; s < num; s++)
 	{
         // TODO: nel debugger CLION puoi vedere gli elementi block->servers con il watch: (server *[2]) *blocks->servers
         //  sostituisci il 2 con il valore di num
         block->servers[s] = (server *) malloc(sizeof(server));
-        memset(block->servers[s], 0, sizeof(server));
+        memset(block->servers[s], 0x0, sizeof(server));
         block->servers[s]->sum = (sum *) malloc(sizeof(sum));
-        memset(block->servers[s]->sum, 0, sizeof(sum));
+        memset(block->servers[s]->sum, 0x0, sizeof(sum));
         if (block->servers[s]->sum == NULL || block->servers[s] == NULL)
 		{
 			printf("Error Malloc\n");

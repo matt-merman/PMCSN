@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-void	completion(event *event, clock *c);
-void	arrival(event *event, clock *c, event_type arrival);
-void	initBlocks(void);
-int     areThereMoreEvents(void);
-int	    startSimulation(void);
+void completion(int server_id, clock *c, double current, block *block);
+void arrival(clock *c, double current, block *block);
+block **initBlocks(void);
+int areThereMoreEvents(void);
+int startSimulation(void);
+void updateStats(double diff, block **blocks);
+void scheduleArrive(int type, clock *c);

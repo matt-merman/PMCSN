@@ -41,7 +41,7 @@ double	getService(block_type type, int stream)
 	}
 }
 
-void calculateStatistics(long int completedJobs, clock *clock, area *area, statistics *stats){
+void calculateStatistics(long int completedJobs, clock *clock, area *area, statistics *stats, int num_servers){
 	stats->completedJobs = completedJobs;
 	stats->interarrivalTime = clock->last / completedJobs;
 	stats->wait = area->node / completedJobs;
@@ -49,9 +49,7 @@ void calculateStatistics(long int completedJobs, clock *clock, area *area, stati
 	stats->serviceTime = area->service / completedJobs;
 	stats->nodePopulation = area->node / clock->current;
 	stats->queuePopulation = area->queue / clock->current;
-	stats->trafficIntensity = area->service / clock->current;
-	// number of jobs * mean service time / last completion time 
-	stats->utilization = completedJobs * stats->serviceTime / clock->current;
+	stats->utilization = area->service / (clock->current * num_servers);
 }
 
 void showStatistics(block **blocks, clock *clock)
@@ -62,7 +60,7 @@ void showStatistics(block **blocks, clock *clock)
 	{
 		printf("%s", blocks[i]->name);
 		statistics stats; // stack-allocated
-		calculateStatistics(blocks[i]->completedJobs, clock, blocks[i]->blockArea, &stats);
+		calculateStatistics(blocks[i]->completedJobs, clock, blocks[i]->blockArea, &stats, blocks[i]->num_servers);
 		printf(": %ld people\n", stats.completedJobs);
 		// job averaged
 		printf("\taverage interarrival time = %6.2f\ts\n", stats.interarrivalTime);
@@ -72,15 +70,14 @@ void showStatistics(block **blocks, clock *clock)
 		// time averaged
 		printf("\taverage # in the node ... = %6.2f\tpeople\n", stats.nodePopulation);
 		printf("\taverage # in the queue .. = %6.2f\tpeople\n", stats.queuePopulation);
-		printf("\ttraffic intensity ....... = %6.4f\t-\n", stats.trafficIntensity);
 		printf("\tutilization ............. = %6.4f\t-\n", stats.utilization);
 		validateMM1(blocks[i], &stats);
 		if (blocks[i]->num_servers > 0){
 			printf("\n\tMulti-server statistics:\n\n");
-			printf("\t    server     trafficIntensity     avg service\n");
+			printf("\t    server     utilization     avg service\n");
 		}
 		for (int s = 0; s < blocks[i]->num_servers; s++){	
-			printf("\t%8d %14.3f %15.2f\n", 
+			printf("\t%8d %14.4f %15.2f\n", 
 					s, 
 					blocks[i]->servers[s]->sum->service / clock->current, 
 					blocks[i]->servers[s]->sum->service / blocks[i]->servers[s]->sum->served);
@@ -96,10 +93,10 @@ void validateMM1(block* block, statistics* stats){
 		printf("\tResponse time of block %18s: %6.2lf s,\tbut it's not equal to queue delay plus service time: \t%6.2lf s\n",
 			   block->name, stats->wait, stats->delay + stats->serviceTime);
 	}
-	if (IS_NOT_EQUAL(stats->nodePopulation, stats->queuePopulation + stats->trafficIntensity))
+	if (IS_NOT_EQUAL(stats->nodePopulation, stats->queuePopulation + stats->utilization))
 	{
 		printf("\tPopulation of block    %18s: %6.2lf,\tbut it's not equal to queue plus service population: \t%6.2lf\n",
-			   block->name, stats->nodePopulation, stats->queuePopulation + stats->trafficIntensity);
+			   block->name, stats->nodePopulation, stats->queuePopulation + (block->num_servers* stats->utilization));
 	}
 }
 
