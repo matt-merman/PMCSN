@@ -122,25 +122,6 @@ event	*createEvent(block_type target, int server_id, event_type type, double tim
 	return newEvent;
 }
 
-clock * 	initClock(void)
-{
-	double p = Random();
-	clock *c = (clock *)malloc(sizeof(clock));
-	if (c == NULL)
-	{
-		printf("Error allocating clock\n");
-		return NULL;
-	}
-	c->current = START;
-	c->arrival = getArrival(START, LAMBDA);
-	c->completion = INF;
-	if (p < P_PRIMO_FUORI)
-		c->type = 0;
-	else
-		c->type = 1;
-	return c;
-}
-
 // if time of event is greater than termination period, we stop the arrival flow.
 int tryTerminateClock(clock *c, double time)
 {

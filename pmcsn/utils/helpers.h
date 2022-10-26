@@ -15,11 +15,12 @@
 #define IS_NOT_EQUAL(x, y) ((MAX((x),(y)) - MIN((x),(y)) <= EPSILON) ? 0 : 1)
 #define FIND_SEGFAULT(x) printf("I'm here: %s\n", (x))
 
-double	min(double a, double c);
 double	getArrival(double current, double lambda);
 double	getService(block_type type, int stream);
 void    calculateStatistics(long int completedJobs, clock* clock, area *area, statistics *stats, int num_servers);
 void 	validateMM1(block *block, statistics* stats);
 void    clearMem(block **blocks);
 void	showStatistics(block **blocks, clock *clock);
+int calculateCosts(int num);
+
 

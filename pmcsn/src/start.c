@@ -1,11 +1,8 @@
 #include "server.h"
 #include "start.h"
+#include "init.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-int			network_status[] = {0, 0, 0, 0, 0, 0};
-const char	*names[] = {"Primi", "Secondi e Contorni", "Frutta e Dessert",
-		"Casse Fast", "Casse standard", "Locale Mensa"};
 
 int	main(void)
 {
@@ -17,29 +14,6 @@ int	main(void)
 	return (0);
 }
 
-void	setNetworkStatus(int config)
-{
-	int	status_one[] = {2, 1, 1, 1, 2, 50};
-	int	status_two[] = {2, 1, 1, 1, 2, 50};
-	int	status_three[] = {2, 1, 1, 1, 2, 50};
-
-	switch (config)
-	{
-	case CONFIG_1:
-		memcpy(network_status, status_one, sizeof(network_status));
-		break ;
-	case CONFIG_2:
-		memcpy(network_status, status_two, sizeof(network_status));
-		break ;
-	case CONFIG_3:
-		memcpy(network_status, status_three, sizeof(network_status));
-		break ;
-	default:
-		break ;
-	}
-}
-// updates the time-averaged statistics
-// (number of jobs in service,queue and block)
 void	updateStats(double diff, block **blocks)
 {
 	area	*area;
@@ -73,8 +47,8 @@ int	startSimulation(void)
 	initEventList(system_clock->type);
 	// initializing multi-stream lehmer generator
 	PlantSeeds(123456789);
-	setNetworkStatus(CONFIG_2);
-	blocks = initBlocks();
+	int *network_status = initNetworkStatus(CONFIG_2);
+	blocks = initBlocks(network_status);
 	if (blocks == NULL)
 	{
 		printf("Error on blocks");
@@ -136,34 +110,6 @@ int	startSimulation(void)
 	return (0);
 }
 
-block	**initBlocks(void)
-{
-	block	**b;
-
-	b = (block **)malloc(BLOCKS * sizeof(block *));
-	if (b == NULL)
-	{
-		printf("Error Malloc\n");
-		return (NULL);
-	}
-	for (int i = 0; i < BLOCKS; i++)
-	{
-		b[i] = malloc(sizeof(block));
-		memset(b[i], 0x0, sizeof(block));
-		b[i]->blockArea = malloc(sizeof(area));
-		b[i]->type = i;
-		b[i]->num_servers = network_status[i];
-		if (b[i]->blockArea == NULL || b[i] == NULL)
-		{
-			printf("Error Malloc\n");
-			return (NULL);
-		}
-		strncpy(b[i]->name, names[i], strlen(names[i]) + 1);
-		memset(b[i]->blockArea, 0x0, sizeof(area));
-		initServers(b[i], network_status[i]);
-	}
-	return (b);
-}
 void	arrival(clock *c, double current, block *block)
 {
 	int		s_index;

@@ -52,3 +52,5 @@
 #define CONFIG_1 1
 #define CONFIG_2 2
 #define CONFIG_3 3
+
+#define SALARY 8 // 8 [eur/h]

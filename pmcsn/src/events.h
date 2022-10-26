@@ -9,7 +9,6 @@ event *createEvent(block_type target, int server_id, event_type type,
 double createAndInsertEvent(block_type target, int server_id,
                             event_type eventType, clock *c);
 
-clock *initClock(void);
 int tryTerminateClock(clock *system_clock, double time);
 int isClockTerminated();
 char *toStrBlock(block_type btype);

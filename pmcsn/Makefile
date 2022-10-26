@@ -1,5 +1,5 @@
 all:
-	gcc -Wall -Wextra libs/rngs.c libs/rvgs.c src/server.c src/start.c src/events.c utils/helpers.c -lm -o start -g
+	gcc -Wall -Wextra libs/rngs.c libs/rvgs.c src/server.c src/init.c src/start.c src/events.c utils/helpers.c -lm -o start -g
 
 run: all
 	./start

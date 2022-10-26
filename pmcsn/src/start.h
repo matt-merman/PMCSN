@@ -10,7 +10,6 @@
 
 void completion(int server_id, clock *c, double current, block *block);
 void arrival(clock *c, double current, block *block);
-block **initBlocks(void);
 int areThereMoreEvents(void);
 int startSimulation(void);
 void updateStats(double diff, block **blocks);
