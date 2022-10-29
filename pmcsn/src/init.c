@@ -1,7 +1,7 @@
 #include "init.h"
 
 
-block	**initBlocks(int *config)
+block	**init_blocks(int *config)
 {
     char	*names[] = {"Primi", "Secondi e Contorni", "Frutta e Dessert",
 		"Casse Fast", "Casse standard", "Locale Mensa"};
@@ -17,22 +17,22 @@ block	**initBlocks(int *config)
 	{
 		b[i] = malloc(sizeof(block));
 		memset(b[i], 0x0, sizeof(block));
-		b[i]->blockArea = malloc(sizeof(area));
+		b[i]->block_area = malloc(sizeof(area));
 		b[i]->type = i;
 		b[i]->num_servers = config[i];
-		if (b[i]->blockArea == NULL || b[i] == NULL)
+		if (b[i]->block_area == NULL || b[i] == NULL)
 		{
 			printf("Error Malloc\n");
 			return (NULL);
 		}
 		strncpy(b[i]->name, names[i], strlen(names[i]) + 1);
-		memset(b[i]->blockArea, 0x0, sizeof(area));
-		initServers(b[i], config[i]);
+		memset(b[i]->block_area, 0x0, sizeof(area));
+		init_servers(b[i], config[i]);
 	}
 	return (b);
 }
 
-void	initServers(block *block, int num)
+void	init_servers(block *block, int num)
 {
     block->servers = (server **) malloc(num * sizeof(server *));
 	if (block->servers == NULL)
@@ -58,7 +58,7 @@ void	initServers(block *block, int num)
 	}
 }
 
-clock * 	initClock(void)
+clock * 	init_clock(void)
 {
 	double p = Random();
 	clock *c = (clock *)malloc(sizeof(clock));
@@ -68,7 +68,7 @@ clock * 	initClock(void)
 		return NULL;
 	}
 	c->current = START;
-	c->arrival = getArrival(START, LAMBDA);
+	c->arrival = get_arrival(START, LAMBDA);
 	c->completion = INF;
 	if (p < P_PRIMO_FUORI)
 		c->type = 0;
@@ -79,7 +79,7 @@ clock * 	initClock(void)
 
 int	network_status[] = {0, 0, 0, 0, 0, 0};
 
-int *	initNetworkStatus(int config)
+int *	init_network(int config)
 {
 	int	status_one[] = {2, 1, 1, 1, 2, 50};
 	int	status_two[] = {2, 1, 1, 1, 2, 50};

@@ -1,8 +1,12 @@
 #include "server.h"
-#include "start.h"
 #include "init.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "events.h"
+
+void completion(int server_id, clock *c, double current, block *block);
+void arrival(clock *c, double current, block *block);
+int start_simulation(void);
+void update_stats(double diff, block **blocks);
+void schedule_arrive(int type, clock *c);
 
 int	main(void)
 {
@@ -10,11 +14,11 @@ int	main(void)
 	// printf("**************************************\n");
 	// printf("**               PMCSN              **\n");
 	// printf("**************************************\n");
-	startSimulation();
+	start_simulation();
 	return (0);
 }
 
-void	updateStats(double diff, block **blocks)
+void	update_stats(double diff, block **blocks)
 {
 	area	*area;
 
@@ -22,33 +26,31 @@ void	updateStats(double diff, block **blocks)
 	{
 		if (blocks[i]->jobs > 0)
 		{
-			area = blocks[i]->blockArea;
+			area = blocks[i]->block_area;
 			area->node += diff * blocks[i]->jobs;
-			area->queue += diff * blocks[i]->jobsInQueue;
+			area->queue += diff * blocks[i]->queue_jobs;
 		}
 	}
 }
 
-int	startSimulation(void)
+int	start_simulation(void)
 {
 	clock	*system_clock;
 	double	previous_clock;
-	int		eventIndex;
 	block	**blocks;
-	event	*event;
 	double p;
-
-	system_clock = initClock();
+	event	*event;
+	system_clock = init_clock();
 	if (system_clock == NULL)
 	{
 		printf("Error on system clock\n");
 		return (-1);
 	}
-	initEventList(system_clock->type);
+	init_event_list(system_clock->type);
 	// initializing multi-stream lehmer generator
 	PlantSeeds(123456789);
-	int *network_status = initNetworkStatus(CONFIG_2);
-	blocks = initBlocks(network_status);
+	int *network_status = init_network(CONFIG_2);
+	blocks = init_blocks(network_status);
 	if (blocks == NULL)
 	{
 		printf("Error on blocks");
@@ -56,39 +58,43 @@ int	startSimulation(void)
 	}
 	while (1)
 	{
-		// We stop when next arrival time is greater than observation period and we have no more event to process
-		if (!(system_clock->arrival < PERIODO || areThereMoreEvents()
-				|| areThereMoreServers(blocks)))
+		if (!(system_clock->arrival < PERIODO || check_events()
+				|| check_servers(blocks)))
 			break ;
-		eventIndex = getNextEventIndex();
-		event = getEvent(eventIndex);
+
+		event = get_event();
 		system_clock->next = event;
-		if (event->type == ARRIVAL)
+		if (event->event_type == ARRIVAL)
 			system_clock->arrival = event->time;
-		updateStats(event->time - system_clock->current, blocks);
+		update_stats(event->time - system_clock->current, blocks);
 		previous_clock = system_clock->current;
 		system_clock->current = event->time;
-		switch (event->type)
+		block_type btype = event->block_type;
+		remove_event();
+
+		switch (event->event_type)
 		{
 		case ARRIVAL:
-			arrival(system_clock, previous_clock, blocks[event->blockType]);
+			arrival(system_clock, previous_clock, blocks[btype]);
 			p = Random();
 			if (p < P_PRIMO_FUORI)
-				createAndInsertEvent(PRIMO, -1, ARRIVAL, system_clock);
+				create_insert_event(PRIMO, -1, ARRIVAL, system_clock);
 			else
-				createAndInsertEvent(SECONDO, -1, ARRIVAL, system_clock);
+				create_insert_event(SECONDO, -1, ARRIVAL, system_clock);
 			break ;
 		case IMMEDIATE_ARRIVAL:
-			arrival(system_clock, previous_clock, blocks[event->blockType]);
+			arrival(system_clock, previous_clock, blocks[btype]);
 			break ;
 		case COMPLETION:
 			completion(event->target_server, system_clock, previous_clock,
-					blocks[event->blockType]);
+					blocks[btype]);
 			break ;
 		default:
 			break ;
 		}
-		clearEvent(eventIndex);
+
+		sort_list();
+
 		//if (system_clock->arrival <= PERIODO)
 		//	printf("Next arrival time: %lf\n", system_clock->arrival);
 		// use \r instead of \n to print in one line
@@ -103,10 +109,11 @@ int	startSimulation(void)
 		//            getServerContents(blocks[CASSA_FAST]),
 		//            getServerContents(blocks[CASSA_STD]),
 		//            getServerContents(blocks[CONSUMAZIONE]));
+
 	}
-	showStatistics(blocks, system_clock);
+	show_stats(blocks, system_clock);
 	free(system_clock);
-	clearMem(blocks);
+	clear_mem(blocks);
 	return (0);
 }
 
@@ -119,23 +126,21 @@ void	arrival(clock *c, double current, block *block)
 	block->jobs++;
 	// we retrieve the number of server in the block
 	// TODO: quale indice devo metterci? Lo stesso del job che sta gia dentro
-	s_index = requestIdleServer(block);
+	s_index = get_idle_server(block);
 	if (s_index != -1)
 	{
 		s = block->servers[s_index];
-		// plus one because index start from zero,
-		// but server index start from 1.
-		service_time = createAndInsertEvent(block->type, s_index, COMPLETION,
+		service_time = create_insert_event(block->type, s_index, COMPLETION,
 				c);
 		s->sum->service += service_time - current;
 		s->sum->served++;
-		block->blockArea->service += (service_time - current);
+		block->block_area->service += (service_time - current);
 	}
 	else
-		block->jobsInQueue++;
+		block->queue_jobs++;
 }
 
-void	scheduleArrive(int type, clock *c)
+void	schedule_arrive(int type, clock *c)
 {
 	double	p;
 
@@ -144,28 +149,28 @@ void	scheduleArrive(int type, clock *c)
 	case PRIMO:
 		p = Random();
 		if (p < P_SECONDO_PRIMO)
-			createAndInsertEvent(SECONDO, -1, IMMEDIATE_ARRIVAL, c);
+			create_insert_event(SECONDO, -1, IMMEDIATE_ARRIVAL, c);
 		else if (p > P_SECONDO_PRIMO && p < P_SECONDO_PRIMO + P_DESSERT_PRIMO)
-			createAndInsertEvent(DESSERT, -1, IMMEDIATE_ARRIVAL, c);
+			create_insert_event(DESSERT, -1, IMMEDIATE_ARRIVAL, c);
 		else
-			createAndInsertEvent(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c);
+			create_insert_event(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c);
 		break ;
 	case SECONDO:
 		p = Random();
 		if (p < P_DESSERT_SECONDO)
-			createAndInsertEvent(DESSERT, -1, IMMEDIATE_ARRIVAL, c);
+			create_insert_event(DESSERT, -1, IMMEDIATE_ARRIVAL, c);
 		else if (p > P_DESSERT_SECONDO && p < P_DESSERT_SECONDO
 				+ P_CASSA_STD_SECONDO)
-			createAndInsertEvent(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c);
+			create_insert_event(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c);
 		else
-			createAndInsertEvent(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c);
+			create_insert_event(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c);
 		break ;
 	case DESSERT:
-		createAndInsertEvent(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c);
+		create_insert_event(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c);
 		break ;
-	case CASSA_FAST:
 	case CASSA_STD:
-		createAndInsertEvent(CONSUMAZIONE, -1, IMMEDIATE_ARRIVAL, c);
+	case CASSA_FAST:
+		create_insert_event(CONSUMAZIONE, -1, IMMEDIATE_ARRIVAL, c);
 		break ;
 	default:
 		break ;
@@ -176,36 +181,33 @@ void	completion(int server_id, clock *c, double current, block *block)
 	double service_time;
 	server *s;
 
-	block->completedJobs++;
+	block->completed_jobs++;
 	block->jobs--;
 
 	// FIXME: a volte server_id va fuori range
 	// findBusyServer(blocks[type]->servers, num);
 	if (server_id != -1)
-		freeBusyServer(block, server_id);
+		free_busy_server(block, server_id);
 	else
 	{
 		printf("This is bad! A completion from who knows from!\n");
 		exit(-1);
 	}
-
-	// After this completion,
-	// we immediately schedule a new completion if there is at least one job in queue
-	if (block->jobsInQueue > 0)
+	if (block->queue_jobs > 0)
 	{
-		int serv_id = requestIdleServer(block);
+		int serv_id = get_idle_server(block);
 		s = block->servers[server_id];
-		service_time = createAndInsertEvent(block->type, serv_id, COMPLETION,
+		service_time = create_insert_event(block->type, serv_id, COMPLETION,
 				c);
 		// TODO: maybe there is only one server (?)
-		block->jobsInQueue--;
+		block->queue_jobs--;
 		s->sum->service += (service_time - current);
-		block->blockArea->service += (service_time - current);
+		block->block_area->service += (service_time - current);
 		s->sum->served++;
 	}
-	//	createAndInsertEvent(type, server_id + 1, COMPLETION, c);
+	//	create_insert_event(type, server_id + 1, COMPLETION, c);
 	//	}else if (blocks[type]->jobs > 0)
 	// TODO: from which server will complete???
 
-	scheduleArrive(block->type, c);
+	schedule_arrive(block->type, c);
 }

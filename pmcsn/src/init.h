@@ -1,14 +1,9 @@
 #include "../utils/constants.h"
 #include "../utils/structs.h"
 #include "../utils/helpers.h"
-#include "../utils/structs.h"
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-block	**initBlocks(int *config);
-void	initServers(block *block, int num);
-clock * 	initClock(void);
-int *	initNetworkStatus(int config);
+block	**init_blocks(int *config);
+void	init_servers(block *block, int num);
+clock * 	init_clock(void);
+int *	init_network(int config);
 

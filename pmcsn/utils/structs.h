@@ -1,5 +1,5 @@
-#ifndef STRUCTS // used to not re-import these structs
-#define STRUCTS
+#ifndef _STRUCT_H_
+#define _STRUCT_H_
 
 typedef enum block_types_t {
     PRIMO,
@@ -13,17 +13,18 @@ typedef enum block_types_t {
 typedef enum event_type_t {
     ARRIVAL,
     COMPLETION,
-    IMMEDIATE_ARRIVAL // // Dopo un completamento, gli arrivi vanno immediatamente nel centro a cui sono diretti.
+    IMMEDIATE_ARRIVAL
 } event_type;
 
 typedef struct event_t{
-    block_type blockType;
+    block_type block_type;
     double time;
-    event_type type; //0 = arrival; 1 = completion
-    int target_server; // 1 if is M/M/1
+    event_type event_type;
+    int target_server;
+    struct event_t * next;
 } event;
 
-typedef struct clock_t{
+typedef struct clock_t_n{
     double arrival;                 /* next arrival time                   */
     double completion;              /* next completion time                */
     double current;                 /* current time                        */
@@ -39,14 +40,14 @@ typedef struct area_t{
 } area;
 
 typedef struct statistics_t {
-    long int completedJobs;
-    float interarrivalTime;
+    long int completed_jobs;
+    float interarrival_time;
     float wait; // queue + service
     float delay; // only queue
-    float serviceTime; // only service
-    float nodePopulation;
-    float queuePopulation;
-    float trafficIntensity; // can be greater than 1
+    float service_time; // only service
+    float node_pop;
+    float queue_pop;
+    //float trafficIntensity; // can be greater than 1
     float utilization; // same as trafficIntensity for sufficiently long observation periods
 } statistics;
 
@@ -63,12 +64,12 @@ typedef struct server_t {
 typedef struct block_t {
     char name[32];
     block_type type;
-    long completedJobs;
+    long completed_jobs;
 	long jobs;                      /* jobs currently in the node */
-    area * blockArea;
+    area * block_area;
     server **servers;                // pointer to eventually multi-server
     int num_servers;
-    int jobsInQueue;
+    int queue_jobs;
 } block;
 
 #endif
