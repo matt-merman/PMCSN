@@ -1,3 +1,6 @@
+#ifndef _CONST_H_
+#define _CONST_H_
+
 #define BLOCKS 6
 #define START 0
 #define N (BLOCKS * 100)
@@ -52,3 +55,7 @@
 #define CONFIG_1 1
 #define CONFIG_2 2
 #define CONFIG_3 3
+
+#define SALARY 8 // 8 [eur/h]
+
+#endif

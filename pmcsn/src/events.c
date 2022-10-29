@@ -1,202 +1,196 @@
 #include "events.h"
 
 // true if Clock is terminated
-int terminated = FALSE;
-// this list contains all event to process
-event	eventList[N];
+int		terminated = FALSE;
+event	*event_list;
 
-void 	initEventList(clock* system_clock){
-	for (int i = 0; i < N; i++)
-	{
-		eventList[i].time = -1;
-	}
-	//add the first ARRIVAL to the eventList
-	eventList[0].blockType = system_clock->type;
-	eventList[0].type = ARRIVAL;
-	eventList[0].target_server = -1; // we do not know in which server of the multi-server it will go!
-	eventList[0].time = getArrival(START, LAMBDA);
-	printf("First arrival: %lf\n", eventList[0].time);
-}
-
-// Scans the eventList to find the minimum time at which the next event occurs
-// If an element is -1, will be skipped
-// If all elements are -1, the first one will be returned.
-int		getNextEventIndex()
+void	init_event_list(int type)
 {
-	int index = 0;
-	double min = eventList[index].time;
-    int i;
-	for (i = 0; i < N; i++)
-	{
-		if (min < 0) // found -1
-		{
-			index++; // go ahead and get next element time
-			min = eventList[index].time;
-			continue ;
-		}
-		if (eventList[i].time < min && eventList[i].time > 0) // we have a new minimum time
-		{
-			min = eventList[i].time; // update minimum and index
-			index = i;
-		}
-	}
-
-	return index; // the index of the minimum time in the list.
+	event_list = create_event(type, -1, ARRIVAL, START);
 }
 
-// adds an event in the first free spot in the list
-// if the list is full, nothing will be inserted
-void	insertEvent(event *elem)
+void	insert_event(event *elem)
 {
-	for (int i = 0; i < N; i++)
+	event	*current;
+
+	if (event_list == NULL)
 	{
-		event event = eventList[i];
-		if (event.time == -1) // we insert in the first empty spot
-		{
-			eventList[i] = *elem;
-			return ;
-		}
+		event_list = elem;
+		return ;
 	}
-	printf("WARNING: event list is full! Event is lost!");
+	current = event_list;
+	while (current->next != NULL)
+		current = current->next;
+	current->next = elem;
 }
 
-char * toStrBlock(block_type btype){
-	switch (btype){
-		case PRIMO:
-			return "PRIMO";
-		case SECONDO:
-			return "SECONDO";
-		case DESSERT:
-			return "DESSERT";
-		case CASSA_FAST:
-			return "CASSA_FAST";
-		case CASSA_STD:
-			return "CASSA_STD";
-		case CONSUMAZIONE:
-			return "CONSUMAZIONE";
-		default:
-			return "";
-	}
-}
-
-char *toStrEvent(event_type etype) {
-    switch (etype) {
-        case ARRIVAL:
-            return "ARRIVAL";
-        case IMMEDIATE_ARRIVAL:
-            return "IMMEDIATE_ARRIVAL";
-        case COMPLETION:
-            return "COMPLETION";
-        default:
-            return "";
-    }
-}
-
-event	*createEvent(block_type target, int server_id, event_type type, double time)
+event	*create_event(block_type target, int server_id, event_type type,
+		double current)
 {
-	// char* source_str = toStrBlock(source);
-	// char* target_str = toStrBlock(target);
-	
-	event *newEvent = (event*)malloc(sizeof(event));
-	if (newEvent == NULL)
+	int		stream;
+	event	*e;
+
+	e = (event *)malloc(sizeof(event));
+	if (e == NULL)
 	{
 		printf("Error while allocating event");
-		return newEvent;
+		return (e);
 	}
-	newEvent->type = type;
-	
-	if (type == ARRIVAL){
-		newEvent->blockType = target;
-		newEvent->time = getArrival(time, LAMBDA);
-		newEvent->target_server = -1;
-		//printf("New outside arrival to block %s. Time: %lf\n", target_str, newEvent->time);
-	} else if(type == IMMEDIATE_ARRIVAL){
-		newEvent->blockType = target;
-		newEvent->time = time;
-		newEvent->target_server = -1;
-		//printf("New arrival from block %s to block %s. Time: %lf s\n", source_str, target_str, newEvent->time);
-	} else{
-		newEvent->blockType = target;
-		int stream = target + 1; 
-		newEvent->time = time + getService(target, stream);
-		newEvent->target_server = server_id;
-		//printf("New completion from block %s to %s. Time: %lf s\n", source_str, target_str, newEvent->time);
+	switch (type)
+	{
+	case ARRIVAL:
+		e->time = get_arrival(current, LAMBDA);
+		e->target_server = -1;
+		//printf("New outside arrival to block %s. Time: %lf\n", target_str, 
+				//newEvent->time);
+		break ;
+	case IMMEDIATE_ARRIVAL:
+		e->time = current;
+		e->target_server = -1;
+		//printf("New arrival from block %s to block %s. Time: %lf s\n",
+				//source_str, target_str, newEvent->time);
+		break ;
+	case COMPLETION:
+		stream = target + 1;
+		e->time = current + get_service(target, stream);
+		e->target_server = server_id;
+		//printf("New completion from block %s to %s. Time: %lf s\n",
+				//source_str, target_str, newEvent->time);
+		break ;
+	default:
+		break ;
 	}
-	return newEvent;
+	e->event_type = type;
+	e->block_type = target;
+	e->next = NULL;
+	return (e);
 }
 
-// initialize the system clock
-void 	initClock(clock *system_clock, double p)
-{
-	system_clock->current = START;
-	printf("Lambda: %lf\n", LAMBDA);
-	system_clock->arrival = getArrival(START, LAMBDA); // generate the first arrival from outside
-	// printf("First arrival: %lf\n", system_clock->arrival);
-	// The first job arrived goes into "first course"
-	if (p < P_PRIMO_FUORI)
-		system_clock->type = 0;
-	// Otherwise first job arrived goes into "second course"
-	else
-		system_clock->type = 1;
-
-	system_clock->completion = INF;
-}
-
-// if time of event is greater than termination period, we stop the arrival flow.
-int tryTerminateClock(clock *c, double time)
+// if time of event is greater than termination period,
+//we stop the arrival flow.
+int	try_terminate_clock(clock *c, double time)
 {
 	if (time > PERIODO)
 	{
 		c->last = c->current;
 		c->arrival = INF; // the next arrival will arrive at infinity
 		terminated = TRUE;
-		return TRUE;
+		return (TRUE);
 	}
-	return FALSE;
+	return (FALSE);
 }
 
-int isClockTerminated()
+int	check_clock(void)
 {
-	return terminated;
+	return (terminated);
 }
 
-// creates an event, check if it's time is after the observation period and inserts it in the list.
-// returns the time at which the event will occur
-double 	createAndInsertEvent(block_type target, int server_id, event_type eventType, clock *c)
+double	create_insert_event(block_type target, int server_id,
+		event_type eventType, clock *c)
 {
-	event * e = createEvent(target, server_id, eventType, c->current);
-	// if we have a new outside arrival but in a time after the observation period, we skip it.
-	if(eventType == ARRIVAL && tryTerminateClock(c, e->time)){
+	event	*e;
+
+	e = create_event(target, server_id, eventType, c->current);
+	// if we have a new outside arrival but in a time after the observation period,
+	//we skip it.
+	if (eventType == ARRIVAL && try_terminate_clock(c, e->time))
+	{
 		free(e);
 		return 0;
 	}
-	insertEvent(e);
-	// return value needed in multi-server blocks
-	return e->time; 
-
+	insert_event(e);
+	return e->time;
 }
 
-event* getEvent(int eventIndex)
+void	remove_event()
 {
-	if (!(eventIndex >= 0 && eventIndex < N))
+	event	*new_first;
+
+	new_first = event_list->next;
+	free(event_list);
+	event_list = new_first;
+}
+
+event	*get_event()
+{
+	return event_list;
+}
+
+int	check_events()
+{
+	if (event_list == NULL)
+		return FALSE;
+	return TRUE;
+}
+
+int	get_len()
+{
+	int		length;
+	event	*current;
+
+	length = 0;
+	for (current = event_list; current != NULL; current = current->next)
 	{
-		printf("Warning: Event for index %d is null\n", eventIndex);
-		return NULL;
+		length++;
 	}
-	return &eventList[eventIndex];
+	return length;
 }
 
-void clearEvent(int eventIndex)
+void	sort_list()
 {
-	eventList[eventIndex].time = -1;
-}
+	int k;
+	event *current, *next;
 
-int areThereMoreEvents()
-{
-	for (int i = 0; i < BLOCKS; i++){
-		if (eventList[i].time!=-1){
-			return TRUE;
+	block_type t_block_type;
+	double t_time;
+	event_type t_type;
+	int t_target_server;
+
+	int size = get_len();
+	k = size;
+
+	for (int i = 0; i < size - 1; i++, k--)
+	{
+		current = event_list;
+		next = event_list->next;
+
+		for (int j = 1; j < k; j++)
+		{
+			if (current->time > next->time)
+			{
+				t_time = current->time;
+				current->time = next->time;
+				next->time = t_time;
+
+				t_target_server = current->target_server;
+				current->target_server = next->target_server;
+				next->target_server = t_target_server;
+
+				t_block_type = current->block_type;
+				current->block_type = next->block_type;
+				next->block_type = t_block_type;
+
+				t_type = current->event_type;
+				current->event_type = next->event_type;
+				next->event_type = t_type;
+			}
+			current = current->next;
+			next = next->next;
 		}
 	}
-	return FALSE;
 }
+
+// char	*to_str_event(event_type etype)
+// {
+// 	switch (etype)
+// 	{
+// 	case ARRIVAL:
+// 		return ("ARRIVAL");
+// 	case IMMEDIATE_ARRIVAL:
+// 		return ("IMMEDIATE_ARRIVAL");
+// 	case COMPLETION:
+// 		return ("COMPLETION");
+// 	default:
+// 		return ("");
+// 	}
+// }

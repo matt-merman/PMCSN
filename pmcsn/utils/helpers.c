@@ -1,15 +1,6 @@
 #include "helpers.h"
-#include "structs.h"
 
-double	min(double a, double c)
-{
-	if (a < c)
-		return (a);
-	else
-		return (c);
-}
-
-double	getArrival(double current, double lambda)
+double	get_arrival(double current, double lambda)
 {
 	double	arrival;
 
@@ -19,7 +10,7 @@ double	getArrival(double current, double lambda)
 	return (arrival);
 }
 
-double	getService(block_type type, int stream)
+double	get_service(block_type type, int stream)
 {
 	SelectStream(stream); // stream = 1,2,...,BLOCKS
 	switch (type)
@@ -41,76 +32,72 @@ double	getService(block_type type, int stream)
 	}
 }
 
-void calculateStatistics(block *block, clock *clock, area *area, statistics *stats){
-    double completedJobs = (double) (block->completedJobs - block->rejectedJobs);
-	stats->completedJobs = (long) completedJobs;
-	stats->interarrivalTime = clock->last / completedJobs;
+void get_stats(long int completedJobs, clock *clock, area *area, statistics *stats, int num_servers){
+	stats->completed_jobs = completedJobs;
+	stats->interarrival_time = clock->last / completedJobs;
 	stats->wait = area->node / completedJobs;
 	stats->delay = area->queue / completedJobs;
-	stats->serviceTime = area->service / completedJobs;
-	stats->nodePopulation = area->node / clock->current;
-	stats->queuePopulation = area->queue / clock->current;
-	stats->trafficIntensity = area->service / clock->current;
-	// number of jobs * mean service time / last completion time 
-	stats->utilization = completedJobs * stats->serviceTime / clock->current;
+	stats->service_time = area->service / completedJobs;
+	stats->node_pop = area->node / clock->current;
+	stats->queue_pop = area->queue / clock->current;
+	stats->utilization = area->service / (clock->current * num_servers);
 }
 
-void showStatistics(block **blocks, clock *clock)
+void show_stats(block **blocks, clock *clock)
 {
-
-	printf("\n====================================================================================================\n");
+	int total_cost = 0;
+	statistics stats;
+	
 	for (int i = 0; i < BLOCKS; i++)
 	{
-		printf("%s", blocks[i]->name);
-		statistics stats; // stack-allocated
-		calculateStatistics(blocks[i], clock, blocks[i]->blockArea, &stats);
-		printf(": %ld people served\n", stats.completedJobs);
+		printf("\t----------------------------------------------------------\n");
+		printf("\t'%s' block info:\n\n", blocks[i]->name);
+		get_stats(blocks[i]->completed_jobs, clock, blocks[i]->block_area, &stats, blocks[i]->num_servers);
+		printf("\t\tpeople in the block ..... = %ld\tpeople\n", stats.completed_jobs);
 		// job averaged
-		printf("\taverage interarrival time = %6.2f\ts\n", stats.interarrivalTime);
-		printf("\taverage node wait ....... = %6.2f\ts\n", stats.wait);
-		printf("\taverage queue delay ..... = %6.2f\ts\n", stats.delay);
-		printf("\taverage service time .... = %6.2f\ts\n", stats.serviceTime);
+		printf("\t\taverage interarrival time = %6.2f\ts\n", stats.interarrival_time);
+		printf("\t\taverage node wait ....... = %6.2f\ts\n", stats.wait);
+		printf("\t\taverage queue delay ..... = %6.2f\ts\n", stats.delay);
+		printf("\t\taverage service time .... = %6.2f\ts\n\n", stats.service_time);
 		// time averaged
-		printf("\taverage # in the node ... = %6.2f\tpeople\n", stats.nodePopulation);
-		printf("\taverage # in the queue .. = %6.2f\tpeople\n", stats.queuePopulation);
-		printf("\ttraffic intensity ....... = %6.4f\t-\n", stats.trafficIntensity);
-		printf("\tutilization ............. = %6.4f\t-\n", stats.utilization);
-        if (i == CONSUMAZIONE) {
-            printf("\tlost customers .......... = %d\tpeople\n", blocks[i]->rejectedJobs);
-        }
-		validateMM1(blocks[i], &stats);
-		if (blocks[i]->num_servers > 0){
-			printf("\n\tMulti-server statistics:\n\n");
-			printf("\t    server     trafficIntensity     avg service\n");
-		}
-		for (int s = 0; s < blocks[i]->num_servers; s++){
-			printf("\t%8d %14.3f %15.2f\n",
-					s,
-					blocks[i]->servers[s]->sum->service / clock->current, // FIXME: utilizzazione =
+		printf("\t\taverage # in the node ... = %6.2f\tpeople\n", stats.node_pop);
+		printf("\t\taverage # in the queue .. = %6.2f\tpeople\n", stats.queue_pop);
+		printf("\t\tutilization ............. = %6.4f\t-\n", stats.utilization);
+		//validateMM1(blocks[i], &stats);
+		printf("\n\t\tMulti-server statistics:\n");
+		printf("\t\t    server     utilization     avg service\n");
+		for (int s = 0; s < blocks[i]->num_servers; s++){	
+			printf("\t\t%8d %14.4f %15.2f\n", 
+					s, 
+					blocks[i]->servers[s]->sum->service / clock->current, 
 					blocks[i]->servers[s]->sum->service / blocks[i]->servers[s]->sum->served);
 		}
+		if (blocks[i]->type != CONSUMAZIONE){
+			total_cost += get_costs(blocks[i]->num_servers);
+			printf("\n\t\tDaily Configuration Cost for '%s': %d \u20AC \n\n", blocks[i]->name, get_costs(blocks[i]->num_servers));
+		}
 	}
-  	printf("\n");
-
+	printf("\t----------------------------------------------------------\n");
+	printf("\n\t\tTotal Daily Configuration Cost: %d \u20AC \n\n", total_cost);
 }
 
 void validateMM1(block* block, statistics* stats){
-	if (IS_NOT_EQUAL(stats->wait, stats->delay + stats->serviceTime))
+	if (IS_NOT_EQUAL(stats->wait, stats->delay + stats->service_time))
 	{
 		printf("\tResponse time of block %18s: %6.2lf s,\tbut it's not equal to queue delay plus service time: \t%6.2lf s\n",
-			   block->name, stats->wait, stats->delay + stats->serviceTime);
+			   block->name, stats->wait, stats->delay + stats->service_time);
 	}
-	if (IS_NOT_EQUAL(stats->nodePopulation, stats->queuePopulation + stats->trafficIntensity))
+	if (IS_NOT_EQUAL(stats->node_pop, stats->queue_pop + stats->utilization))
 	{
 		printf("\tPopulation of block    %18s: %6.2lf,\tbut it's not equal to queue plus service population: \t%6.2lf\n",
-			   block->name, stats->nodePopulation, stats->queuePopulation + stats->trafficIntensity);
+			   block->name, stats->node_pop, stats->node_pop + (block->num_servers* stats->utilization));
 	}
 }
 
-void clearMem(block **blocks){
+void clear_mem(block **blocks){
 	for (int i = 0; i < BLOCKS; i++){
-		if (blocks[i]->blockArea != NULL){
-			free(blocks[i]->blockArea);
+		if (blocks[i]->block_area != NULL){
+			free(blocks[i]->block_area);
 		}
 		for (int j = 0; j < blocks[i]->num_servers; j++){
 			if (blocks[i]->servers[j]->sum != NULL){
@@ -121,4 +108,12 @@ void clearMem(block **blocks){
 			}
 		}
 	}
+}
+
+int get_costs(int num)
+{
+	int cost = 0;
+	for(int i = 0; i < num; i++)
+		cost += SALARY;
+	return cost;
 }

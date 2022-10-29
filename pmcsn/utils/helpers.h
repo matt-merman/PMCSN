@@ -1,3 +1,6 @@
+#ifndef _HELP_H_
+#define _HELP_H_
+
 #include "../libs/rngs.h"
 #include "../libs/rvgs.h"
 #include "./constants.h"
@@ -15,11 +18,14 @@
 #define IS_NOT_EQUAL(x, y) ((MAX((x),(y)) - MIN((x),(y)) <= EPSILON) ? 0 : 1)
 #define FIND_SEGFAULT(x) printf("I'm here: %s\n", (x))
 
-double	min(double a, double c);
-double	getArrival(double current, double lambda);
-double	getService(block_type type, int stream);
-void    calculateStatistics(block *block, clock* clock, area *area, statistics *stats);
+double	get_arrival(double current, double lambda);
+double	get_service(block_type type, int stream);
+void    get_stats(long int completedJobs, clock* clock, area *area, statistics *stats, int num_servers);
 void 	validateMM1(block *block, statistics* stats);
-void    clearMem(block **blocks);
-void	showStatistics(block **blocks, clock *clock);
+void    clear_mem(block **blocks);
+void	show_stats(block **blocks, clock *clock);
+int get_costs(int num);
+
+#endif
+
 

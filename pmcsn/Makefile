@@ -1,9 +1,16 @@
+CC				= gcc
+CFLAGS			= -Wall -Wextra
+LIB 			= -lm
+SRC 			= ./src
+LIBS 			= ./libs
+UTILS 			= ./utils
+
 all:
-	gcc -Wall -Wextra libs/rngs.c libs/rvgs.c src/server.c src/start.c src/events.c utils/helpers.c -lm -o start -g
+	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c src/server.c src/init.c src/start.c src/events.c utils/helpers.c $(LIB) -o start -g
 
 run: all
 	./start
 
 test:
-	gcc -Wall -Wextra libs/rngs.c libs/rvgs.c src/server.c src/start.c src/events.c utils/helpers.c -lm -o tests -g
+	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c src/server.c src/start.c src/events.c utils/helpers.c $(LIB) -o tests -g
 	./tests

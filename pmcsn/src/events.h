@@ -1,17 +1,17 @@
-#include "../utils/structs.h"
 #include "../utils/helpers.h"
 
-void    initEventList(clock* system_clock);
-int	    getNextEventIndex();
-void	insertEvent(event *elem);
-event*	createEvent(block_type target, int server_id, event_type type, double time);
-double 	createAndInsertEvent(block_type target, int server_id, event_type eventType, clock *c);
+void init_event_list(int type);
 
-void    initClock(clock *system_clock, double p);
-int     tryTerminateClock(clock *system_clock, double time);
-int     isClockTerminated();
-char *  toStrBlock(block_type btype);
-char *  toStrEvent(event_type btype);
-event*  getEvent(int eventIndex);
-void    clearEvent(int eventIndex);
-int     areThereMoreEvents();
+void insert_event(event *elem);
+event *create_event(block_type target, int server_id, event_type type,
+                    double time);
+int try_terminate_clock(clock *system_clock, double time);
+int check_clock();
+event *get_event();
+void remove_event();
+int check_events();
+int get_len();
+void sort_list();
+// char *to_str_event(event_type etype);
+double create_insert_event(block_type target, int server_id,
+                           event_type eventType, clock *c);
