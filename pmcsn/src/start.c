@@ -27,7 +27,7 @@ void	update_stats(double diff, block **blocks)
 		if (blocks[i]->jobs > 0)
 		{
 			area = blocks[i]->block_area;
-			area->node += diff * blocks[i]->jobs;
+			area->node += diff * (double) blocks[i]->jobs;
 			area->queue += diff * blocks[i]->queue_jobs;
 		}
 	}
@@ -125,7 +125,6 @@ void	arrival(clock *c, double current, block *block)
 
 	block->jobs++;
 	// we retrieve the number of server in the block
-	// TODO: quale indice devo metterci? Lo stesso del job che sta gia dentro
 	s_index = get_idle_server(block);
 	if (s_index != -1)
 	{
@@ -184,8 +183,6 @@ void	completion(int server_id, clock *c, double current, block *block)
 	block->completed_jobs++;
 	block->jobs--;
 
-	// FIXME: a volte server_id va fuori range
-	// findBusyServer(blocks[type]->servers, num);
 	if (server_id != -1)
 		free_busy_server(block, server_id);
 	else
@@ -197,9 +194,7 @@ void	completion(int server_id, clock *c, double current, block *block)
 	{
 		int serv_id = get_idle_server(block);
 		s = block->servers[server_id];
-		service_time = create_insert_event(block->type, serv_id, COMPLETION,
-				c);
-		// TODO: maybe there is only one server (?)
+		service_time = create_insert_event(block->type, serv_id, COMPLETION, c);
 		block->queue_jobs--;
 		s->sum->service += (service_time - current);
 		block->block_area->service += (service_time - current);
@@ -207,7 +202,6 @@ void	completion(int server_id, clock *c, double current, block *block)
 	}
 	//	create_insert_event(type, server_id + 1, COMPLETION, c);
 	//	}else if (blocks[type]->jobs > 0)
-	// TODO: from which server will complete???
 
 	schedule_arrive(block->type, c);
 }
