@@ -28,10 +28,10 @@ void validate_population(block **blocks) {
 
 void validate_global_queue_time(block **blocks, clock *clock) {
     // TODO
-    printf("The global queue time is not equal to the sum???")
+    printf("The global queue time is not equal to the sum???");
 }
 
 void validate_global_response_time(block **blocks, clock *clock) {
     // TODO
-    printf("The global response time is not equal to the sum???")
+    printf("The global response time is not equal to the sum???");
 }
