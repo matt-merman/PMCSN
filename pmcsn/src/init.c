@@ -43,7 +43,7 @@ void	init_servers(block *block, int num)
     memset(block->servers, 0x0, num * sizeof(server *));
 	for (int s = 0; s < num; s++)
 	{
-        // TODO: nel debugger CLION puoi vedere gli elementi block->servers con il watch: (server *[2]) *blocks->servers
+        // Nel debugger CLION puoi vedere gli elementi block->servers con il watch: (server *[2]) *blocks->servers
         //  sostituisci il 2 con il valore di num
         block->servers[s] = (server *) malloc(sizeof(server));
         memset(block->servers[s], 0x0, sizeof(server));

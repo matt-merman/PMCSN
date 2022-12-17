@@ -1,5 +1,7 @@
 #include "helpers.h"
 
+void validatePopulation();
+
 double	get_arrival(double current, double lambda)
 {
 	double	arrival;
@@ -32,66 +34,70 @@ double	get_service(block_type type, int stream)
 	}
 }
 
-void get_stats(long int completedJobs, clock *clock, area *area, statistics *stats, int num_servers){
-	stats->completed_jobs = completedJobs;
-	stats->interarrival_time = clock->last / completedJobs;
-	stats->wait = area->node / completedJobs;
-	stats->delay = area->queue / completedJobs;
-	stats->service_time = area->service / completedJobs;
-	stats->node_pop = area->node / clock->current;
-	stats->queue_pop = area->queue / clock->current;
-	stats->utilization = area->service / (clock->current * num_servers);
+// reduced number of parameters
+void get_stats(block *b, clock *clock, statistics *stats){
+    double completed_jobs = (double) b->completed_jobs;
+    area *area = b->block_area;
+    stats->completed_jobs = b->completed_jobs;
+    stats->interarrival_time = clock->last / completed_jobs;
+    stats->wait = area->node / completed_jobs; //FIXME ricontrollare come viene calcolata area e se questa formula è corretta
+    stats->delay = area->queue / completed_jobs; // FIXME idem
+    stats->service_time = area->service / completed_jobs; //FIXME idem
+    stats->node_pop = area->node / clock->current; // FIXME idem
+    stats->queue_pop = area->queue / clock->current; // FIXME idem
+    stats->utilization = area->service / (clock->current * b->num_servers); // FIXME idem
+    stats->daily_cost = b->type != CONSUMAZIONE ? get_costs(b->num_servers): 0.0;
+    // multiserver statistics
+    stats->multiserver_utilization = malloc(sizeof(double) * b->num_servers);
+    stats->multiserver_service_time = malloc(sizeof(double) * b->num_servers);
+    for (int s = 0; s < b->num_servers; s++){
+        stats->multiserver_utilization[s] = b->servers[s]->sum->service / clock->current;
+        stats->multiserver_service_time[s] = b->servers[s]->sum->service / b->servers[s]->sum->served;
+    }
 }
-
-void show_stats(block **blocks, clock *clock)
+// computes and validate the job averaged and time averaged statistics for each block
+void show_and_validate_block_stats(block **blocks, clock *clock)
 {
-	int total_cost = 0;
+	double total_cost = 0.0;
 	statistics stats;
-	
+
 	for (int i = 0; i < BLOCKS; i++)
 	{
-		printf("\t----------------------------------------------------------\n");
-		printf("\t'%s' block info:\n\n", blocks[i]->name);
-		get_stats(blocks[i]->completed_jobs, clock, blocks[i]->block_area, &stats, blocks[i]->num_servers);
+        get_stats(blocks[i], clock, &stats);
+        printf("\t----------------------------------------------------------\n");
+        printf("\t'%s' block info:\n\n", blocks[i]->name);
 		printf("\t\tpeople in the block ..... = %ld\tpeople\n", stats.completed_jobs);
-		// job averaged
+		printf("\n\tjob averaged statistics:\n");
 		printf("\t\taverage interarrival time = %6.2f\ts\n", stats.interarrival_time);
 		printf("\t\taverage node wait ....... = %6.2f\ts\n", stats.wait);
 		printf("\t\taverage queue delay ..... = %6.2f\ts\n", stats.delay);
-		printf("\t\taverage service time .... = %6.2f\ts\n\n", stats.service_time);
-		// time averaged
+		printf("\t\taverage service time .... = %6.2f\ts\n", stats.service_time);
+        printf("\n\ttime averaged statistics:\n");
 		printf("\t\taverage # in the node ... = %6.2f\tpeople\n", stats.node_pop);
 		printf("\t\taverage # in the queue .. = %6.2f\tpeople\n", stats.queue_pop);
 		printf("\t\tutilization ............. = %6.4f\t-\n", stats.utilization);
-		//validateMM1(blocks[i], &stats);
 		printf("\n\t\tMulti-server statistics:\n");
-		printf("\t\t    server     utilization     avg service\n");
-		for (int s = 0; s < blocks[i]->num_servers; s++){	
-			printf("\t\t%8d %14.4f %15.2f\n", 
-					s, 
-					blocks[i]->servers[s]->sum->service / clock->current, 
-					blocks[i]->servers[s]->sum->service / blocks[i]->servers[s]->sum->served);
-		}
-		if (blocks[i]->type != CONSUMAZIONE){
-			total_cost += get_costs(blocks[i]->num_servers);
-			printf("\n\t\tDaily Configuration Cost for '%s': %d \u20AC \n\n", blocks[i]->name, get_costs(blocks[i]->num_servers));
-		}
-	}
+        printf("\t\t    server     utilization     avg service\n");
+        // print all utilization and average service of each server in the node
+        for (int s = 0; s < blocks[i]->num_servers; s++){
+            printf("\t\t%8d %14.4f %15.2f\n", s, stats.multiserver_utilization[s], stats.multiserver_service_time[s]);
+        }
+        if (blocks[i]->type != CONSUMAZIONE){ // TODO: per ora il costo del locale mensa non è stato considerato
+            total_cost += stats.daily_cost;
+            printf("\n\t\tDaily Configuration Cost for '%s': %g \u20AC \n\n", blocks[i]->name, stats.daily_cost);
+        }
+        validateMM1(blocks[i], &stats);
+    }
 	printf("\t----------------------------------------------------------\n");
-	printf("\n\t\tTotal Daily Configuration Cost: %d \u20AC \n\n", total_cost);
+	printf("\n\t\tTotal Daily Configuration Cost: %g \u20AC \n\n", total_cost);
+    free(stats.multiserver_utilization);
+    free(stats.multiserver_service_time);
 }
-
-void validateMM1(block* block, statistics* stats){
-	if (IS_NOT_EQUAL(stats->wait, stats->delay + stats->service_time))
-	{
-		printf("\tResponse time of block %18s: %6.2lf s,\tbut it's not equal to queue delay plus service time: \t%6.2lf s\n",
-			   block->name, stats->wait, stats->delay + stats->service_time);
-	}
-	if (IS_NOT_EQUAL(stats->node_pop, stats->queue_pop + stats->utilization))
-	{
-		printf("\tPopulation of block    %18s: %6.2lf,\tbut it's not equal to queue plus service population: \t%6.2lf\n",
-			   block->name, stats->node_pop, stats->node_pop + (block->num_servers* stats->utilization));
-	}
+// validates global population, global queue time and response time
+void show_and_validate_global_stats(block **blocks, clock *clock){
+    validate_population(blocks);
+    validate_global_queue_time(blocks, clock);
+    validate_global_response_time(blocks, clock);
 }
 
 void clear_mem(block **blocks){
@@ -110,10 +116,13 @@ void clear_mem(block **blocks){
 	}
 }
 
+/**
+ * Computes costs of center node given the number of servers in it
+ * @param num number of server
+ * @return
+ */
 int get_costs(int num)
 {
-	int cost = 0;
-	for(int i = 0; i < num; i++)
-		cost += SALARY;
-	return cost;
+	return SALARY * N_HOURS * num ;
+    // TODO: ci sono altri costi oltre al numero di serventi?
 }

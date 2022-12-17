@@ -1,12 +1,4 @@
-#include "server.h"
-#include "init.h"
-#include "events.h"
-
-void completion(int server_id, clock *c, double current, block *block);
-void arrival(clock *c, double current, block *block);
-int start_simulation(void);
-void update_stats(double diff, block **blocks);
-void schedule_arrive(int type, clock *c);
+#include "start.h"
 
 int	main(void)
 {
@@ -18,7 +10,7 @@ int	main(void)
 	return (0);
 }
 
-void	update_stats(double diff, block **blocks)
+void	update_area_stats(double diff, block **blocks)
 {
 	area	*area;
 
@@ -58,15 +50,15 @@ int	start_simulation(void)
 	}
 	while (1)
 	{
-		if (!(system_clock->arrival < PERIODO || check_events()
-				|| check_servers(blocks)))
+		if (!(system_clock->arrival < PERIOD || check_events()
+              || check_servers(blocks)))
 			break ;
 
 		event = get_event();
 		system_clock->next = event;
 		if (event->event_type == ARRIVAL)
 			system_clock->arrival = event->time;
-		update_stats(event->time - system_clock->current, blocks);
+        update_area_stats(event->time - system_clock->current, blocks);
 		previous_clock = system_clock->current;
 		system_clock->current = event->time;
 		block_type btype = event->block_type;
@@ -95,7 +87,7 @@ int	start_simulation(void)
 
 		sort_list();
 
-		//if (system_clock->arrival <= PERIODO)
+		//if (system_clock->arrival <= PERIOD)
 		//	printf("Next arrival time: %lf\n", system_clock->arrival);
 		// use \r instead of \n to print in one line
 		//     printf("Time: %lf Event: %-18s Target Block: %-12s in server: %d\tjobs in blocks [%s, %s, %s, %s, %s, %s]\n",
@@ -109,9 +101,9 @@ int	start_simulation(void)
 		//            getServerContents(blocks[CASSA_FAST]),
 		//            getServerContents(blocks[CASSA_STD]),
 		//            getServerContents(blocks[CONSUMAZIONE]));
-
 	}
-	show_stats(blocks, system_clock);
+    show_and_validate_block_stats(blocks, system_clock);
+    show_and_validate_global_stats(blocks, system_clock);
 	free(system_clock);
 	clear_mem(blocks);
 	return (0);
@@ -129,8 +121,7 @@ void	arrival(clock *c, double current, block *block)
 	if (s_index != -1)
 	{
 		s = block->servers[s_index];
-		service_time = create_insert_event(block->type, s_index, COMPLETION,
-				c);
+		service_time = create_insert_event(block->type, s_index, COMPLETION, c);
 		s->sum->service += service_time - current;
 		s->sum->served++;
 		block->block_area->service += (service_time - current);
@@ -200,8 +191,7 @@ void	completion(int server_id, clock *c, double current, block *block)
 		block->block_area->service += (service_time - current);
 		s->sum->served++;
 	}
-	//	create_insert_event(type, server_id + 1, COMPLETION, c);
-	//	}else if (blocks[type]->jobs > 0)
+
 
 	schedule_arrive(block->type, c);
 }

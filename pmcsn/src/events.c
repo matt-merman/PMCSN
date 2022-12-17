@@ -70,7 +70,7 @@ event	*create_event(block_type target, int server_id, event_type type,
 //we stop the arrival flow.
 int	try_terminate_clock(clock *c, double time)
 {
-	if (time > PERIODO)
+	if (time > PERIOD)
 	{
 		c->last = c->current;
 		c->arrival = INF; // the next arrival will arrive at infinity

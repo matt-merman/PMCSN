@@ -6,7 +6,7 @@ LIBS 			= ./libs
 UTILS 			= ./utils
 
 all:
-	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c src/server.c src/init.c src/start.c src/events.c utils/helpers.c $(LIB) -o start -g
+	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c src/server.c src/init.c src/start.c src/events.c src/validation.c utils/helpers.c $(LIB) -o start -g
 
 run: all
 	./start

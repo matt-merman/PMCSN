@@ -5,6 +5,7 @@
 #include "../libs/rvgs.h"
 #include "./constants.h"
 #include "./structs.h"
+#include "../src/validation.h"
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -20,10 +21,10 @@
 
 double	get_arrival(double current, double lambda);
 double	get_service(block_type type, int stream);
-void    get_stats(long int completedJobs, clock* clock, area *area, statistics *stats, int num_servers);
-void 	validateMM1(block *block, statistics* stats);
+void    get_stats(block *b, clock *clock, statistics *stats);
 void    clear_mem(block **blocks);
-void	show_stats(block **blocks, clock *clock);
+void	show_and_validate_block_stats(block **blocks, clock *clock);
+void	show_and_validate_global_stats(block **blocks, clock *clock);
 int get_costs(int num);
 
 #endif
