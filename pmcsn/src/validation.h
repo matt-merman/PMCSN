@@ -9,8 +9,15 @@
 #include "../utils/constants.h"
 #include "../utils/helpers.h"
 
-void validateMM1(block* block, statistics* stats);
-void validate_population(block **blocks);
+void validate_block(block * block, statistics *stats);
+void validate_MM1(block* block, statistics* stats);
+void validate_MMk(block *block, statistics *stats);
+void is_ergodic(block *block);
+void validate_theoretical_service_time(block *block, statistics *stats);
+void validate_theoretical_arrival_time(block *block, statistics *stats);
+void is_wait_delay_plus_service(block *block, statistics *stats);
+void is_node_population_queue_pop_plus_service_pop(block *block, statistics *stats);
+void validate_global_population(block **blocks);
 void validate_global_queue_time(block **blocks, clock *clock);
 void validate_global_response_time(block **blocks, clock *clock);
 

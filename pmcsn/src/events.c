@@ -39,7 +39,7 @@ event	*create_event(block_type target, int server_id, event_type type,
 	switch (type)
 	{
 	case ARRIVAL:
-		e->time = get_arrival(current, LAMBDA);
+		e->time = get_next_arrival(current, LAMBDA);
 		e->target_server = -1;
 		//printf("New outside arrival to block %s. Time: %lf\n", target_str, 
 				//newEvent->time);
@@ -52,7 +52,7 @@ event	*create_event(block_type target, int server_id, event_type type,
 		break ;
 	case COMPLETION:
 		stream = target + 1;
-		e->time = current + get_service(target, stream);
+		e->time = current + get_next_service(target, stream);
 		e->target_server = server_id;
 		//printf("New completion from block %s to %s. Time: %lf s\n",
 				//source_str, target_str, newEvent->time);

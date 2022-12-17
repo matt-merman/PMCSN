@@ -10,7 +10,7 @@
 #define N_HOURS 3
 #define PERIOD (N_HOURS*HOUR)                      // observation period in seconds
 #define INF 100*PERIOD                             // max int is 2147483647
-#define LAMBDA ((double) USER/(double) PERIOD)     // Mean outside arrivals
+#define LAMBDA ((double) USER/(double) PERIOD)     // Mean outside arrivals: 0.2314814815
 
 // TODO: probabilità di arrivo nei tre time slots 
 #define P_ARRIVO_SLOT_1 0.28 // (double) USER * 0.20 /(double) PERIOD
@@ -23,7 +23,7 @@
 
 #define P_SECONDO_PRIMO 0.55    // Probability that a user buys second course after buying first course
 #define P_DESSERT_PRIMO 0.25    // Probability that a user buys dessert after first course, skipping second course
-#define P_CASSA_PRIMO 0.20      // Probability that a user pays to the cashier after buying first course, skipping second course and dessert
+#define P_CASSA_PRIMO 0.20      // Probability that a user pays to the (fast) cashier after buying first course, skipping second course and dessert
 
 #define P_DESSERT_SECONDO 0.45  // Probability that a user buys a dessert after buying a second course
 #define P_CASSA_SECONDO 0.55    // Probability that a user pays to the cashier after buying second course, skipping dessert

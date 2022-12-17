@@ -68,7 +68,7 @@ clock * 	init_clock(void)
 		return NULL;
 	}
 	c->current = START;
-	c->arrival = get_arrival(START, LAMBDA);
+	c->arrival = get_next_arrival(START, LAMBDA);
 	c->completion = INF;
 	if (p < P_PRIMO_FUORI)
 		c->type = 0;

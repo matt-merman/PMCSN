@@ -69,12 +69,13 @@ typedef struct server_t {
 typedef struct block_t {
     char name[32];
     block_type type;
-    long completed_jobs;
-    long jobs;                      /* jobs currently in the node */
-    area *block_area;
-    server **servers;                // pointer to eventually multi-server
-    int num_servers;
-    int queue_jobs;
+    long completed_jobs;            // completed jobs from this block
+    long jobs;                      // jobs currently in the node
+    area *block_area;               // time averaged area
+    server **servers;               // pointer to eventually multi-server
+    int num_servers;                // number of server in this block
+    int queue_jobs;                 // job in queue
+    // int has_infinite_queue;      // possible values: TRUE (has infinite queue) FALSE (doesn't have any queue)
 } block;
 
 #endif
