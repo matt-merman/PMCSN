@@ -82,7 +82,7 @@ int	network_status[] = {0, 0, 0, 0, 0, 0};
 int *	init_network(int config)
 {
 	int	status_one[] = {2, 1, 1, 1, 2, 50};
-	int	status_two[] = {2, 1, 1, 1, 2, 50};
+	int	ergodic[] = {3, 4, 2, 1, 5, 139};
 	int	status_three[] = {2, 1, 1, 1, 2, 50};
 
 	switch (config)
@@ -91,7 +91,7 @@ int *	init_network(int config)
 		memcpy(network_status, status_one, sizeof(network_status));
 		break ;
 	case CONFIG_2:
-		memcpy(network_status, status_two, sizeof(network_status));
+		memcpy(network_status, ergodic, sizeof(network_status));
 		break ;
 	case CONFIG_3:
 		memcpy(network_status, status_three, sizeof(network_status));

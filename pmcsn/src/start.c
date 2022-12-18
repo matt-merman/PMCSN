@@ -9,18 +9,25 @@ int	main(void)
 	start_simulation();
 	return (0);
 }
-
+/**
+ *
+ * @param diff tempo prima del prossimo evento
+ * @param blocks
+ */
 void	update_area_stats(double diff, block **blocks)
 {
 	area	*area;
-
+    // per ogni blocco calcola l'area
 	for (int i = 0; i < BLOCKS; i++)
 	{
-		if (blocks[i]->jobs > 0)
+		if (blocks[i]->jobs > 0) // FIXME: forse non gestisce bene i multiserver
 		{
-			area = blocks[i]->block_area;
+			// ricava l'area dal blocco
+            area = blocks[i]->block_area;
+            // tempo * numero di job (integrale time-averaged, numero job nel nodo e in coda)
 			area->node += diff * (double) blocks[i]->jobs;
 			area->queue += diff * blocks[i]->queue_jobs;
+            // in servizio ci sono node-queue (ma queste sono aree)
 		}
 	}
 }
@@ -58,6 +65,8 @@ int	start_simulation(void)
 		system_clock->next = event;
 		if (event->event_type == ARRIVAL)
 			system_clock->arrival = event->time;
+        // event_time: tempo in cui l'evento viene processato. current: tempo dell'evento corrente.
+        // La differenza è il tempo rimanente prima del prossimo evento
         update_area_stats(event->time - system_clock->current, blocks);
 		previous_clock = system_clock->current;
 		system_clock->current = event->time;
@@ -102,8 +111,7 @@ int	start_simulation(void)
 		//            getServerContents(blocks[CASSA_STD]),
 		//            getServerContents(blocks[CONSUMAZIONE]));
 	}
-    show_and_validate_block_stats(blocks, system_clock);
-    show_and_validate_global_stats(blocks, system_clock);
+    show_and_validate_stats(blocks, system_clock);
 	free(system_clock);
 	clear_mem(blocks);
 	return (0);

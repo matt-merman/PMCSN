@@ -2,15 +2,21 @@ CC				= gcc
 CFLAGS			= -Wall -Wextra
 LIB 			= -lm
 SRC 			= ./src
-LIBS 			= ./libs
-UTILS 			= ./utils
+LIBS 			= libs/rngs.c libs/rvgs.c
+MAIN			= src/start.c
+SOURCES			= src/init.c src/server.c src/events.c src/validation.c src/analytic.c utils/helpers.c
+TES_SOURCES		= test/analytic_test.c
 
-all:
-	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c src/server.c src/init.c src/start.c src/events.c src/validation.c src/analytic.c utils/helpers.c $(LIB) -o start -g
+all: compile compile_test
 
-run: all
+compile:
+	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) src/start.c  $(LIB) -o start -g
+
+compile_test:
+	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) test/analytic_test.c $(LIB) -o tests -g
+
+run: compile
 	./start
 
-test:
-	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c src/server.c src/start.c src/events.c utils/helpers.c $(LIB) -o tests -g
+test: compile_test
 	./tests

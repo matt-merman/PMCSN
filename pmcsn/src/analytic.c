@@ -32,11 +32,7 @@ int get_costs(int num) {
  * @return utilization of server/multiserver
  */
 double utilization(int num_servers, double lambda, double mhu) {
-    if (num_servers == 1) {
-        return lambda / mhu;
-    } else {
-        return lambda / (num_servers * mhu);
-    }
+    return lambda / (num_servers * mhu);
 }
 
 /**

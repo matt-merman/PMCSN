@@ -29,8 +29,7 @@ double  get_theoretical_mhu(block_type type); // service frequency
 double  get_theoretical_service(block_type type); // service time
 double  get_theoretical_rho(block *block); // this checks also the number of servers and computes rho accordingly
 void    get_stats(block *b, clock *clock, statistics *stats);
-void	show_and_validate_block_stats(block **blocks, clock *clock);
-void	show_and_validate_global_stats(block **blocks, clock *clock);
+void	show_and_validate_stats(block **blocks, clock *clock);
 void    clear_mem(block **blocks);
 
 

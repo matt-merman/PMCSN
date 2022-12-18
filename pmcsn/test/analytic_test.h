@@ -4,5 +4,6 @@
 
 #ifndef PROGETTOPMCSN_TESTS_H
 #define PROGETTOPMCSN_TESTS_H
-
+#include <stdio.h>
+#include "../src/start.h"
 #endif //PROGETTOPMCSN_TESTS_H

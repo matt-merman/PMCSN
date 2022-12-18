@@ -3,31 +3,21 @@
 
 double get_next_arrival(double current, double lambda) {
     double arrival;
-
     arrival = current;
     SelectStream(0);
     arrival += Exponential(1 / lambda);
     return (arrival);
 }
 
+/**
+ * Computes next service time for a block type, with a particular stream
+ * @param type the block type
+ * @param stream the corresponding stream. 1 for Primi, 2 for Secondi, and so on.
+ * @return next service time
+ */
 double get_next_service(block_type type, int stream) {
     SelectStream(stream); // stream = 1,2,...,BLOCKS
-    switch (type) {
-        case PRIMO:
-            return (Exponential(S_PRIMO));
-        case SECONDO:
-            return (Exponential(S_SECONDO));
-        case DESSERT:
-            return (Exponential(S_DESSERT));
-        case CASSA_FAST:
-            return (Exponential(S_CASSA_FAST));
-        case CASSA_STD:
-            return (Exponential(S_CASSA_STD));
-        case CONSUMAZIONE:
-            return (Exponential(S_CONSUMAZIONE));
-        default:
-            return (0.0);
-    }
+    return Exponential(get_theoretical_service(type));
 }
 
 double get_theoretical_mhu(block_type type) {
@@ -58,7 +48,7 @@ double get_theoretical_service(block_type type) {
 double get_theoretical_lambda(block_type type) {
     switch (type) {
         case PRIMO: //you can take PRIMO only from outside
-            return LAMBDA * P_PRIMO_FUORI;
+            return LAMBDA * P_PRIMO_FUORI; // checked
         case SECONDO: // you can take SECONDO from outside or from PRIMO
             return LAMBDA * (P_SECONDO_FUORI + P_PRIMO_FUORI * P_SECONDO_PRIMO);
         case DESSERT: // you can arrive from PRIMO or SECONDO, with 2 (if skipping SECONDO from PRIMO or starting with SECONDO) or 3 plate
@@ -90,10 +80,10 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     stats->interarrival_time = clock->last / completed_jobs;
     // FIXME ricontrollare come viene calcolata area e se questa formula è corretta
     stats->wait = area->node / completed_jobs;
-    stats->delay = area->queue / completed_jobs; // FIXME idem
-    stats->service_time = area->service / completed_jobs; //FIXME idem
-    stats->node_pop = area->node / clock->current; // FIXME idem
-    stats->queue_pop = area->queue / clock->current; // FIXME idem
+    stats->delay = area->queue / completed_jobs;
+    stats->service_time = area->service / completed_jobs;
+    stats->node_pop = area->node / clock->current;
+    stats->queue_pop = area->queue / clock->current;
     stats->utilization = area->service / (clock->current * b->num_servers); // FIXME idem
     stats->daily_cost = b->type != CONSUMAZIONE ? get_costs(b->num_servers) : 0.0;
     // multiserver statistics
@@ -106,12 +96,20 @@ void get_stats(block *b, clock *clock, statistics *stats) {
 }
 
 // computes and validate the job averaged and time averaged statistics for each block
-void show_and_validate_block_stats(block **blocks, clock *clock) {
+void show_and_validate_stats(block **blocks, clock *clock) {
     double total_cost = 0.0;
     statistics stats;
-
+//    double queue_time_sum = 0.0;
+//    double queue_population_sum = 0.0;
+//    double response_time_sum = 0.0;
+//    double population_sum = 0.0;
     for (int i = 0; i < BLOCKS; i++) {
+        // at each iteration we overwrite the statistics struct
         get_stats(blocks[i], clock, &stats);
+//        queue_time_sum += stats.delay; // TODO: bisogna tenere conto delle visite medie a ogni centro!!!
+//        queue_population_sum += stats.queue_pop;
+//        response_time_sum += stats.wait;
+//        population_sum += stats.node_pop;
         printf("\t----------------------------------------------------------\n");
         printf("\t'%s' block info:\n\n", blocks[i]->name);
         printf("\t\tpeople in the block ..... = %ld\tpeople\n", stats.completed_jobs);
@@ -136,18 +134,16 @@ void show_and_validate_block_stats(block **blocks, clock *clock) {
         }
         validate_block(blocks[i], &stats);
     }
+    // validates global population, global queue time and response time
+    validate_global_population(blocks);
+    // validate_global_queue_time(queue_time_sum, 0);
+    // validate_global_response_time(response_time_sum, 0);
     printf("\t----------------------------------------------------------\n");
     printf("\n\t\tTotal Daily Configuration Cost: %g \u20AC \n\n", total_cost);
     free(stats.multiserver_utilization);
     free(stats.multiserver_service_time);
 }
 
-// validates global population, global queue time and response time
-void show_and_validate_global_stats(block **blocks, clock *clock) {
-    validate_global_population(blocks);
-    validate_global_queue_time(blocks, clock);
-    validate_global_response_time(blocks, clock);
-}
 
 void clear_mem(block **blocks) {
     for (int i = 0; i < BLOCKS; i++) {

@@ -5,17 +5,14 @@
 
 #include "validation.h"
 
-// TODO: chiamare questa invece di validate_MM1/MMk
 void validate_block(block *block, statistics *stats) {
     if (block->num_servers == 1) {
         validate_MM1(block, stats);
     } else {
         validate_MMk(block, stats);
     }
-    // TODO: se poi decidiamo di togliere la coda al locale mensa, aggiungere un campo queue_size={-1 as infinity,0,k} una distinzione tra coda presente e non
 }
 
-// TODO: questa funzione dovrebbe chiamare tutte le altre relative a un singolo blocco
 void validate_MM1(block *block, statistics *stats) {
     is_wait_delay_plus_service(block, stats);
     is_node_population_queue_pop_plus_service_pop(block, stats);
@@ -28,13 +25,14 @@ void validate_MM1(block *block, statistics *stats) {
 void validate_MMk(block *block, statistics *stats) {
     int m = block->num_servers;
     double rho = stats->utilization;
-    double rho_theoretic = get_theoretical_rho(block);
-    double block_probability_theoretical = erlang_c_block_probability(m, rho_theoretic);
+    double rho_theoretical = get_theoretical_rho(block);
+    double service_theoretical = get_theoretical_service(block->type);
+    double block_probability_theoretical = erlang_c_block_probability(m, rho_theoretical);
     double block_probability = erlang_c_block_probability(m, rho);
-    // checking erlangC queue time with theoretic formula
+    // checking erlangC queue time with theoretical formula
     double queue_time_theoretical = erlang_c_queue_time(block_probability_theoretical,
-                                                        get_theoretical_service(block->type),
-                                                        rho_theoretic);
+                                                        service_theoretical,
+                                                        rho_theoretical);
     double queue_time = erlang_c_queue_time(block_probability, stats->service_time, rho);
 
     if (IS_NOT_EQUAL(queue_time_theoretical, queue_time)) {
@@ -44,7 +42,7 @@ void validate_MMk(block *block, statistics *stats) {
 
     // checking erlangC response time with theoretic formula
     double response_time_theoretical = erlang_c_response_time(queue_time_theoretical,
-                                                              get_theoretical_service(block->type));
+                                                              service_theoretical);
     double response_time = erlang_c_response_time(queue_time, stats->service_time);
 
     if (IS_NOT_EQUAL(response_time_theoretical, response_time)) {
@@ -114,7 +112,6 @@ void validate_theoretical_arrival_time(block *block, statistics *stats) {
 // Check if the entering population is equal to the exiting population.
 void validate_global_population(block **blocks) {
     long total_population = blocks[CASSA_FAST]->completed_jobs + blocks[CASSA_STD]->completed_jobs;
-    // FIXME: per ora abbiamo messo una coda anche nel locale mensa. L'idea iniziale era quella di toglierla però. Decidere se lasciare così o metterla di nuovo
     if (total_population != blocks[CONSUMAZIONE]->completed_jobs) {
         printf("Global Population: The sum of completed jobs %ld is not equal to the starting population %ld",
                total_population, blocks[CONSUMAZIONE]->completed_jobs); // se togli la coda sottrai i job perduti
@@ -122,14 +119,28 @@ void validate_global_population(block **blocks) {
 }
 
 // TODO: valida il tempo in coda usando la legge di Little
-void validate_global_queue_time(block **blocks, clock *clock) {
-    // TODO: verificare che la somma dei tempi in coda sia pari al valore teorico
-    // TODO: ricavare la formula per calcolare i tempi in coda
-    // printf("TODO: The computed global queue time doesn't match with the one from Little's Law\n");
-}
-
-void validate_global_response_time(block **blocks, clock *clock) {
-    // TODO: verificare che la somma dei tempo di risposta dei singoli blocchi sia pari al valore teorico
-    // TODO: ricavare la formula per calcolare il tempo di risposta globale
-    // printf("TODO: The computed global response time doesn't match with the one from Little's Law\n");
-}
+/**
+ * Checks that sum of mean queue times is equal to the global queue time from Little's Law.
+ * E[Tq] = E[Nq]/lambda
+ * This works only if the system is ergodic
+ * @param queue_time sum of time spent in queues in all block
+ * @param queue_pop sum of queue population in all blocks
+ */
+//void validate_global_queue_time(double queue_time, double queue_pop) {
+//    // TODO: ricavare la formula per calcolare i tempi in coda
+//    // TODO: verificare che la somma dei tempi in coda sia pari al valore teorico
+//    double global_queue_time_theoretic = queue_pop / LAMBDA;
+//    if (IS_NOT_APPROX_EQUAL(queue_time, global_queue_time_theoretic) ){
+//        printf("TODO: The computed global queue time doesn't match with the one from Little's Law\n");
+//    }
+//}
+/**
+ *
+ * @param response_time
+ * @param mean_population
+ */
+//void validate_global_response_time(double response_time, double mean_population) {
+//    // TODO: verificare che la somma dei tempo di risposta dei singoli blocchi sia pari al valore teorico
+//    // TODO: ricavare la formula per calcolare il tempo di risposta globale
+//    // printf("TODO: The computed global response time doesn't match with the one from Little's Law\n");
+//}
