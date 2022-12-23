@@ -18,6 +18,7 @@ void validate_MM1(block *block, statistics *stats) {
     is_node_population_queue_pop_plus_service_pop(block, stats);
     validate_theoretical_arrival_time(block, stats);
     validate_theoretical_service_time(block, stats);
+    validate_theoretical_utilizazion(block, stats);
     is_ergodic(block);
 }
 
@@ -33,7 +34,8 @@ void validate_MMk(block *block, statistics *stats) {
     double queue_time_theoretical = erlang_c_queue_time(block_probability_theoretical,
                                                         service_theoretical / m,
                                                         rho_theoretical);
-    double queue_time = erlang_c_queue_time(block_probability, stats->service_time / m, rho); // here we need the multiserver service time (time to free any server)
+    double queue_time = erlang_c_queue_time(block_probability, stats->service_time / m,
+                                            rho); // here we need the multiserver service time (time to free any server)
 
     if (IS_NOT_EQUAL(queue_time_theoretical, queue_time)) {
         printf("\tBlock %s: Theoretical queue time %g doesn't match with computed queue time %g\n",
@@ -43,7 +45,8 @@ void validate_MMk(block *block, statistics *stats) {
     // checking erlangC response time with theoretic formula
     double response_time_theoretical = erlang_c_response_time(queue_time_theoretical,
                                                               service_theoretical);
-    double response_time = erlang_c_response_time(queue_time, stats->service_time); // here we need the full service time of a single server
+    double response_time = erlang_c_response_time(queue_time,
+                                                  stats->service_time); // here we need the full service time of a single server
 
     if (IS_NOT_EQUAL(response_time_theoretical, response_time)) {
         printf("\tBlock %s: Theoretical response time %g doesn't match with computed response time %g\n",
@@ -51,6 +54,7 @@ void validate_MMk(block *block, statistics *stats) {
     }
     validate_theoretical_arrival_time(block, stats);
     validate_theoretical_service_time(block, stats);
+    validate_theoretical_utilizazion(block, stats);
     is_ergodic(block);
 }
 
@@ -103,9 +107,18 @@ void validate_theoretical_service_time(block *block, statistics *stats) {
 void validate_theoretical_arrival_time(block *block, statistics *stats) {
     double lambda_theoretical = get_theoretical_lambda(block->type);
     double lambda = 1.0 / stats->interarrival_time;
-    if (IS_NOT_APPROX_EQUAL(lambda, lambda_theoretical)){
+    if (IS_NOT_EQUAL(lambda, lambda_theoretical)) {
         printf("\tBlock %s: theoretical arrival freuency (%g) doesn't match computed arrival frequency (%g)\n",
                block->name, lambda_theoretical, lambda);
+    }
+}
+
+void validate_theoretical_utilizazion(block *block, statistics *stats) {
+    double utilization_theoretical = get_theoretical_rho(block);
+    double utilization = stats->utilization;
+    if (IS_NOT_EQUAL(utilization, utilization_theoretical)) {
+        printf("\tBlock %s: theoretical utilization (%g) doesn't match computed utilization (%g)\n",
+               block->name, utilization_theoretical, utilization);
     }
 }
 

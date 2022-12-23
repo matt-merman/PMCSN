@@ -15,6 +15,7 @@ void validate_MMk(block *block, statistics *stats);
 void is_ergodic(block *block);
 void validate_theoretical_service_time(block *block, statistics *stats);
 void validate_theoretical_arrival_time(block *block, statistics *stats);
+void validate_theoretical_utilizazion(block *block, statistics *stats);
 void is_wait_delay_plus_service(block *block, statistics *stats);
 void is_node_population_queue_pop_plus_service_pop(block *block, statistics *stats);
 void validate_global_population(block **blocks);
