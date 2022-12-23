@@ -83,7 +83,7 @@ void is_ergodic(block *block) {
         if (lambda > mhu) {
             printf("\tWATCH OUT! Block %s is NOT ergodic. Lambda: %g > Mhu: %g\n", block->name, lambda, mhu);
         }
-    } else if (block->num_servers > 1 /*TODO: && ha coda infinita*/) {
+    } else if (block->num_servers > 1) {
         double rho = get_theoretical_rho(block);
         if (rho >= 1) {
             printf("\tWATCH OUT! Multiserver Block %s is NOT ergodic. Rho: %g >= 1\n", block->name, rho);

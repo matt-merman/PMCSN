@@ -82,7 +82,7 @@ int	network_status[] = {0, 0, 0, 0, 0, 0};
 int *	init_network(int config)
 {
 	int	status_one[] = {2, 1, 1, 1, 2, 50};
-	int	ergodic[] = {3, 4, 2, 1, 5, 139};
+	int	ergodic[] = {3, 3, 2, 1, 4, 139};
 	int	status_three[] = {2, 1, 1, 1, 2, 50};
 
 	switch (config)
