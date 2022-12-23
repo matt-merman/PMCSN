@@ -2,6 +2,7 @@
 // Created by giaco on 17/12/22.
 //
 
+#include <stdio.h>
 #include "analytic.h"
 
 
@@ -42,16 +43,17 @@ double utilization(int num_servers, double lambda, double mhu) {
  * @return block probability of multiserver with infinite queue
  */
 double erlang_c_block_probability(int m, double rho) {
-    double coefficient = pow(m * rho, m) / (factorial(m) * (1.0 - rho)) * 1;
+    double coefficient = pow(m * rho, m) / (factorial(m) * (1.0 - rho)); // Checked
     double sum = 0.0;
     for (int i = 0; i < m; i++) {
-        sum += pow(m * rho, m) / factorial(i);
+        sum += pow(m * rho, i) / factorial(i);
     }
     return coefficient / (sum + coefficient);
 }
 
-double erlang_c_queue_time(double block_probability, double service_time, double rho) {
-    return block_probability * service_time / (1.0 - rho);
+double erlang_c_queue_time(double block_probability, double service_time_multi, double rho) {
+    // printf("%g, %g, %g\n", block_probability, service_time_multi, rho);
+    return block_probability * service_time_multi / (1.0 - rho);
 }
 
 double erlang_c_response_time(double queue_time, double service_time) {

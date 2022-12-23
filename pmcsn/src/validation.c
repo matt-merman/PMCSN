@@ -31,9 +31,9 @@ void validate_MMk(block *block, statistics *stats) {
     double block_probability = erlang_c_block_probability(m, rho);
     // checking erlangC queue time with theoretical formula
     double queue_time_theoretical = erlang_c_queue_time(block_probability_theoretical,
-                                                        service_theoretical,
+                                                        service_theoretical / m,
                                                         rho_theoretical);
-    double queue_time = erlang_c_queue_time(block_probability, stats->service_time, rho);
+    double queue_time = erlang_c_queue_time(block_probability, stats->service_time / m, rho);
 
     if (IS_NOT_EQUAL(queue_time_theoretical, queue_time)) {
         printf("\tBlock %s: Theoretical queue time %g doesn't match with computed queue time %g\n",
@@ -42,8 +42,8 @@ void validate_MMk(block *block, statistics *stats) {
 
     // checking erlangC response time with theoretic formula
     double response_time_theoretical = erlang_c_response_time(queue_time_theoretical,
-                                                              service_theoretical);
-    double response_time = erlang_c_response_time(queue_time, stats->service_time);
+                                                              service_theoretical / m);
+    double response_time = erlang_c_response_time(queue_time, stats->service_time / m);
 
     if (IS_NOT_EQUAL(response_time_theoretical, response_time)) {
         printf("\tBlock %s: Theoretical response time %g doesn't match with computed response time %g\n",
@@ -126,11 +126,11 @@ void validate_global_population(block **blocks) {
  * @param queue_time sum of time spent in queues in all block
  * @param queue_pop sum of queue population in all blocks
  */
-//void validate_global_queue_time(double queue_time, double queue_pop) {
+//void validate_global_queue_time(double erlang_c_queue_time_test, double queue_pop) {
 //    // TODO: ricavare la formula per calcolare i tempi in coda
 //    // TODO: verificare che la somma dei tempi in coda sia pari al valore teorico
 //    double global_queue_time_theoretic = queue_pop / LAMBDA;
-//    if (IS_NOT_APPROX_EQUAL(queue_time, global_queue_time_theoretic) ){
+//    if (IS_NOT_APPROX_EQUAL(erlang_c_queue_time_test, global_queue_time_theoretic) ){
 //        printf("TODO: The computed global queue time doesn't match with the one from Little's Law\n");
 //    }
 //}

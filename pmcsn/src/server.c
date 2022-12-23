@@ -15,7 +15,6 @@ int	get_busy_server(server **multi_servers, int num)
 int get_idle_server(block *block)
 {
     server** multi_servers = block->servers;
-    // FIXME: da qualche parte viene deallocato multi_server[2] o forse non viene mai allocato
     for (int i = 0; i < block->num_servers; i++) {
         if (multi_servers[i]->status == IDLE) {
             multi_servers[i]->status = BUSY;
