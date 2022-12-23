@@ -33,7 +33,7 @@ void validate_MMk(block *block, statistics *stats) {
     double queue_time_theoretical = erlang_c_queue_time(block_probability_theoretical,
                                                         service_theoretical / m,
                                                         rho_theoretical);
-    double queue_time = erlang_c_queue_time(block_probability, stats->service_time / m, rho);
+    double queue_time = erlang_c_queue_time(block_probability, stats->service_time / m, rho); // here we need the multiserver service time (time to free any server)
 
     if (IS_NOT_EQUAL(queue_time_theoretical, queue_time)) {
         printf("\tBlock %s: Theoretical queue time %g doesn't match with computed queue time %g\n",
@@ -42,8 +42,8 @@ void validate_MMk(block *block, statistics *stats) {
 
     // checking erlangC response time with theoretic formula
     double response_time_theoretical = erlang_c_response_time(queue_time_theoretical,
-                                                              service_theoretical / m);
-    double response_time = erlang_c_response_time(queue_time, stats->service_time / m);
+                                                              service_theoretical);
+    double response_time = erlang_c_response_time(queue_time, stats->service_time); // here we need the full service time of a single server
 
     if (IS_NOT_EQUAL(response_time_theoretical, response_time)) {
         printf("\tBlock %s: Theoretical response time %g doesn't match with computed response time %g\n",
