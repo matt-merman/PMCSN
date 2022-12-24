@@ -26,7 +26,7 @@ void validate_MM1(block *block, statistics *stats) {
 void validate_MMk(block *block, statistics *stats) {
     int m = block->num_servers;
     double rho = stats->utilization;
-    double rho_theoretical = get_theoretical_rho(block);
+    double rho_theoretical = get_theoretical_rho(block->type, block->num_servers);
     double service_theoretical = get_theoretical_service(block->type);
     double block_probability_theoretical = erlang_c_block_probability(m, rho_theoretical);
     double block_probability = erlang_c_block_probability(m, rho);
@@ -88,7 +88,7 @@ void is_ergodic(block *block) {
             printf("\tWATCH OUT! Block %s is NOT ergodic. Lambda: %g > Mhu: %g\n", block->name, lambda, mhu);
         }
     } else if (block->num_servers > 1) {
-        double rho = get_theoretical_rho(block);
+        double rho = get_theoretical_rho(block->type, block->num_servers);
         if (rho >= 1) {
             printf("\tWATCH OUT! Multiserver Block %s is NOT ergodic. Rho: %g >= 1\n", block->name, rho);
         }
@@ -114,7 +114,7 @@ void validate_theoretical_arrival_time(block *block, statistics *stats) {
 }
 
 void validate_theoretical_utilizazion(block *block, statistics *stats) {
-    double utilization_theoretical = get_theoretical_rho(block);
+    double utilization_theoretical = get_theoretical_rho(block->type, block->num_servers);
     double utilization = stats->utilization;
     if (IS_NOT_EQUAL(utilization, utilization_theoretical)) {
         printf("\tBlock %s: theoretical utilization (%g) doesn't match computed utilization (%g)\n",
