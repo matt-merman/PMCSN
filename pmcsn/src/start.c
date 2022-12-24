@@ -1,4 +1,5 @@
 #include "start.h"
+#include "event_list.h"
 
 int	main(void)
 {
@@ -61,12 +62,12 @@ int	start_simulation(void)
 	}
 	while (1)
 	{
-        if (!(system_clock->arrival < PERIOD || check_events() || check_servers(blocks))) {
+        // break if the times is finished, all events are processed and all servers are idle
+        if (system_clock->arrival >= PERIOD && !are_there_more_events() && !are_there_busy_servers(blocks)) {
             break;
         }
-        // FIXME: Segmentation fault: la lista di eventi diventa NULL!!!
-		event = get_event();
-        if (event == NULL) break;
+		event = get_next_event();
+        // if (event == NULL) break;
 		system_clock->next = event;
 		if (event->event_type == ARRIVAL)
 			system_clock->arrival = event->time;
@@ -76,7 +77,6 @@ int	start_simulation(void)
 		previous_clock = system_clock->current;
 		system_clock->current = event->time;
 		block_type btype = event->block_type;
-		remove_event();
 
         switch (event->event_type) {
             case ARRIVAL:
@@ -96,22 +96,13 @@ int	start_simulation(void)
             default:
                 break;
         }
+        // the event is processed and now it can be freed
 
 		sort_list();
-		//if (system_clock->arrival <= PERIOD)
-		//	printf("Next arrival time: %lf\n", system_clock->arrival);
-		// use \r instead of \n to print in one line
-		//     printf("Time: %lf Event: %-18s Target Block: %-12s in server: %d\tjobs in blocks [%s, %s, %s, %s, %s, %s]\n",
-		//            system_clock->arrival,
-		//            toStrEvent(event->type),
-		//            toStrBlock(event->blockType),
-		//            event->target_server,
-		//            getServerContents(blocks[PRIMO]),
-		//            getServerContents(blocks[SECONDO]),
-		//            getServerContents(blocks[DESSERT]),
-		//            getServerContents(blocks[CASSA_FAST]),
-		//            getServerContents(blocks[CASSA_STD]),
-		//            getServerContents(blocks[CONSUMAZIONE]));
+
+        debug(system_clock, blocks, event);
+
+        free(event);
 	}
     show_and_validate_stats(blocks, system_clock);
 	free(system_clock);
@@ -119,6 +110,25 @@ int	start_simulation(void)
 	return (0);
 }
 
+void debug(clock *system_clock, block **blocks, event *event) {
+    if (DEBUG == FALSE) {
+        return;
+    }
+
+    printf("Time: %lf Event: %-18s Target Block: %-12s in server: %d jobs in blocks [%s, %s, %s, %s, %s, %s] events: %d\n",
+           system_clock->arrival,
+           to_str_event(event->event_type),
+           to_str_block(event->block_type),
+           event->target_server,
+           get_server_contents(blocks[PRIMO]),
+           get_server_contents(blocks[SECONDO]),
+           get_server_contents(blocks[DESSERT]),
+           get_server_contents(blocks[CASSA_FAST]),
+           get_server_contents(blocks[CASSA_STD]),
+           get_server_contents(blocks[CONSUMAZIONE]), length());
+}
+
+// an arrival should schedule a completion
 void	arrival(clock *c, double current, block *block)
 {
 	int		s_index;
@@ -127,7 +137,7 @@ void	arrival(clock *c, double current, block *block)
 
 	block->jobs++;
 	// we retrieve the server id of an idle server in the block
-	s_index = get_idle_server(block);
+	s_index = retrieve_idle_server(block);
     // if the server is idle, we generate the completion event
 	if (s_index != -1)
 	{
@@ -177,6 +187,8 @@ void	schedule_arrive(int type, clock *c)
 		break ;
 	}
 }
+
+// A completion should schedule another completion event (if there are job in queue) and an arrival.
 void	completion(int server_id, clock *c, double current, block *block)
 {
 	double service_time;
@@ -192,17 +204,18 @@ void	completion(int server_id, clock *c, double current, block *block)
 		printf("This is bad! A completion from who knows from!\n");
 		exit(-1);
 	}
-	if (block->queue_jobs > 0)
-	{
-		int serv_id = get_idle_server(block);
-		s = block->servers[server_id];
-		service_time = create_insert_event(block->type, serv_id, COMPLETION, c);
-		block->queue_jobs--;
-		s->sum->service += (service_time - current);
-		block->block_area->service += (service_time - current);
-		s->sum->served++;
-	}
-
+    // We generate a new completion if there are jobs in queue. We now for sure that a server is empty
+    if (block->queue_jobs > 0) {
+        int serv_id = retrieve_idle_server(block);
+        if (serv_id != -1) {
+            s = block->servers[server_id];
+            service_time = create_insert_event(block->type, serv_id, COMPLETION, c);
+            block->queue_jobs--;
+            s->sum->service += (service_time - current);
+            block->block_area->service += (service_time - current);
+            s->sum->served++;
+        }
+    }
 
 	schedule_arrive(block->type, c);
 }

@@ -4,8 +4,9 @@
 #include "../utils/constants.h"
 
 int get_busy_server(server **multi_servers, int num);
-int get_idle_server(block *block);
-int check_servers(block **blocks);
+int get_busy_server_num();
+int retrieve_idle_server(block *block);
+int are_there_busy_servers(block **blocks);
 void free_busy_server(block *block, int server_index);
-//char * get_server_contents(block *block);
-//char	*to_str_block(block_type btype);
+char * get_server_contents(block *block);
+char	*to_str_block(block_type btype);

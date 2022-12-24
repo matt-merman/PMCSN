@@ -1,27 +1,14 @@
 #include "events.h"
+#include "event_list.h"
 
 // true if Clock is terminated
 int		terminated = FALSE;
-event	*event_list;
+// event	*event_list;
 
 void	init_event_list(int type)
 {
-	event_list = create_event(type, -1, ARRIVAL, START);
-}
-
-void	insert_event(event *elem)
-{
-	event	*current;
-
-	if (event_list == NULL)
-	{
-		event_list = elem;
-		return ;
-	}
-	current = event_list;
-	while (current->next != NULL)
-		current = current->next;
-	current->next = elem;
+    event *e = create_event(type, -1, ARRIVAL, START);
+    insert_event_first(e);
 }
 
 event	*create_event(block_type target, int server_id, event_type type, double current)
@@ -32,7 +19,7 @@ event	*create_event(block_type target, int server_id, event_type type, double cu
 	e = (event *)malloc(sizeof(event));
 	if (e == NULL)
 	{
-		printf("Error while allocating event");
+		printf("Error while allocating event\n");
 		return (e);
 	}
 	switch (type)
@@ -79,9 +66,10 @@ int	try_terminate_clock(clock *c, double time)
 	return (FALSE);
 }
 
-int	check_clock(void)
+// check if clock is terminated
+int	is_clock_terminated(void)
 {
-	return (terminated);
+	return terminated;
 }
 
 double	create_insert_event(block_type target, int server_id, event_type eventType, clock *c)
@@ -94,101 +82,41 @@ double	create_insert_event(block_type target, int server_id, event_type eventTyp
 	if (eventType == ARRIVAL && try_terminate_clock(c, e->time))
 	{
 		free(e);
-		return 0;
+		return 0.0;
 	}
-	insert_event(e);
+	insert_event_first(e);
 	return e->time;
 }
 
-void	remove_event()
+event	*get_next_event()
 {
-	event	*new_first;
-
-	new_first = event_list->next;
-	free(event_list);
-	event_list = new_first;
+	return pop_first();
 }
 
-event	*get_event()
+// returns true (1) if there are more events to consume
+int	are_there_more_events()
 {
-	return event_list;
-}
-
-int	check_events()
-{
-	if (event_list == NULL)
-		return FALSE;
-	return TRUE;
-}
-
-int	get_len()
-{
-	int		length;
-	event	*current;
-
-	length = 0;
-	for (current = event_list; current != NULL; current = current->next)
-	{
-		length++;
-	}
-	return length;
+    // if list is empty, we do not have more events
+    // otherwise we have more events
+    return !is_empty();
 }
 
 void	sort_list()
 {
-	int k;
-	event *current, *next;
-
-	block_type t_block_type;
-	double t_time;
-	event_type t_type;
-	int t_target_server;
-
-	int size = get_len();
-	k = size;
-
-	for (int i = 0; i < size - 1; i++, k--)
-	{
-		current = event_list;
-		next = event_list->next;
-
-		for (int j = 1; j < k; j++)
-		{
-			if (current->time > next->time)
-			{
-				t_time = current->time;
-				current->time = next->time;
-				next->time = t_time;
-
-				t_target_server = current->target_server;
-				current->target_server = next->target_server;
-				next->target_server = t_target_server;
-
-				t_block_type = current->block_type;
-				current->block_type = next->block_type;
-				next->block_type = t_block_type;
-
-				t_type = current->event_type;
-				current->event_type = next->event_type;
-				next->event_type = t_type;
-			}
-			current = current->next;
-			next = next->next;
-		}
-	}
+	sort_by_time();
 }
 
-// char	*to_str_event(event_type etype)
-// {
-// 	switch (etype)
-// 	{
-// 	case ARRIVAL:
-// 		return ("ARRIVAL");
-// 	case IMMEDIATE_ARRIVAL:
-// 		return ("IMMEDIATE_ARRIVAL");
-// 	case COMPLETION:
-// 		return ("COMPLETION");
-// 	default:
-// 		return ("");
-// 	}
-// }
+ char	*to_str_event(event_type etype)
+ {
+ 	switch (etype)
+ 	{
+ 	case ARRIVAL:
+ 		return ("ARRIVAL");
+ 	case IMMEDIATE_ARRIVAL:
+ 		return ("IMMEDIATE_ARRIVAL");
+ 	case COMPLETION:
+ 		return ("COMPLETION");
+ 	default:
+ 		return ("");
+ 	}
+ }

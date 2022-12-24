@@ -11,6 +11,7 @@
 void completion(int server_id, clock *c, double current, block *block);
 void arrival(clock *c, double current, block *block);
 int start_simulation(void);
+void debug(clock *system_clock, block **blocks, event *event);
 void update_area_stats(double diff, block **blocks);
 void schedule_arrive(int type, clock *c);
 
