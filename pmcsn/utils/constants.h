@@ -23,15 +23,15 @@
 
 #define P_SECONDO_PRIMO 0.55    // Probability that a user buys second course after buying first course
 #define P_DESSERT_PRIMO 0.25    // Probability that a user buys dessert after first course, skipping second course
-#define P_CASSA_PRIMO 0.20      // Probability that a user pays to the (fast) cashier after buying first course, skipping second course and dessert
+#define P_CASSA_FAST_PRIMO 0.20      // Probability that a user pays to the (fast) cashier after buying first course, skipping second course and dessert
 
 #define P_DESSERT_SECONDO 0.45  // Probability that a user buys a dessert after buying a second course
-#define P_CASSA_SECONDO 0.55    // Probability that a user pays to the cashier after buying second course, skipping dessert
+#define P_CASSA_SECONDO 0.55    // Probability that a user pays to the cashier after buying second course, skipping dessert (we do not know what cashier is)
 #define P_CASSA_FAST_SECONDO (P_SECONDO_FUORI * P_CASSA_SECONDO) // Probability that the user has bought only second dish and goes to the fast cashier
 #define P_CASSA_STD_SECONDO (P_PRIMO_FUORI * P_CASSA_SECONDO) // Probability that the user has bought first and second dish and goes to the cashier
 
 // After buying dessert, the user always go to the cashier
-#define P_CASSA_DESSERT = 1.0
+#define P_CASSA_STD_DESSERT 1.0
 
 // TODO: Probability of not eating in the dining room (not used)
 #define P_ALTROVE 0.05

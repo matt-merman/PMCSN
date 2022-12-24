@@ -8,6 +8,7 @@
 #include "../utils/structs.h"
 #include "../utils/constants.h"
 #include "../utils/helpers.h"
+#include "../src/analytic.h"
 
 void validate_block(block * block, statistics *stats);
 void validate_MM1(block* block, statistics* stats);

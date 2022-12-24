@@ -2,7 +2,6 @@
 // Created by giaco on 17/12/22.
 //
 
-#include <stdio.h>
 #include "analytic.h"
 
 
@@ -34,6 +33,62 @@ int get_costs(int num) {
  */
 double utilization(int num_servers, double lambda, double mhu) {
     return lambda / (num_servers * mhu);
+}
+
+// Computes the theoretical utilization of the block, even if it's a multiserver block.
+double get_theoretical_rho(block_type block_type, int num_servers) {
+    double lambda = get_theoretical_lambda(block_type);
+    // printf("\tlambda %s: %g\n", block->name, lambda);
+    double mhu = get_theoretical_mhu(block_type);
+    return utilization(num_servers, lambda, mhu);
+}
+
+double get_theoretical_mhu(block_type type) {
+    return 1.0 / get_theoretical_service(type);
+}
+
+double get_theoretical_service(block_type type) {
+    switch (type) {
+        case PRIMO:
+            return S_PRIMO;
+        case SECONDO:
+            return S_SECONDO;
+        case DESSERT:
+            return S_DESSERT;
+        case CASSA_FAST:
+            return S_CASSA_FAST;
+        case CASSA_STD:
+            return S_CASSA_STD;
+        case CONSUMAZIONE:
+            return S_CONSUMAZIONE;
+        default:
+            return 0.0;
+    }
+}
+
+double get_theoretical_lambda(block_type type) {
+    double lambda1 = LAMBDA * P_PRIMO_FUORI;
+    double lambda2 = LAMBDA * P_SECONDO_FUORI + lambda1 * P_SECONDO_PRIMO;
+    double lambda3 = lambda1 * P_DESSERT_PRIMO + lambda2 * P_DESSERT_SECONDO;
+    double lambdaC = lambda2 * P_CASSA_STD_SECONDO + lambda3 * P_CASSA_STD_DESSERT;
+    double lambdaF = lambda1 * P_CASSA_FAST_PRIMO + lambda2 * P_CASSA_FAST_SECONDO;
+    double lambdaS = lambdaC + lambdaF;
+    switch (type) {
+        case PRIMO: //you can take PRIMO only from outside
+            return lambda1; // checked
+        case SECONDO: // you can take SECONDO from outside or from PRIMO
+            return lambda2;
+        case DESSERT: // you can arrive from PRIMO or SECONDO, with 2 (if skipping SECONDO from PRIMO or starting with SECONDO) or 3 plate
+            return lambda3;
+        case CASSA_FAST: // you can arrive from PRIMO or SECONDO, with only one plate
+            return lambdaF;
+        case CASSA_STD: // who doesn't go to the fast cashier, goes to the standard cashier
+            return lambdaC;
+        case CONSUMAZIONE: // the entire arrival flow will come to CONSUMAZIONE
+            return lambdaS;
+        default:
+            return (0.0);
+    }
 }
 
 /**

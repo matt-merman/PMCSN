@@ -20,58 +20,6 @@ double get_next_service(block_type type, int stream) {
     return Exponential(get_theoretical_service(type));
 }
 
-double get_theoretical_mhu(block_type type) {
-    return 1.0 / get_theoretical_service(type);
-}
-
-double get_theoretical_service(block_type type) {
-    switch (type) {
-        case PRIMO:
-            return S_PRIMO;
-        case SECONDO:
-            return S_SECONDO;
-        case DESSERT:
-            return S_DESSERT;
-        case CASSA_FAST:
-            return S_CASSA_FAST;
-        case CASSA_STD:
-            return S_CASSA_STD;
-        case CONSUMAZIONE:
-            return S_CONSUMAZIONE;
-        default:
-            return 0.0;
-    }
-
-}
-
-// FIXME: verificare se è giusto
-double get_theoretical_lambda(block_type type) {
-    switch (type) {
-        case PRIMO: //you can take PRIMO only from outside
-            return LAMBDA * P_PRIMO_FUORI; // checked
-        case SECONDO: // you can take SECONDO from outside or from PRIMO
-            return LAMBDA * (P_SECONDO_FUORI + P_PRIMO_FUORI * P_SECONDO_PRIMO);
-        case DESSERT: // you can arrive from PRIMO or SECONDO, with 2 (if skipping SECONDO from PRIMO or starting with SECONDO) or 3 plate
-            return LAMBDA * (P_PRIMO_FUORI * P_DESSERT_PRIMO + P_SECONDO_FUORI + P_DESSERT_SECONDO);
-        case CASSA_FAST: // you can arrive from PRIMO or SECONDO, with only one plate
-            return LAMBDA * (P_PRIMO_FUORI * P_CASSA_PRIMO + P_CASSA_FAST_SECONDO);
-        case CASSA_STD: // who doesn't go to the fast cashier, goes to the standard cashier
-            return LAMBDA *
-                   (1.0 - (P_PRIMO_FUORI * P_CASSA_PRIMO + P_CASSA_FAST_SECONDO)); // TODO: il queue time è strano!!
-        case CONSUMAZIONE: // the entire arrival flow will come to CONSUMAZIONE
-            return LAMBDA; //TODO: moltiplica per (1 - probabilità di perdita ERLANG B (NON C)) se invece decidiamo di togliere la coda!!!
-        default:
-            return (0.0);
-    }
-}
-
-// Computes the theoretical utilization of the block, even if it's a multiserver block.
-double get_theoretical_rho(block *block) {
-    double lambda = get_theoretical_lambda(block->type);
-    double mhu = get_theoretical_mhu(block->type);
-    return utilization(block->num_servers, lambda, mhu);
-}
-
 // reduced number of parameters
 void get_stats(block *b, clock *clock, statistics *stats) {
     double completed_jobs = (double) b->completed_jobs;
