@@ -10,8 +10,11 @@ int	main(void)
 	return (0);
 }
 /**
+ * FIXME: This doesn't work!
  *
- * @param diff tempo prima del prossimo evento
+ * Updates time-averaged integrals for node and queue populations
+ *
+ * @param diff time before next event
  * @param blocks
  */
 void	update_area_stats(double diff, block **blocks)
@@ -26,7 +29,8 @@ void	update_area_stats(double diff, block **blocks)
             area = blocks[i]->block_area;
             // tempo * numero di job (integrale time-averaged, numero job nel nodo e in coda)
 			area->node += diff * (double) blocks[i]->jobs;
-			area->queue += diff * blocks[i]->queue_jobs;
+			area->queue += diff * (double) blocks[i]->queue_jobs;
+            // area->service += diff; //FIXME prima non c'era!!!
             // in servizio ci sono node-queue (ma queste sono aree)
 		}
 	}
@@ -57,10 +61,12 @@ int	start_simulation(void)
 	}
 	while (1)
 	{
-        if (!(system_clock->arrival < PERIOD || check_events() || check_servers(blocks)))
+        if (!(system_clock->arrival < PERIOD || check_events() || check_servers(blocks))) {
             break;
-
+        }
+        // FIXME: Segmentation fault: la lista di eventi diventa NULL!!!
 		event = get_event();
+        if (event == NULL) break;
 		system_clock->next = event;
 		if (event->event_type == ARRIVAL)
 			system_clock->arrival = event->time;
@@ -85,15 +91,13 @@ int	start_simulation(void)
                 arrival(system_clock, previous_clock, blocks[btype]);
                 break;
             case COMPLETION:
-                completion(event->target_server, system_clock, previous_clock,
-                           blocks[btype]);
+                completion(event->target_server, system_clock, previous_clock,blocks[btype]);
                 break;
             default:
                 break;
         }
 
 		sort_list();
-
 		//if (system_clock->arrival <= PERIOD)
 		//	printf("Next arrival time: %lf\n", system_clock->arrival);
 		// use \r instead of \n to print in one line
@@ -119,27 +123,29 @@ void	arrival(clock *c, double current, block *block)
 {
 	int		s_index;
 	server	*s;
-	double	service_time;
+	double	next_completion_time;
 
 	block->jobs++;
-	// we retrieve the number of server in the block
+	// we retrieve the server id of an idle server in the block
 	s_index = get_idle_server(block);
+    // if the server is idle, we generate the completion event
 	if (s_index != -1)
 	{
-		s = block->servers[s_index];
-		service_time = create_insert_event(block->type, s_index, COMPLETION, c);
-		s->sum->service += service_time - current;
+		s = block->servers[s_index]; // the selected server
+        // next completion time (for this server)
+		next_completion_time = create_insert_event(block->type, s_index, COMPLETION, c);
+        // we increment the cumulative service time for THIS SERVER!
+		s->sum->service += next_completion_time - current; // the service time for this arrival
 		s->sum->served++;
-		block->block_area->service += (service_time - current);
+		block->block_area->service += (next_completion_time - current);
 	}
-	else
+	else //otherwise all server are idle, so we increment jobs in queue
 		block->queue_jobs++;
 }
 
 void	schedule_arrive(int type, clock *c)
 {
 	double	p;
-
 	switch (type)
 	{
 	case PRIMO:
@@ -155,8 +161,7 @@ void	schedule_arrive(int type, clock *c)
 		p = Random();
 		if (p < P_DESSERT_SECONDO)
 			create_insert_event(DESSERT, -1, IMMEDIATE_ARRIVAL, c);
-		else if (p > P_DESSERT_SECONDO && p < P_DESSERT_SECONDO
-				+ P_CASSA_STD_SECONDO)
+		else if (p > P_DESSERT_SECONDO && p < P_DESSERT_SECONDO + P_CASSA_STD_SECONDO)
 			create_insert_event(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c);
 		else
 			create_insert_event(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c);

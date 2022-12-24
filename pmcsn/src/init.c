@@ -1,6 +1,6 @@
 #include "init.h"
 
-
+// Initializes the block structs given a configuration
 block	**init_blocks(int *config)
 {
     char	*names[] = {"Primi", "Secondi e Contorni", "Frutta e Dessert",
@@ -32,6 +32,7 @@ block	**init_blocks(int *config)
 	return (b);
 }
 
+// Initializes the servers inside a block
 void	init_servers(block *block, int num)
 {
     block->servers = (server **) malloc(num * sizeof(server *));
@@ -58,6 +59,7 @@ void	init_servers(block *block, int num)
 	}
 }
 
+// Initializes the clock, and generates the first arrival
 clock * 	init_clock(void)
 {
 	double p = Random();
@@ -79,6 +81,7 @@ clock * 	init_clock(void)
 
 int	network_status[] = {0, 0, 0, 0, 0, 0};
 
+// Initializes the network configuration
 int *	init_network(int config)
 {
 	int	status_one[] = {2, 1, 1, 1, 2, 50};

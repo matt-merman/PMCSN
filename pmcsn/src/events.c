@@ -24,8 +24,7 @@ void	insert_event(event *elem)
 	current->next = elem;
 }
 
-event	*create_event(block_type target, int server_id, event_type type,
-		double current)
+event	*create_event(block_type target, int server_id, event_type type, double current)
 {
 	int		stream;
 	event	*e;
@@ -51,7 +50,7 @@ event	*create_event(block_type target, int server_id, event_type type,
 				//source_str, target_str, newEvent->time);
 		break ;
 	case COMPLETION:
-		stream = target + 1;
+		stream = (int) target + 1;
 		e->time = current + get_next_service(target, stream);
 		e->target_server = server_id;
 		//printf("New completion from block %s to %s. Time: %lf s\n",
@@ -85,8 +84,7 @@ int	check_clock(void)
 	return (terminated);
 }
 
-double	create_insert_event(block_type target, int server_id,
-		event_type eventType, clock *c)
+double	create_insert_event(block_type target, int server_id, event_type eventType, clock *c)
 {
 	event	*e;
 

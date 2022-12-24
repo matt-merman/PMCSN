@@ -33,13 +33,14 @@ typedef struct clock_t_n {
     int type;
 } clock;
 
+// time-averaged integral for entire block
 typedef struct area_t {
     double node;                    /* time integrated number in the node  */
     double queue;                   /* time integrated number in the queue */
     double service;                 /* time integrated number in service   */
 } area;
 
-// Statistics for each service node.
+// Statistics for each service block!
 typedef struct statistics_t {
     long int completed_jobs;
     double interarrival_time;
@@ -51,16 +52,17 @@ typedef struct statistics_t {
     //float trafficIntensity; // can be greater than 1
     double utilization; // same as trafficIntensity for sufficiently long observation periods
     double daily_cost;
-    int num_servers;
     double *multiserver_utilization;
     double *multiserver_service_time;
 } statistics;
 
+// cumulative sum of service for a single server
 typedef struct sum_t {               /* accumulated sums of                */
     double service;                  /*   service times                    */
     long served;                   /*   number served                    */
 } sum;
 
+// struct that represent a single server inside a multi-server block (MMk)
 typedef struct server_t {
     int status;  // {0=IDLE, 1=BUSY}
     sum *sum;
