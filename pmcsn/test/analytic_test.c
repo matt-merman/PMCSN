@@ -3,7 +3,9 @@
 //
 
 #include "analytic_test.h"
-int lambda_test(test_count *t){
+
+// test_count is used inside SUCCESS and ASSERT_DOUBLE_EQUAL macros!
+int lambda_test(test_count *t) {
     double lambda1 = get_theoretical_lambda(PRIMO);
     double lambda2 = get_theoretical_lambda(SECONDO);
     double lambda3 = get_theoretical_lambda(DESSERT);
@@ -22,7 +24,7 @@ int lambda_test(test_count *t){
     SUCCESS;
 }
 
-int mhu_test(test_count *t){
+int mhu_test(test_count *t) {
     double mhu1 = get_theoretical_mhu(PRIMO);
     double mhu2 = get_theoretical_mhu(SECONDO);
     double mhu3 = get_theoretical_mhu(DESSERT);
@@ -31,17 +33,17 @@ int mhu_test(test_count *t){
     double mhuS = get_theoretical_mhu(CONSUMAZIONE);
 
     // expected values computed from analytic model
-    ASSERT_DOUBLE_EQUAL(mhu1, 1.0 / 15.0, "mhu1");
-    ASSERT_DOUBLE_EQUAL(mhu2, 1.0 / 15.0, "mhu2");
-    ASSERT_DOUBLE_EQUAL(mhu3, 1.0 / 10.0, "mhu3");
-    ASSERT_DOUBLE_EQUAL(mhuF, 1.0 / 11.0, "mhuF");
-    ASSERT_DOUBLE_EQUAL(mhuC, 1.0 / 18.0, "mhuC");
-    ASSERT_DOUBLE_EQUAL(mhuS, 1.0 / 600.0, "mhuS");
+    ASSERT_DOUBLE_EQUAL(mhu1, 0.06666667, "mhu1");
+    ASSERT_DOUBLE_EQUAL(mhu2, 0.06666667, "mhu2");
+    ASSERT_DOUBLE_EQUAL(mhu3, 0.1, "mhu3");
+    ASSERT_DOUBLE_EQUAL(mhuF, 0.09090909, "mhuF");
+    ASSERT_DOUBLE_EQUAL(mhuC, 0.05555556, "mhuC");
+    ASSERT_DOUBLE_EQUAL(mhuS, 0.001666667, "mhuS");
 
     SUCCESS;
 }
 
-int rho_test(test_count *t){
+int rho_test(test_count *t) {
     double rho1 = get_theoretical_rho(PRIMO, 3);
     double rho2 = get_theoretical_rho(SECONDO, 3);
     double rho3 = get_theoretical_rho(DESSERT, 2);
@@ -56,6 +58,25 @@ int rho_test(test_count *t){
     ASSERT_DOUBLE_EQUAL(rhoF, 0.613896123, "rhoF");
     ASSERT_DOUBLE_EQUAL(rhoC, 0.790527344, "rhoC");
     ASSERT_DOUBLE_EQUAL(rhoS, 0.999200639, "rhoS");
+
+    SUCCESS;
+}
+
+int visits_test(test_count *t){
+    double visits1 = get_theoretical_visits(PRIMO);
+    double visits2 = get_theoretical_visits(SECONDO);
+    double visits3 = get_theoretical_visits(DESSERT);
+    double visitsF = get_theoretical_visits(CASSA_FAST);
+    double visitsC = get_theoretical_visits(CASSA_STD);
+    double visitsS = get_theoretical_visits(CONSUMAZIONE);
+
+    // expected values computed from analytic model
+    ASSERT_DOUBLE_EQUAL(visits1, 0.75, "visits1");
+    ASSERT_DOUBLE_EQUAL(visits2, 0.6625, "visits2");
+    ASSERT_DOUBLE_EQUAL(visits3, 0.485625, "visits3");
+    ASSERT_DOUBLE_EQUAL(visitsF, 0.24109375, "visitsF");
+    ASSERT_DOUBLE_EQUAL(visitsC, 0.75890625, "visitsC");
+    ASSERT_DOUBLE_EQUAL(visitsS, 1.0, "visitsS");
 
     SUCCESS;
 }

@@ -33,6 +33,7 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     stats->node_pop = area->node / clock->current;
     stats->queue_pop = area->queue / clock->current;
     stats->utilization = area->service / (clock->current * b->num_servers);
+
     stats->daily_cost = b->type != CONSUMAZIONE ? get_costs(b->num_servers) : 0.0;
     // multiserver statistics
     stats->multiserver_utilization = malloc(sizeof(double) * b->num_servers);

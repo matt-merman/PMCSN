@@ -21,6 +21,7 @@ typedef struct test_count_t {
                 FAILURE; \
             } \
         } while (0)
+// i used do {} while(0) to use ASSERT_DOUBLE_EQUAL() like a function (with ; at the end)!
 
 #include "analytic_test.h"
 

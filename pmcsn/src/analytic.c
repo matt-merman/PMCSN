@@ -38,7 +38,6 @@ double utilization(int num_servers, double lambda, double mhu) {
 // Computes the theoretical utilization of the block, even if it's a multiserver block.
 double get_theoretical_rho(block_type block_type, int num_servers) {
     double lambda = get_theoretical_lambda(block_type);
-    // printf("\tlambda %s: %g\n", block->name, lambda);
     double mhu = get_theoretical_mhu(block_type);
     return utilization(num_servers, lambda, mhu);
 }
@@ -91,6 +90,10 @@ double get_theoretical_lambda(block_type type) {
     }
 }
 
+double get_theoretical_visits(block_type type) {
+    return get_theoretical_lambda(type) / LAMBDA;
+}
+
 /**
  * Computes the probability that all the servers are full and that queue will start growing
  * @param m number of servers
@@ -107,7 +110,6 @@ double erlang_c_block_probability(int m, double rho) {
 }
 
 double erlang_c_queue_time(double block_probability, double service_time_multi, double rho) {
-    // printf("%g, %g, %g\n", block_probability, service_time_multi, rho);
     return block_probability * service_time_multi / (1.0 - rho);
 }
 

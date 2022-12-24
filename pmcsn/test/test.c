@@ -9,6 +9,7 @@ void analytic_testsuite(test_count *t){
     lambda_test(t);
     mhu_test(t);
     rho_test(t);
+    visits_test(t);
     erlang_c_block_probability_test(t);
     erlang_c_queue_time_test(t);
     erlang_c_response_time_test(t);

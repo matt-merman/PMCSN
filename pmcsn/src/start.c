@@ -57,9 +57,8 @@ int	start_simulation(void)
 	}
 	while (1)
 	{
-		if (!(system_clock->arrival < PERIOD || check_events()
-              || check_servers(blocks)))
-			break ;
+        if (!(system_clock->arrival < PERIOD || check_events() || check_servers(blocks)))
+            break;
 
 		event = get_event();
 		system_clock->next = event;
@@ -73,26 +72,25 @@ int	start_simulation(void)
 		block_type btype = event->block_type;
 		remove_event();
 
-		switch (event->event_type)
-		{
-		case ARRIVAL:
-			arrival(system_clock, previous_clock, blocks[btype]);
-			p = Random();
-			if (p < P_PRIMO_FUORI)
-				create_insert_event(PRIMO, -1, ARRIVAL, system_clock);
-			else
-				create_insert_event(SECONDO, -1, ARRIVAL, system_clock);
-			break ;
-		case IMMEDIATE_ARRIVAL:
-			arrival(system_clock, previous_clock, blocks[btype]);
-			break ;
-		case COMPLETION:
-			completion(event->target_server, system_clock, previous_clock,
-					blocks[btype]);
-			break ;
-		default:
-			break ;
-		}
+        switch (event->event_type) {
+            case ARRIVAL:
+                arrival(system_clock, previous_clock, blocks[btype]);
+                p = Random();
+                if (p < P_PRIMO_FUORI)
+                    create_insert_event(PRIMO, -1, ARRIVAL, system_clock);
+                else
+                    create_insert_event(SECONDO, -1, ARRIVAL, system_clock);
+                break;
+            case IMMEDIATE_ARRIVAL:
+                arrival(system_clock, previous_clock, blocks[btype]);
+                break;
+            case COMPLETION:
+                completion(event->target_server, system_clock, previous_clock,
+                           blocks[btype]);
+                break;
+            default:
+                break;
+        }
 
 		sort_list();
 
