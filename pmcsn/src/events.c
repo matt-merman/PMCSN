@@ -27,7 +27,7 @@ event	*create_event(block_type target, int server_id, event_type type, double cu
 	case ARRIVAL:
 		e->time = get_next_arrival(current, LAMBDA);
 		e->target_server = -1;
-		//printf("New outside arrival to block %s. Time: %lf\n", target_str, 
+		//printf("New outside arrival to block %s. Time: %lf\n", target_str,
 				//newEvent->time);
 		break ;
 	case IMMEDIATE_ARRIVAL:
@@ -59,7 +59,7 @@ int	try_terminate_clock(clock *c, double time)
 	if (time > PERIOD)
 	{
 		c->last = c->current;
-		c->arrival = INF; // the next arrival will arrive at infinity
+		c->last_arrival = INF; // the next arrival will arrive at infinity
 		terminated = TRUE;
 		return (TRUE);
 	}
@@ -71,7 +71,8 @@ int	is_clock_terminated(void)
 {
 	return terminated;
 }
-
+// creates an event and return its time (the time at which the event will occurr)
+// the clock contains the time of this event
 double	create_insert_event(block_type target, int server_id, event_type eventType, clock *c)
 {
 	event	*e;

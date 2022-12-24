@@ -10,6 +10,11 @@
 #include "../utils/helpers.h"
 #include "../src/analytic.h"
 
+#define CHECK_DOUBLE_EQUAL(x,y,block_name,prec,msg) do {if (((MAX((x),(y)) - MIN((x),(y)) <= (prec)) ? 0 : 1)) { \
+            printf("\tBlock %s: %s %g doesn't match with computed %s %g\n", \
+            (block_name), (msg), (x), (msg), (y)); \
+        }} while(0)
+
 void validate_block(block * block, statistics *stats);
 void validate_MM1(block* block, statistics* stats);
 void validate_MMk(block *block, statistics *stats);

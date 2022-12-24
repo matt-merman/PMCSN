@@ -5,6 +5,7 @@
 
 int get_busy_server(server **multi_servers, int num);
 int get_busy_server_num();
+int get_busy_server_num_for_block(block * b);
 int retrieve_idle_server(block *block);
 int are_there_busy_servers(block **blocks);
 void free_busy_server(block *block, int server_index);

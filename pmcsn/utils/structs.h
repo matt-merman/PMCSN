@@ -25,7 +25,7 @@ typedef struct event_t {
 } event;
 
 typedef struct clock_t_n {
-    double arrival;                 /* next arrival time                   */
+    double last_arrival;                 /* next arrival time                   */
     double completion;              /* next completion time                */
     double current;                 /* current time                        */
     event *next;                    /* next (most imminent) event time     */

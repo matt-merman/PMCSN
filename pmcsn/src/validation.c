@@ -25,33 +25,28 @@ void validate_MM1(block *block, statistics *stats) {
 // Erlang-C infinity queue
 void validate_MMk(block *block, statistics *stats) {
     int m = block->num_servers;
-    double rho = stats->utilization;
+//    double rho = stats->utilization;
     double rho_theoretical = get_theoretical_rho(block->type, block->num_servers);
     double service_theoretical = get_theoretical_service(block->type);
     double block_probability_theoretical = erlang_c_block_probability(m, rho_theoretical);
-    double block_probability = erlang_c_block_probability(m, rho);
+//    double block_probability = erlang_c_block_probability(m, rho);
     // checking erlangC queue time with theoretical formula
     double queue_time_theoretical = erlang_c_queue_time(block_probability_theoretical,
                                                         service_theoretical / m,
                                                         rho_theoretical);
-    double queue_time = erlang_c_queue_time(block_probability, stats->service_time / m,
-                                            rho); // here we need the multiserver service time (time to free any server)
+//    double queue_time = erlang_c_queue_time(block_probability, stats->service_time / m,
+//                                            rho); // here we need the multiserver service time (time to free any server)
 
-    if (IS_NOT_EQUAL(queue_time_theoretical, queue_time)) {
-        printf("\tBlock %s: Theoretical queue time %g doesn't match with computed queue time %g\n",
-               block->name, queue_time_theoretical, queue_time);
-    }
+    CHECK_DOUBLE_EQUAL(queue_time_theoretical, stats->delay, block->name, 0.001, "queue time");
 
     // checking erlangC response time with theoretic formula
     double response_time_theoretical = erlang_c_response_time(queue_time_theoretical,
                                                               service_theoretical);
-    double response_time = erlang_c_response_time(queue_time,
-                                                  stats->service_time); // here we need the full service time of a single server
+//    double response_time = erlang_c_response_time(queue_time,
+//                                                  stats->service_time); // here we need the full service time of a single server
 
-    if (IS_NOT_EQUAL(response_time_theoretical, response_time)) {
-        printf("\tBlock %s: Theoretical response time %g doesn't match with computed response time %g\n",
-               block->name, response_time_theoretical, response_time);
-    }
+    CHECK_DOUBLE_EQUAL(response_time_theoretical, stats->wait, block->name, 0.001, "response time");
+
     validate_theoretical_arrival_time(block, stats);
     validate_theoretical_service_time(block, stats);
     validate_theoretical_utilizazion(block, stats);

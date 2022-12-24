@@ -12,6 +12,10 @@ int	get_busy_server(server **multi_servers, int num)
 	return (-1);
 }
 
+int get_busy_server_num_for_block(block * b){
+    return busy_servers[b->type];
+}
+
 int get_busy_server_num() {
     int sum = 0;
     for (int i = 0; i < BLOCKS; i++){

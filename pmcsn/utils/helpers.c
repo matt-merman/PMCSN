@@ -30,7 +30,7 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     stats->wait = area->node / completed_jobs;
     stats->delay = area->queue / completed_jobs;
     stats->service_time = area->service / completed_jobs;
-    printf("area_node: %g\tarea_queue: %g\tarea_service: %g\t completed jobs: %f\n", area->node, area->queue, area->service, completed_jobs);
+//    printf("area_node: %g\tarea_queue: %g\tarea_service: %g\t completed jobs: %f\n", area->node, area->queue, area->service, completed_jobs);
     stats->node_pop = area->node / clock->current;
     stats->queue_pop = area->queue / clock->current;
     stats->utilization = area->service / (clock->current * b->num_servers);
