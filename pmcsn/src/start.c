@@ -4,9 +4,9 @@
 int	main(void)
 {
 	// system("clear");
-	// printf("**************************************\n");
-	// printf("**               PMCSN              **\n");
-	// printf("**************************************\n");
+	// PRINTF("**************************************\n");
+	// PRINTF("**               PMCSN              **\n");
+	// PRINTF("**************************************\n");
 	start_simulation();
 	return (0);
 }
@@ -46,7 +46,7 @@ int	start_simulation(void)
 	system_clock = init_clock();
 	if (system_clock == NULL)
 	{
-		printf("Error on system clock\n");
+		PRINTF("Error on system clock\n");
 		return (-1);
 	}
 	init_event_list(system_clock->type);
@@ -56,7 +56,7 @@ int	start_simulation(void)
 	blocks = init_blocks(network_status);
 	if (blocks == NULL)
 	{
-		printf("Error on blocks");
+		PRINTF("Error on blocks");
 		return (-1);
 	}
 	while (1)
@@ -66,6 +66,7 @@ int	start_simulation(void)
             break;
         }
 		event = get_next_event();
+        PRINTF("Event %ld: Time: %f - %s\n", event->event_id, event->time, to_str_event(event->event_type));
         // if (event == NULL) break;
 		system_clock->next = event;
 		if (event->event_type == ARRIVAL)
@@ -82,15 +83,15 @@ int	start_simulation(void)
         switch (event->event_type) {
             case ARRIVAL:
                 // we schedule its completion (if a server is idle) or add to queue and generate a new outside arrival
-                process_arrival(system_clock, previous_clock, blocks[btype]);
+                process_arrival(event, system_clock, previous_clock, blocks[btype]);
                 break;
             case IMMEDIATE_ARRIVAL:
                 // we only schedule its completion or add to queue
-                schedule_arrival_completion_or_enqueue(system_clock, blocks[btype]);
+                schedule_arrival_completion_or_enqueue(event, system_clock, blocks[btype]);
                 break;
             case COMPLETION:
                 // we schedule the next completion and generate an immediate arrival
-                process_completion(event->target_server, system_clock, previous_clock, blocks[btype]);
+                process_completion(event, system_clock, previous_clock, blocks[btype]);
                 break;
             default:
                 break;
@@ -110,11 +111,8 @@ int	start_simulation(void)
 }
 
 void debug(clock *system_clock, block **blocks, event *event) {
-    if (DEBUG == FALSE) {
-        return;
-    }
-
-    printf("Time: %lf Event: %-18s Target Block: %-12s in server: %d jobs in blocks [%s, %s, %s, %s, %s, %s] events: %d\n",
+    PRINTF("Event %ld: Time: %lf - %-18s Target Block: %-12s in server: %d jobs in blocks [%s, %s, %s, %s, %s, %s] events: %d\n",
+           event->event_id,
            system_clock->last_arrival,
            to_str_event(event->event_type),
            to_str_block(event->block_type),
@@ -125,10 +123,11 @@ void debug(clock *system_clock, block **blocks, event *event) {
            get_server_contents(blocks[CASSA_FAST]),
            get_server_contents(blocks[CASSA_STD]),
            get_server_contents(blocks[CONSUMAZIONE]), length());
+
 }
 // To process an arrival, we need to schedule or enqueue the job and then generate a new ARRIVAL event
-void process_arrival(clock *c, double current, block *block){
-    schedule_arrival_completion_or_enqueue(c, block);
+void process_arrival(event *event, clock *c, double current, block *block) {
+    schedule_arrival_completion_or_enqueue(event, c, block);
     double p = Random();
     if (p < P_PRIMO_FUORI)
         create_insert_event(PRIMO, -1, ARRIVAL, c);
@@ -143,7 +142,7 @@ void process_arrival(clock *c, double current, block *block){
  * @param c the time of the current arrival event
  * @param block the service node to which the job is arrived
  */
-void schedule_arrival_completion_or_enqueue(clock *c, block *block)
+void schedule_arrival_completion_or_enqueue(event *event, clock *c, block *block)
 {
 	int		s_index;
 	server	*s;
@@ -158,9 +157,10 @@ void schedule_arrival_completion_or_enqueue(clock *c, block *block)
 		s = block->servers[s_index]; // the selected server
         // next process_completion time (for this server)
 		next_completion_time = create_insert_event(block->type, s_index, COMPLETION, c);
-//        printf("%36s (id %d) Service time for process_completion after %g: %g\n",block->name, s_index, c->current, next_completion_time);
+//        PRINTF("%36s (id %d) Service time for process_completion after %g: %g\n",block->name, s_index, c->current, next_completion_time);
         // we increment the cumulative service time for THIS SERVER!
 		s->sum->service += next_completion_time - c->current; // the service time for this (immediate) arrival
+        PRINTF("Event %ld: Tempo di servizio arrivo %f - %f = %f\n",event->event_id, next_completion_time, c->current, next_completion_time - c->current);
 		s->sum->served++;
 		block->block_area->service += (next_completion_time - c->current);
 	}
@@ -204,7 +204,7 @@ void	schedule_immediate_arrival(int type, clock *c)
 }
 
 // A completion should schedule another completion event (if there are job in queue) and an arrival.
-void	process_completion(int server_id, clock *c, double current, block *block)
+void	process_completion(event *event, clock *c, double current, block *block)
 {
 	double service_time;
 	server *s;
@@ -212,22 +212,23 @@ void	process_completion(int server_id, clock *c, double current, block *block)
 	block->completed_jobs++;
 	block->jobs--;
 
-	if (server_id != -1)
-		free_busy_server(block, server_id);
+	if (event->target_server != -1)
+		free_busy_server(block, event->target_server);
 	else
 	{
-		printf("This is bad! A completion from who knows from!\n");
+		PRINTF("This is bad! A completion from who knows from!\n");
 		exit(-1);
 	}
     // We generate a new completion if there are jobs in queue. We now for sure that a server is empty
     if (block->queue_jobs > 0) {
         int serv_id = retrieve_idle_server(block);
         if (serv_id != -1) {
-            s = block->servers[server_id];
+            s = block->servers[event->target_server];
             service_time = create_insert_event(block->type, serv_id, COMPLETION, c);
-            // printf("%s (id %d) Service time for job between %g and %g: %g\n",block->name, serv_id, current, service_time, service_time - current);
+            // PRINTF("%s (id %d) Service time for job between %g and %g: %g\n",block->name, serv_id, current, service_time, service_time - current);
             block->queue_jobs--;
             s->sum->service += (service_time - c->current);
+            PRINTF("Event %ld: Tempo di servizio completamento %g - %g = %g\n", event->event_id, service_time, c->current, service_time - c->current);
             block->block_area->service += (service_time - c->current);
             s->sum->served++;
         }

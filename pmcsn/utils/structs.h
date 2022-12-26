@@ -17,6 +17,7 @@ typedef enum event_type_t {
 } event_type;
 
 typedef struct event_t {
+    long event_id;
     block_type block_type;
     double time;
     event_type event_type;

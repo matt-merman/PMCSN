@@ -4,6 +4,8 @@
 // true if Clock is terminated
 int		terminated = FALSE;
 // event	*event_list;
+// used to track events
+long next_event_id = 0L;
 
 void	init_event_list(int type)
 {
@@ -22,6 +24,8 @@ event	*create_event(block_type target, int server_id, event_type type, double cu
 		printf("Error while allocating event\n");
 		return (e);
 	}
+    e->event_id = next_event_id++;
+
 	switch (type)
 	{
 	case ARRIVAL:

@@ -6,10 +6,12 @@
 
 // these tests are run one after another
 
+long test_next_event_id = 0L;
+
 // inserts one thing and checks length
 int insert_test(test_count *t){
     int prev_size = length();
-    insert_first(PRIMO, ARRIVAL, 0, get_next_arrival(0.0, LAMBDA));
+    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, get_next_arrival(0.0, LAMBDA));
 
     int next_size = length();
 
@@ -20,9 +22,9 @@ int insert_test(test_count *t){
 
 // inserts some more things and then removes everything
 int delete_test(test_count *t){
-    insert_first(PRIMO, ARRIVAL, 0, 0.5);
-    insert_first(PRIMO, ARRIVAL, 0, 0.2);
-    insert_first(PRIMO, ARRIVAL, 0, 0.7);
+    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.5);
+    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.2);
+    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.7);
 
     while(!is_empty()) {
         int prev_size = length();
@@ -36,9 +38,9 @@ int delete_test(test_count *t){
 
 // insert three events unsorted and sorts them. Finally, removes everything and checks ordering
 int sort_test(test_count *t) {
-    insert_first(PRIMO, ARRIVAL, 0, 0.5);
-    insert_first(PRIMO, ARRIVAL, 0, 0.2);
-    insert_first(PRIMO, ARRIVAL, 0, 0.7);
+    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.5);
+    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.2);
+    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.7);
 
     sort_by_time();
 

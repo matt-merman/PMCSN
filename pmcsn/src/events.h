@@ -1,3 +1,6 @@
+#ifndef PROGETTOPMCSN_EVENT_H
+#define PROGETTOPMCSN_EVENT_H
+
 #include "../utils/helpers.h"
 
 void init_event_list(int type);
@@ -15,3 +18,5 @@ void sort_list();
 char *to_str_event(event_type etype);
 double create_insert_event(block_type target, int server_id,
                            event_type eventType, clock *c);
+
+#endif
