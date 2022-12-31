@@ -10,7 +10,9 @@
 #define N_HOURS 3
 #define PERIOD (N_HOURS*HOUR)                      // observation period in seconds
 #define INF 100*PERIOD                             // max int is 2147483647
-#define LAMBDA ((double) USER/(double) PERIOD)     // Mean outside arrivals: 0.2314814815
+#define LAMBDA 0.2314814815     // Mean outside arrivals: 0.2314814815
+//#define LAMBDA ((double) USER/(double) PERIOD)     // Mean outside arrivals: 0.2314814815
+#define LAMBDA_DEFAULT 0.2314814815
 
 // TODO: probabilità di arrivo nei tre time slots 
 #define P_ARRIVO_SLOT_1 0.28 // (double) USER * 0.20 /(double) PERIOD

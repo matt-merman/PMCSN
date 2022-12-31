@@ -103,7 +103,7 @@ void validate_theoretical_arrival_time(block *block, statistics *stats) {
     double lambda_theoretical = get_theoretical_lambda(block->type);
     double lambda = 1.0 / stats->interarrival_time;
     if (IS_NOT_EQUAL(lambda, lambda_theoretical)) {
-        printf("\tBlock %s: theoretical arrival freuency (%g) doesn't match computed arrival frequency (%g)\n",
+        printf("\tBlock %s: theoretical arrival frequency (%g) doesn't match computed arrival frequency (%g)\n",
                block->name, lambda_theoretical, lambda);
     }
 }

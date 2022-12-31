@@ -71,11 +71,11 @@ clock * 	init_clock(void)
 	}
 	c->current = START;
 	c->last_arrival = get_next_arrival(START, LAMBDA);
-	c->completion = INF;
-	if (p < P_PRIMO_FUORI)
-		c->type = 0;
-	else
-		c->type = 1;
+    if (p < P_PRIMO_FUORI) {
+        c->type = PRIMO;
+    } else {
+        c->type = SECONDO;
+    }
 	return c;
 }
 
@@ -84,7 +84,7 @@ int	network_status[] = {0, 0, 0, 0, 0, 0};
 // Initializes the network configuration
 int *	init_network(int config)
 {
-	int	status_one[] = {2, 1, 1, 1, 2, 50};
+	int	status_one[] = {1, 1, 1, 1, 1, 50};
 	int	ergodic[] = {3, 3, 2, 1, 4, 139};
 	int	status_three[] = {2, 1, 1, 1, 2, 50};
 

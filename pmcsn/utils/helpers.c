@@ -26,15 +26,16 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     area *area = b->block_area;
     stats->completed_jobs = b->completed_jobs;
     stats->interarrival_time = clock->last / completed_jobs;
-    // FIXME ricontrollare come viene calcolata area e se questa formula è corretta
+    printf("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
+    // FIXME ricontrollare come viene calcolata area e se questa formula è corretta.
     stats->wait = area->node / completed_jobs;
     stats->delay = area->queue / completed_jobs;
     stats->service_time = area->service / completed_jobs;
 //    printf("area_node: %g\tarea_queue: %g\tarea_service: %g\t completed jobs: %f\n", area->node, area->queue, area->service, completed_jobs);
-    stats->node_pop = area->node / clock->current;
-    stats->queue_pop = area->queue / clock->current;
-    stats->utilization = area->service / (clock->current * b->num_servers);
-
+    stats->node_pop = area->node / PERIOD;
+    stats->queue_pop = area->queue / PERIOD;
+    stats->utilization = area->service / (PERIOD * b->num_servers);
+//    stats->block_probabiliity = / PERIOD;
     stats->daily_cost = b->type != CONSUMAZIONE ? get_costs(b->num_servers) : 0.0;
     // multiserver statistics
     stats->multiserver_utilization = malloc(sizeof(double) * b->num_servers);

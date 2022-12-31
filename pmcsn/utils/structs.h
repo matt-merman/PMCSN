@@ -22,15 +22,14 @@ typedef struct event_t {
     double time;
     event_type event_type;
     int target_server;
+    struct event_t *linked_arrival; /* The arrival linked to a completion event. If it is an arrival, points to itself*/
     struct event_t *next;
 } event;
 
 typedef struct clock_t_n {
-    double last_arrival;                 /* next arrival time                   */
-    double completion;              /* next completion time                */
-    double current;                 /* current time                        */
-    event *next;                    /* next (most imminent) event time     */
-    double last;                    /* last arrival time                   */
+    double last_arrival;            /* last arrival time: used to break */
+    double current;                 /* current time */
+    double last;                    /* last arrival time: used to compute interarrival time */
     int type;
 } clock;
 
@@ -52,6 +51,7 @@ typedef struct statistics_t {
     double queue_pop;
     //float trafficIntensity; // can be greater than 1
     double utilization; // same as trafficIntensity for sufficiently long observation periods
+    double block_probabiliity;
     double daily_cost;
     double *multiserver_utilization;
     double *multiserver_service_time;

@@ -68,8 +68,7 @@ int	start_simulation(void)
 		event = get_next_event();
         PRINTF("Event %ld: Time: %f - %s\n", event->event_id, event->time, to_str_event(event->event_type));
         // if (event == NULL) break;
-		system_clock->next = event;
-		if (event->event_type == ARRIVAL)
+        if (event->event_type == ARRIVAL)
 			system_clock->last_arrival = event->time; // we update the last arrival time
         // event_time: tempo in cui l'evento viene processato. current: tempo dell'evento corrente.
         // La differenza è il tempo rimanente prima del prossimo evento
@@ -111,9 +110,9 @@ int	start_simulation(void)
 }
 
 void debug(clock *system_clock, block **blocks, event *event) {
-    PRINTF("Event %ld: Time: %lf - %-18s Target Block: %-12s in server: %d jobs in blocks [%s, %s, %s, %s, %s, %s] events: %d\n",
+    PRINTF("Event %ld: Time: %lf - %-18s Target Block: %-12s in server: %d jobs in blocks [%s, %s, %s, %s, %s, %s] events: %d (linked event id %ld)\n",
            event->event_id,
-           system_clock->last_arrival,
+           system_clock->current,
            to_str_event(event->event_type),
            to_str_block(event->block_type),
            event->target_server,
@@ -122,7 +121,8 @@ void debug(clock *system_clock, block **blocks, event *event) {
            get_server_contents(blocks[DESSERT]),
            get_server_contents(blocks[CASSA_FAST]),
            get_server_contents(blocks[CASSA_STD]),
-           get_server_contents(blocks[CONSUMAZIONE]), length());
+           get_server_contents(blocks[CONSUMAZIONE]), length(),
+           (event->linked_arrival != NULL) ? event->linked_arrival->event_id : -1L);
 
 }
 // To process an arrival, we need to schedule or enqueue the job and then generate a new ARRIVAL event
@@ -130,15 +130,16 @@ void process_arrival(event *event, clock *c, double current, block *block) {
     schedule_arrival_completion_or_enqueue(event, c, block);
     double p = Random();
     if (p < P_PRIMO_FUORI)
-        create_insert_event(PRIMO, -1, ARRIVAL, c);
+        create_insert_event(PRIMO, -1, ARRIVAL, c, NULL);
     else
-        create_insert_event(SECONDO, -1, ARRIVAL, c);
+        create_insert_event(SECONDO, -1, ARRIVAL, c, NULL);
 }
 
 //
 /**
  * After an arrival or immediate arrival, we schedule a process_completion, if a server of the block is idle.
  * Otherwise, it adds the job to the queue.
+ * @param event the event who will schedule the completion or will be enqueued.
  * @param c the time of the current arrival event
  * @param block the service node to which the job is arrived
  */
@@ -156,7 +157,7 @@ void schedule_arrival_completion_or_enqueue(event *event, clock *c, block *block
 	{
 		s = block->servers[s_index]; // the selected server
         // next process_completion time (for this server)
-		next_completion_time = create_insert_event(block->type, s_index, COMPLETION, c);
+		next_completion_time = create_insert_event(block->type, s_index, COMPLETION, c, event);
 //        PRINTF("%36s (id %d) Service time for process_completion after %g: %g\n",block->name, s_index, c->current, next_completion_time);
         // we increment the cumulative service time for THIS SERVER!
 		s->sum->service += next_completion_time - c->current; // the service time for this (immediate) arrival
@@ -176,27 +177,27 @@ void	schedule_immediate_arrival(int type, clock *c)
 	case PRIMO:
 		p = Random();
 		if (p < P_SECONDO_PRIMO)
-			create_insert_event(SECONDO, -1, IMMEDIATE_ARRIVAL, c);
+            create_insert_event(SECONDO, -1, IMMEDIATE_ARRIVAL, c, NULL);
 		else if (p > P_SECONDO_PRIMO && p < P_SECONDO_PRIMO + P_DESSERT_PRIMO)
-			create_insert_event(DESSERT, -1, IMMEDIATE_ARRIVAL, c);
+            create_insert_event(DESSERT, -1, IMMEDIATE_ARRIVAL, c, NULL);
 		else
-			create_insert_event(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c);
+            create_insert_event(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c, NULL);
 		break ;
 	case SECONDO:
 		p = Random();
 		if (p < P_DESSERT_SECONDO)
-			create_insert_event(DESSERT, -1, IMMEDIATE_ARRIVAL, c);
+            create_insert_event(DESSERT, -1, IMMEDIATE_ARRIVAL, c, NULL);
 		else if (p > P_DESSERT_SECONDO && p < P_DESSERT_SECONDO + P_CASSA_STD_SECONDO)
-			create_insert_event(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c);
+            create_insert_event(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c, NULL);
 		else
-			create_insert_event(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c);
+            create_insert_event(CASSA_FAST, -1, IMMEDIATE_ARRIVAL, c, NULL);
 		break ;
 	case DESSERT:
-		create_insert_event(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c);
+        create_insert_event(CASSA_STD, -1, IMMEDIATE_ARRIVAL, c, NULL);
 		break ;
 	case CASSA_STD:
 	case CASSA_FAST:
-		create_insert_event(CONSUMAZIONE, -1, IMMEDIATE_ARRIVAL, c);
+        create_insert_event(CONSUMAZIONE, -1, IMMEDIATE_ARRIVAL, c, NULL);
 		break ;
 	default:
 		break ;
@@ -224,7 +225,7 @@ void	process_completion(event *event, clock *c, double current, block *block)
         int serv_id = retrieve_idle_server(block);
         if (serv_id != -1) {
             s = block->servers[event->target_server];
-            service_time = create_insert_event(block->type, serv_id, COMPLETION, c);
+            service_time = create_insert_event(block->type, serv_id, COMPLETION, c, event);
             // PRINTF("%s (id %d) Service time for job between %g and %g: %g\n",block->name, serv_id, current, service_time, service_time - current);
             block->queue_jobs--;
             s->sum->service += (service_time - c->current);

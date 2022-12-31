@@ -9,11 +9,11 @@ long next_event_id = 0L;
 
 void	init_event_list(int type)
 {
-    event *e = create_event(type, -1, ARRIVAL, START);
+    event *e = create_event(type, -1, ARRIVAL, START, NULL);
     insert_event_first(e);
 }
 
-event	*create_event(block_type target, int server_id, event_type type, double current)
+event *create_event(block_type target, int server_id, event_type type, double current, event *linked_event)
 {
 	int		stream;
 	event	*e;
@@ -31,12 +31,14 @@ event	*create_event(block_type target, int server_id, event_type type, double cu
 	case ARRIVAL:
 		e->time = get_next_arrival(current, LAMBDA);
 		e->target_server = -1;
+        e->linked_arrival = e;
 		//printf("New outside arrival to block %s. Time: %lf\n", target_str,
 				//newEvent->time);
 		break ;
 	case IMMEDIATE_ARRIVAL:
 		e->time = current;
 		e->target_server = -1;
+        e->linked_arrival = e;
 		//printf("New arrival from block %s to block %s. Time: %lf s\n",
 				//source_str, target_str, newEvent->time);
 		break ;
@@ -44,6 +46,7 @@ event	*create_event(block_type target, int server_id, event_type type, double cu
 		stream = (int) target + 1;
 		e->time = current + get_next_service(target, stream);
 		e->target_server = server_id;
+        e->linked_arrival = linked_event;
 		//printf("New completion from block %s to %s. Time: %lf s\n",
 				//source_str, target_str, newEvent->time);
 		break ;
@@ -77,11 +80,11 @@ int	is_clock_terminated(void)
 }
 // creates an event and return its time (the time at which the event will occurr)
 // the clock contains the time of this event
-double	create_insert_event(block_type target, int server_id, event_type eventType, clock *c)
+double create_insert_event(block_type target, int server_id, event_type eventType, clock *c, event *linked_event)
 {
 	event	*e;
 
-	e = create_event(target, server_id, eventType, c->current);
+	e = create_event(target, server_id, eventType, c->current, linked_event);
 	// if we have a new outside arrival but in a time after the observation period,
 	//we skip it.
 	if (eventType == ARRIVAL && try_terminate_clock(c, e->time))
