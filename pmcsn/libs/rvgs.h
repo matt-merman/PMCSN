@@ -6,8 +6,8 @@
  * -------------------------------------------------------------- 
 */
 
-#if !defined( _RVGS_ )
-#define _RVGS_
+#ifndef _RVGS_H
+#define _RVGS_H
 
 long Bernoulli(double p);
 long Binomial(long n, double p);

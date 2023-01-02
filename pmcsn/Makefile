@@ -20,3 +20,6 @@ run: compile
 
 test: compile_test
 	./tests
+
+msq:
+	$(CC) $(CFLAGS) libs/rngs.c msq/msq.c -o msqq -g -lm

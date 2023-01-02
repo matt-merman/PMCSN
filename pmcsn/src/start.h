@@ -12,8 +12,8 @@ void process_completion(event *event, clock *c, double current, block *block);
 void schedule_arrival_completion_or_enqueue(event *event, clock *c, block *block);
 int start_simulation(void);
 void debug(clock *system_clock, block **blocks, event *event);
-void update_area_stats(double diff, block **blocks);
-void schedule_immediate_arrival(int type, clock *c);
+void update_area_stats(block **blocks, event *event, clock *clock);
+void schedule_immediate_arrival(int type, clock *c, event *triggering_event);
 void process_arrival(event *event, clock *c, double current, block *block);
 
 

@@ -22,7 +22,7 @@ typedef struct event_t {
     double time;
     event_type event_type;
     int target_server;
-    struct event_t *linked_arrival; /* The arrival linked to a completion event. If it is an arrival, points to itself*/
+    long linked_event_id;           /* The event id linked to the current one. If it is an arrival, points to itself*/
     struct event_t *next;
 } event;
 

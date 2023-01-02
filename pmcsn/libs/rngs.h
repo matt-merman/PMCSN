@@ -6,8 +6,8 @@
  * ----------------------------------------------------------------------- 
  */
 
-#if !defined( _RNGS_ )
-#define _RNGS_
+#ifndef _RNGS_H
+#define _RNGS_H
 
 double Random(void);
 void   PlantSeeds(long x);

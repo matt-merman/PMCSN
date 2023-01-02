@@ -15,6 +15,6 @@ int are_there_more_events();
 
 void sort_list();
 char *to_str_event(event_type etype);
-double create_insert_event(block_type target, int server_id, event_type eventType, clock *c, event *linked_event);
+event * create_insert_event(block_type target, int server_id, event_type eventType, clock *c, event *linked_event);
 
 #endif
