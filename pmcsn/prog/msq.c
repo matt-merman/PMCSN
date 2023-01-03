@@ -15,7 +15,6 @@
  */
 
 #include <stdio.h>
-#include <math.h>
 #include "../libs/rngs.h"
 #include "../libs/rvgs.h"
 #include "../src/analytic.h"
@@ -23,12 +22,16 @@
 // #define START    0.0                    /* initial (open the door)        */
 #define STOP     20000.0                /* terminal (close the door) time */
 #define SERVERS  4                      /* number of servers              */
+#ifdef START
+#undef START
+#define START 0.0
+#endif
 
-typedef struct {                        /* the next-event list    */
+
+typedef struct event_list_t {                        /* the next-event list    */
     double t;                             /*   next event time      */
     int x;                             /*   event status, 0 or 1 */
-} event_list[SERVERS + 1];
-
+} event_list;
 
 
 double GetArrival(double interarrival_time, int stream_arrival)
@@ -45,7 +48,7 @@ double GetArrival(double interarrival_time, int stream_arrival)
 }
 
 
-double GetService(double service_time, double stream_service)
+double GetService(double service_time, int stream_service)
 /* ---------------------------------------------
  * generate the next service time, with rate 1/6
  * ---------------------------------------------
@@ -56,7 +59,7 @@ double GetService(double service_time, double stream_service)
 }
 
 
-int NextEvent(event_list event, int servers)
+int NextEvent(event_list event[], int servers)
 /* ---------------------------------------
  * return the index of the next event type
  * ---------------------------------------
@@ -77,7 +80,7 @@ int NextEvent(event_list event, int servers)
 }
 
 
-int FindOne(event_list event, int servers)
+int FindOne(event_list event[], int servers)
 /* -----------------------------------------------------
  * return the index of the available server idle longest
  * -----------------------------------------------------
@@ -98,12 +101,12 @@ int FindOne(event_list event, int servers)
 }
 
 
-int run(int seed, int stop, int servers, double expo_arrival,double expo_service, int stream_arrival, int stream_service) {
+int run(long seed, int stop, int servers, double expo_arrival, double expo_service, int stream_arrival, int stream_service) {
     struct {
         double current;                  /* current time                       */
         double next;                     /* next (most imminent) event time    */
     } t;
-    event_list event;
+    event_list event[servers + 1];
     long number = 0;             /* number in the node                 */
     int e;                      /* next event index                   */
     int s;                      /* server index                       */
@@ -113,7 +116,6 @@ int run(int seed, int stop, int servers, double expo_arrival,double expo_service
         double service;                  /*   service times                    */
         long served;                   /*   number served                    */
     } sum[servers + 1];
-
     PlantSeeds(seed);
     t.current = START;
     event[0].t = GetArrival(expo_arrival, stream_arrival);
@@ -179,14 +181,14 @@ int run(int seed, int stop, int servers, double expo_arrival,double expo_service
     return (0);
 }
 
-int main(void){
-    int seed = 123456789;
-    int stop = 3*3600;
+int main(void) {
+    long seed = 123456789;
+    int stop = 3 * 3600;
     int stream_arrival = 0;
     // stream service: 1, 2, 3 (dessert), 4 (casse fast), 5 (casse standard), 6 (consumazione)
 
     // primi
-    run(seed, stop, 3, 1.0 / get_theoretical_lambda(PRIMO), get_theoretical_service(PRIMO), stream_arrival, 1);
+    // run(seed, stop, 3, 1.0 / get_theoretical_lambda(PRIMO), get_theoretical_service(PRIMO), stream_arrival, 1);
     // Attenzione qui il processo degli arrivi non segue lo stream 0!!!
     // secondi
     // run(seed, stop, 3, 1.0 / get_theoretical_lambda(SECONDO), get_theoretical_service(SECONDO), stream_arrival, 2);
@@ -197,5 +199,5 @@ int main(void){
     // casse standard
     // run(seed, stop, 4, 1.0 / get_theoretical_lambda(CASSA_STD), get_theoretical_service(CASSA_STD), stream_arrival, 5);
     // consumazione
-    // run(seed, stop, 139, 1.0 / get_theoretical_lambda(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE), stream_arrival, 6);
+    run(seed, stop, 1, 1.0 / get_theoretical_lambda(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE), stream_arrival, 6);
 }
