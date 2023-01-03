@@ -1,0 +1,292 @@
+I VALORI SEGUENTI SONO STATI OTTENUTI CON 50.000 ore di simulazione (4h tempo reale)
+'Primi' block info:
+
+		people in the block ..... = 31250479	people
+
+	job averaged statistics:
+		average interarrival time =   5.76	s
+		average node wait ....... =  43.73	s
+		average queue delay ..... =  28.73	s
+		average service time .... =  15.00	s
+
+	time averaged statistics:
+		average # in the node ... =   7.59	people
+		average # in the queue .. =   4.99	people
+		utilization ............. = 0.8681	-
+
+		Multi-server statistics:
+		    server     utilization     avg service
+		       0         0.9057           14.99
+		       1         0.8709           15.00
+		       2         0.8274           15.00
+
+		Daily Configuration Cost for 'Primi': 1.2e+06 €
+
+	Block Primi: queue time 28.8488 doesn't match with computed queue time 28.7336
+	Block Primi: response time 43.8488 doesn't match with computed response time 43.7339
+clock last: 179999996.797841 last arrival: 820130816.000000 current: 180014597.782318
+	----------------------------------------------------------
+	'Secondi e Contorni' block info:
+
+		people in the block ..... = 27607424	people
+
+	job averaged statistics:
+		average interarrival time =   6.52	s
+		average node wait ....... =  27.71	s
+		average queue delay ..... =  12.71	s
+		average service time .... =  15.00	s
+
+	time averaged statistics:
+		average # in the node ... =   4.25	people
+		average # in the queue .. =   1.95	people
+		utilization ............. = 0.7667	-
+
+		Multi-server statistics:
+		    server     utilization     avg service
+		       0         0.8349           15.00
+		       1         0.7710           14.99
+		       2         0.6940           15.00
+
+		Daily Configuration Cost for 'Secondi e Contorni': 1.2e+06 €
+
+	Block Secondi e Contorni: queue time 12.7346 doesn't match with computed queue time 12.7148
+	Block Secondi e Contorni: response time 27.7346 doesn't match with computed response time 27.7113
+clock last: 179999996.797841 last arrival: 820130816.000000 current: 180014597.782318
+	----------------------------------------------------------
+	'Frutta e Dessert' block info:
+
+		people in the block ..... = 20238868	people
+
+	job averaged statistics:
+		average interarrival time =   8.89	s
+		average node wait ....... =  14.62	s
+		average queue delay ..... =   4.62	s
+		average service time .... =  10.00	s
+
+	time averaged statistics:
+		average # in the node ... =   1.64	people
+		average # in the queue .. =   0.52	people
+		utilization ............. = 0.5622	-
+
+		Multi-server statistics:
+		    server     utilization     avg service
+		       0         0.6364           10.00
+		       1         0.4879           10.00
+
+		Daily Configuration Cost for 'Frutta e Dessert': 800000 €
+
+clock last: 179999996.797841 last arrival: 820130816.000000 current: 180014597.782318
+	----------------------------------------------------------
+	'Casse Fast' block info:
+
+		people in the block ..... = 10043138	people
+
+	job averaged statistics:
+		average interarrival time =  17.92	s
+		average node wait ....... =  28.44	s
+		average queue delay ..... =  17.44	s
+		average service time .... =  11.00	s
+
+	time averaged statistics:
+		average # in the node ... =   1.59	people
+		average # in the queue .. =   0.97	people
+		utilization ............. = 0.6137	-
+
+		Multi-server statistics:
+		    server     utilization     avg service
+		       0         0.6137           11.00
+
+		Daily Configuration Cost for 'Casse Fast': 400000 €
+
+clock last: 179999996.797841 last arrival: 820130816.000000 current: 180014597.782318
+	----------------------------------------------------------
+	'Casse standard' block info:
+
+		people in the block ..... = 31624576	people
+
+	job averaged statistics:
+		average interarrival time =   5.69	s
+		average node wait ....... =  30.42	s
+		average queue delay ..... =  12.42	s
+		average service time .... =  18.00	s
+
+	time averaged statistics:
+		average # in the node ... =   5.34	people
+		average # in the queue .. =   2.18	people
+		utilization ............. = 0.7906	-
+
+		Multi-server statistics:
+		    server     utilization     avg service
+		       0         0.8697           17.99
+		       1         0.8248           18.00
+		       2         0.7675           18.00
+		       3         0.7000           18.01
+
+		Daily Configuration Cost for 'Casse standard': 1.6e+06 €
+
+	Block Casse standard: queue time 12.4489 doesn't match with computed queue time 12.4234
+	Block Casse standard: response time 30.4489 doesn't match with computed response time 30.422
+clock last: 179999996.797841 last arrival: 820130816.000000 current: 180014597.782318
+	----------------------------------------------------------
+	'Locale Mensa' block info:
+
+		people in the block ..... = 41667714	people
+
+	job averaged statistics:
+		average interarrival time =   4.32	s
+		average node wait ....... = 5389.37	s
+		average queue delay ..... = 4789.36	s
+		average service time .... = 600.01	s
+
+	time averaged statistics:
+		average # in the node ... = 1247.57	people
+		average # in the queue .. = 1108.68	people
+		utilization ............. = -33.3437	-
+
+		Multi-server statistics:
+		    server     utilization     avg service
+		       0         0.9999          599.65
+		       1         0.9999          600.75
+		       2         0.9999          599.53
+		       3         0.9999          600.02
+		       4         0.9999          598.32
+		       5         0.9999          598.95
+		       6         0.9999          600.47
+		       7         0.9999          599.22
+		       8         0.9999          599.85
+		       9         0.9999          600.07
+		      10         0.9999          599.22
+		      11         0.9999          600.19
+		      12         0.9999          599.46
+		      13         0.9999          599.07
+		      14         0.9999          600.13
+		      15         0.9999          599.88
+		      16         0.9999          598.87
+		      17         0.9999          598.33
+		      18         0.9999          598.23
+		      19         0.9999          599.06
+		      20         0.9999          598.69
+		      21         0.9999          600.84
+		      22         0.9998          600.56
+		      23         0.9998          599.50
+		      24         0.9998          600.00
+		      25         0.9998          598.15
+		      26         0.9998          601.02
+		      27         0.9998          600.65
+		      28         0.9998          601.92
+		      29         0.9998          599.57
+		      30         0.9998          599.39
+		      31         0.9998          599.12
+		      32         0.9998          600.85
+		      33         0.9998          600.91
+		      34         0.9998          599.64
+		      35         0.9998          600.20
+		      36         0.9998          601.80
+		      37         0.9998          602.03
+		      38         0.9998          600.13
+		      39         0.9998          599.84
+		      40         0.9998          601.27
+		      41         0.9998          600.71
+		      42         0.9998          599.96
+		      43         0.9998          600.10
+		      44         0.9998          600.22
+		      45         0.9998          599.24
+		      46         0.9998          597.70
+		      47         0.9998          598.79
+		      48         0.9998          600.83
+		      49         0.9998          598.04
+		      50         0.9998          601.30
+		      51         0.9998          599.22
+		      52         0.9998          599.87
+		      53         0.9998          599.61
+		      54         0.9998          600.44
+		      55         0.9997          599.95
+		      56         0.9997          600.90
+		      57         0.9997          600.14
+		      58         0.9997          601.80
+		      59         0.9997          599.28
+		      60         0.9997          601.47
+		      61         0.9997          600.46
+		      62         0.9997          599.06
+		      63         0.9997          600.87
+		      64         0.9997          601.30
+		      65         0.9997          601.72
+		      66         0.9997          599.90
+		      67         0.9997          599.91
+		      68         0.9996          599.45
+		      69         0.9996          598.38
+		      70         0.9996          600.79
+		      71         0.9996          599.64
+		      72         0.9996          600.18
+		      73         0.9996          599.07
+		      74         0.9996          599.63
+		      75         0.9996          601.09
+		      76         0.9996          600.35
+		      77         0.9996          599.50
+		      78         0.9996          601.21
+		      79         0.9995          599.69
+		      80         0.9995          600.65
+		      81         0.9995          599.61
+		      82         0.9995          600.56
+		      83         0.9995          598.57
+		      84         0.9995          600.79
+		      85         0.9995          601.19
+		      86         0.9994          599.28
+		      87         0.9994          600.11
+		      88         0.9994          600.48
+		      89         0.9994          602.80
+		      90         0.9994          601.31
+		      91         0.9994          599.12
+		      92         0.9994          600.99
+		      93         0.9993          598.65
+		      94         0.9993          599.91
+		      95         0.9993          600.13
+		      96         0.9993          601.95
+		      97         0.9992          598.10
+		      98         0.9992          600.58
+		      99         0.9992          601.09
+		     100         0.9991          599.63
+		     101         0.9991          601.18
+		     102         0.9991          600.14
+		     103         0.9991          600.31
+		     104         0.9990          601.26
+		     105         0.9989          600.54
+		     106         0.9989          600.45
+		     107         0.9989          599.88
+		     108         0.9989          598.91
+		     109         0.9988          599.13
+		     110         0.9987          598.43
+		     111         0.9987          599.55
+		     112         0.9986          599.28
+		     113         0.9986          600.12
+		     114         0.9985          599.52
+		     115         0.9984          599.83
+		     116         0.9983          598.19
+		     117         0.9983          599.60
+		     118         0.9983          599.62
+		     119         0.9981          598.81
+		     120         0.9980          599.78
+		     121         0.9980          598.25
+		     122         0.9979          601.06
+		     123         0.9978          601.29
+		     124         0.9975          600.24
+		     125         0.9975          599.91
+		     126         0.9974          598.92
+		     127         0.9972          601.04
+		     128         0.9970          600.94
+		     129         0.9969          599.16
+		     130         0.9969          600.89
+		     131         0.9968          599.20
+		     132         0.9965          600.73
+		     133         0.9964          599.71
+		     134         0.9962          600.95
+		     135         0.9959          600.91
+		     136         0.9958          599.41
+		     137         0.9956          600.83
+		     138         0.9954          601.70
+	Block Locale Mensa: queue time 5337.86 doesn't match with computed queue time 4789.36
+	Block Locale Mensa: response time 5937.86 doesn't match with computed response time 5389.37
+	Block Locale Mensa: theoretical utilization (0.999201) doesn't match computed utilization (-33.3437)
+	----------------------------------------------------------
+
+		Total Daily Configuration Cost: 5.2e+06 €

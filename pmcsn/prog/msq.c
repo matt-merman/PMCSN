@@ -28,8 +28,8 @@
 #endif
 
 
-typedef struct event_list_t {                        /* the next-event list    */
-    double t;                             /*   next event time      */
+typedef struct event_list_t {          /* the next-event list    */
+    double t;                          /*   next event time      */
     int x;                             /*   event status, 0 or 1 */
 } event_list;
 
@@ -101,7 +101,8 @@ int FindOne(event_list event[], int servers)
 }
 
 
-int run(long seed, int stop, int servers, double expo_arrival, double expo_service, int stream_arrival, int stream_service) {
+int run(long seed, int stop, int servers, double expo_arrival, double expo_service, int stream_arrival,
+        int stream_service) {
     struct {
         double current;                  /* current time                       */
         double next;                     /* next (most imminent) event time    */
@@ -161,15 +162,29 @@ int run(long seed, int stop, int servers, double expo_arrival, double expo_servi
     }
 
     printf("\nfor %ld jobs the service node statistics are:\n\n", index);
-    printf("  avg interarrivals .. = %6.2f\n", event[0].t / index);
-    printf("  avg wait ........... = %6.2f\n", area / index);
-    printf("  avg # in node ...... = %6.2f\n", area / t.current);
+    double interarrival_time = event[0].t / index;
+    printf("  avg interarrivals .. = %6.2f\n", interarrival_time);
+
+    double wait = area / index;
+    double node_population = area / t.current;
+
+    printf("  avg wait ........... = %6.2f\n", wait);
+    printf("  avg # in node ...... = %6.2f\n", node_population);
 
     for (s = 1; s <= servers; s++)            /* adjust area to calculate */
         area -= sum[s].service;              /* averages for the queue   */
 
-    printf("  avg delay .......... = %6.2f\n", area / index);
-    printf("  avg # in queue ..... = %6.2f\n", area / t.current);
+    double delay = area / index;
+    double queue_population = area / t.current;
+
+    printf("  avg delay .......... = %6.2f\n", delay);
+    printf("  avg # in queue ..... = %6.2f\n", queue_population);
+
+    printf("  avg service ........ = %6.2f\n", wait - delay);
+    printf("  avg # in service ... = %6.2f\n", node_population - queue_population);
+
+    printf("\n  node utilization .. = %8.4f\n", (wait - delay) / (interarrival_time * servers));
+
     printf("\nthe server statistics are:\n\n");
     printf("    server     utilization     avg service        share\n");
     for (s = 1; s <= servers; s++)
@@ -183,7 +198,7 @@ int run(long seed, int stop, int servers, double expo_arrival, double expo_servi
 
 int main(void) {
     long seed = 123456789;
-    int stop = 3 * 3600;
+    int stop = 100000 * 3600;
     int stream_arrival = 0;
     // stream service: 1, 2, 3 (dessert), 4 (casse fast), 5 (casse standard), 6 (consumazione)
 
@@ -199,5 +214,5 @@ int main(void) {
     // casse standard
     // run(seed, stop, 4, 1.0 / get_theoretical_lambda(CASSA_STD), get_theoretical_service(CASSA_STD), stream_arrival, 5);
     // consumazione
-    run(seed, stop, 1, 1.0 / get_theoretical_lambda(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE), stream_arrival, 6);
+    run(seed, stop, 139, 1.0 / get_theoretical_lambda(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE),stream_arrival, 6);
 }

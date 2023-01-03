@@ -101,7 +101,7 @@ double get_theoretical_visits(block_type type) {
  * @return block probability of multiserver with infinite queue
  */
 double erlang_c_block_probability(int m, double rho) {
-    double coefficient = pow(m * rho, m) / (factorial(m) * (1.0 - rho)); // Checked
+    double coefficient = pow(m * rho, m) / (factorial(m) * (1.0 - rho)); // Checked on wolfram
     double sum = 0.0;
     for (int i = 0; i < m; i++) {
         sum += pow(m * rho, i) / factorial(i);
