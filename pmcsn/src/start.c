@@ -65,7 +65,7 @@ void update_areas_for_block(block *block, event *event, clock *clock) {
 int	start_simulation(void)
 {
 	clock	*system_clock;
-	double	previous_clock;
+	// double	previous_clock;
 	block	**blocks;
 	event	*current_event;
 	system_clock = init_clock();
@@ -98,7 +98,7 @@ int	start_simulation(void)
         // La differenza è il tempo rimanente prima del prossimo evento
         update_area_stats(blocks, current_event, system_clock);
         // store the previous system clock
-		previous_clock = system_clock->current;
+		// previous_clock = system_clock->current;
         // fast-forward system clock to the current current_event time
         system_clock->current = current_event->time;
 		block_type btype = current_event->block_type;
@@ -106,7 +106,7 @@ int	start_simulation(void)
         switch (current_event->event_type) {
             case ARRIVAL:
                 // we schedule its completion (if a server is idle) or add to queue and generate a new outside arrival
-                process_arrival(current_event, system_clock, previous_clock, blocks[btype]);
+                process_arrival(current_event, system_clock, blocks[btype]);
                 break;
             case IMMEDIATE_ARRIVAL:
                 // we only schedule its completion or add to queue
@@ -114,7 +114,7 @@ int	start_simulation(void)
                 break;
             case COMPLETION:
                 // we schedule the next completion and generate an immediate arrival
-                process_completion(current_event, system_clock, previous_clock, blocks[btype]);
+                process_completion(current_event, system_clock, blocks[btype]);
                 break;
             default:
                 break;
@@ -151,7 +151,7 @@ void debug(clock *system_clock, block **blocks, event *event) {
 
 }
 // To process an arrival, we need to schedule or enqueue the job and then generate a new ARRIVAL event
-void process_arrival(event *event, clock *c, double current, block *block) {
+void process_arrival(event *event, clock *c, block *block) {
     schedule_arrival_completion_or_enqueue(event, c, block);
     double p = Random();
     if (p < P_PRIMO_FUORI)
@@ -234,7 +234,7 @@ void	schedule_immediate_arrival(int type, clock *c, event *triggering_event)
 }
 
 // A completion should schedule another completion event (if there are job in queue) and an arrival.
-void	process_completion(event *completion_event, clock *c, double current, block *block)
+void process_completion(event *completion_event, clock *c, block *block)
 {
 	event *next_completion_event = NULL;
     double next_completion_time;

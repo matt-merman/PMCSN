@@ -69,8 +69,10 @@ typedef struct server_t {
     sum *sum;
 } server;
 
+#define NAME_SIZE 32
+
 typedef struct block_t {
-    char name[32];
+    char name[NAME_SIZE];
     block_type type;
     long completed_jobs;            // completed jobs from this block
     long jobs;                      // jobs currently in the node

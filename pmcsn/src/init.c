@@ -25,7 +25,7 @@ block	**init_blocks(int *config)
 			printf("Error Malloc\n");
 			return (NULL);
 		}
-		strncpy(b[i]->name, names[i], strlen(names[i]) + 1);
+		strncpy(b[i]->name, names[i], NAME_SIZE - 1);
 		memset(b[i]->block_area, 0x0, sizeof(area));
 		init_servers(b[i], config[i]);
 	}

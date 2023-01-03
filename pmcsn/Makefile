@@ -1,5 +1,5 @@
 CC				= gcc
-CFLAGS			= -Wall -Wextra
+CFLAGS			= -Wall -Wextra -Ofast
 LIB 			= -lm
 SRC 			= ./src
 LIBS 			= libs/rngs.c libs/rvgs.c
@@ -10,7 +10,7 @@ TEST_SOURCES	= test/analytic_test.c test/test.c test/events_test.c
 all: compile compile_test compile_msq
 
 compile:
-	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) src/start.c  $(LIB) -o start -g
+	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) src/start.c  $(LIB) -o start
 
 compile_test:
 	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) $(TEST_SOURCES) $(LIB) -o tests -g
