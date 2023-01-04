@@ -81,7 +81,7 @@ void show_and_validate_stats(block **blocks, clock *clock) {
         }
         if (blocks[i]->type != CONSUMAZIONE) { // TODO: per ora il costo del locale mensa non è stato considerato
             total_cost += stats.daily_cost;
-            printf("\n\t\tDaily Configuration Cost for '%s': %g \u20AC \n\n", blocks[i]->name, stats.daily_cost);
+            printf("\n\t\tDaily Configuration Cost for '%s': %Lg \u20AC \n\n", blocks[i]->name, stats.daily_cost);
         }
         validate_block(blocks[i], &stats);
     }
