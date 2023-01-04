@@ -51,7 +51,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define DEBUG FALSE
+#define DEBUG TRUE
 #define PRINTF if(DEBUG) printf
 #define IDLE 0
 #define BUSY 1
