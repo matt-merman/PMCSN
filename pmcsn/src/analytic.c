@@ -37,7 +37,7 @@ double utilization(int num_servers, double lambda, double mhu) {
 
 // Computes the theoretical utilization of the block, even if it's a multiserver block.
 double get_theoretical_rho(block_type block_type, int num_servers) {
-    double lambda = get_theoretical_lambda(block_type);
+    double lambda = get_theoretical_lambda_raw(block_type);
     double mhu = get_theoretical_mhu(block_type);
     return utilization(num_servers, lambda, mhu);
 }
@@ -65,7 +65,7 @@ double get_theoretical_service(block_type type) {
     }
 }
 
-double get_theoretical_lambda(block_type type) {
+double get_theoretical_lambda_raw(block_type type) {
     double lambda1 = LAMBDA * P_PRIMO_FUORI;
     double lambda2 = LAMBDA * P_SECONDO_FUORI + lambda1 * P_SECONDO_PRIMO;
     double lambda3 = lambda1 * P_DESSERT_PRIMO + lambda2 * P_DESSERT_SECONDO;
@@ -84,14 +84,14 @@ double get_theoretical_lambda(block_type type) {
         case CASSA_STD: // who doesn't go to the fast cashier, goes to the standard cashier
             return lambdaC;
         case CONSUMAZIONE: // the entire arrival flow will come to CONSUMAZIONE
-            return lambdaS;
+            return lambdaS; // * (1-erlang_b_loss_probability(139, lambdaS, get_theoretical_mhu(type))); // TODO FIXME 139 !!!NOO!!!
         default:
             return (0.0);
     }
 }
 
 double get_theoretical_visits(block_type type) {
-    return get_theoretical_lambda(type) / LAMBDA;
+    return get_theoretical_lambda_raw(type) / LAMBDA;
 }
 
 /**
@@ -115,4 +115,8 @@ double erlang_c_queue_time(double block_probability, double service_time_multi, 
 
 double erlang_c_response_time(double queue_time, double service_time) {
     return queue_time + service_time;
+}
+
+double erlang_b_loss_probability(int m, double lambda, double mhu){
+    return 0.0;
 }

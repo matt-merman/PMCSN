@@ -7,7 +7,7 @@
 
 #define USER 2500                                   // mean number of user in the observation period
 #define HOUR (60*60)
-#define N_HOURS 3
+#define N_HOURS 20
 #define PERIOD (N_HOURS*HOUR)                      // observation period in seconds
 #define INF 100*PERIOD                             // max int is 2147483647
 #define LAMBDA 0.2314814815                        // Mean outside arrivals: 0.2314814815 Mean inter-arrival time 4.32
@@ -51,7 +51,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define DEBUG TRUE
+#define DEBUG FALSE
 #define PRINTF if(DEBUG) printf
 #define IDLE 0
 #define BUSY 1

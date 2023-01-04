@@ -203,16 +203,16 @@ int main(void) {
     // stream service: 1, 2, 3 (dessert), 4 (casse fast), 5 (casse standard), 6 (consumazione)
 
     // primi
-    // run(seed, stop, 3, 1.0 / get_theoretical_lambda(PRIMO), get_theoretical_service(PRIMO), stream_arrival, 1);
+    // run(seed, stop, 3, 1.0 / get_theoretical_lambda_raw(PRIMO), get_theoretical_service(PRIMO), stream_arrival, 1);
     // Attenzione qui il processo degli arrivi non segue lo stream 0!!!
     // secondi
-    // run(seed, stop, 3, 1.0 / get_theoretical_lambda(SECONDO), get_theoretical_service(SECONDO), stream_arrival, 2);
+    // run(seed, stop, 3, 1.0 / get_theoretical_lambda_raw(SECONDO), get_theoretical_service(SECONDO), stream_arrival, 2);
     // dessert
-    // run(seed, stop, 2, 1.0 / get_theoretical_lambda(DESSERT), get_theoretical_service(DESSERT), stream_arrival, 3);
+    // run(seed, stop, 2, 1.0 / get_theoretical_lambda_raw(DESSERT), get_theoretical_service(DESSERT), stream_arrival, 3);
     // casse fast
-    // run(seed, stop, 1, 1.0 / get_theoretical_lambda(CASSA_FAST), get_theoretical_service(CASSA_FAST), stream_arrival, 4);
+    // run(seed, stop, 1, 1.0 / get_theoretical_lambda_raw(CASSA_FAST), get_theoretical_service(CASSA_FAST), stream_arrival, 4);
     // casse standard
-    // run(seed, stop, 4, 1.0 / get_theoretical_lambda(CASSA_STD), get_theoretical_service(CASSA_STD), stream_arrival, 5);
+    // run(seed, stop, 4, 1.0 / get_theoretical_lambda_raw(CASSA_STD), get_theoretical_service(CASSA_STD), stream_arrival, 5);
     // consumazione
-    run(seed, stop, 139, 1.0 / get_theoretical_lambda(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE),stream_arrival, 6);
+    run(seed, stop, 139, 1.0 / get_theoretical_lambda_raw(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE), stream_arrival, 6);
 }

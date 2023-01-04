@@ -6,12 +6,12 @@
 
 // test_count is used inside SUCCESS and ASSERT_DOUBLE_EQUAL macros!
 int lambda_test(test_count *t) {
-    double lambda1 = get_theoretical_lambda(PRIMO);
-    double lambda2 = get_theoretical_lambda(SECONDO);
-    double lambda3 = get_theoretical_lambda(DESSERT);
-    double lambdaF = get_theoretical_lambda(CASSA_FAST);
-    double lambdaC = get_theoretical_lambda(CASSA_STD);
-    double lambdaS = get_theoretical_lambda(CONSUMAZIONE);
+    double lambda1 = get_theoretical_lambda_raw(PRIMO);
+    double lambda2 = get_theoretical_lambda_raw(SECONDO);
+    double lambda3 = get_theoretical_lambda_raw(DESSERT);
+    double lambdaF = get_theoretical_lambda_raw(CASSA_FAST);
+    double lambdaC = get_theoretical_lambda_raw(CASSA_STD);
+    double lambdaS = get_theoretical_lambda_raw(CONSUMAZIONE);
 
     // expected values computed from analytic model
     ASSERT_DOUBLE_EQUAL(lambda1, 0.173611111, "lambda1");
@@ -107,6 +107,17 @@ int erlang_c_response_time_test(test_count *t) {
     double response_time = erlang_c_response_time(queue_time, single_service_time);
 
     ASSERT_DOUBLE_EQUAL(response_time, 43.84882392, "erlang_c_queue_time_test");
+
+    SUCCESS;
+}
+
+int erlang_b_loss_probability_test(test_count *t){
+    double m = 139;
+    double lambda = 25./108.;
+    double mhu = 1./600.;
+    double erlang_b_loss_prob = erlang_b_loss_probability(m, lambda, mhu);
+
+    ASSERT_DOUBLE_EQUAL(erlang_b_loss_prob, 0.06425302, "erlang_b_loss_probability");
 
     SUCCESS;
 }

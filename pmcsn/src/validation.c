@@ -77,7 +77,7 @@ void is_node_population_queue_pop_plus_service_pop(block *block, statistics *sta
 // checks that rho < 1
 void is_ergodic(block *block) {
     if (block->num_servers == 1) {
-        double lambda = get_theoretical_lambda(block->type);
+        double lambda = get_theoretical_lambda_raw(block->type);
         double mhu = get_theoretical_mhu(block->type);
         if (lambda > mhu) {
             printf("\tWATCH OUT! Block %s is NOT ergodic. Lambda: %g > Mhu: %g\n", block->name, lambda, mhu);
@@ -100,7 +100,7 @@ void validate_theoretical_service_time(block *block, statistics *stats) {
 }
 
 void validate_theoretical_arrival_time(block *block, statistics *stats) {
-    double lambda_theoretical = get_theoretical_lambda(block->type);
+    double lambda_theoretical = get_theoretical_lambda_raw(block->type);
     double lambda = 1.0 / stats->interarrival_time;
     if (IS_NOT_EQUAL(lambda, lambda_theoretical)) {
         printf("\tBlock %s: theoretical arrival frequency (%g) doesn't match computed arrival frequency (%g)\n",
@@ -120,9 +120,10 @@ void validate_theoretical_utilizazion(block *block, statistics *stats) {
 // Check if the entering population is equal to the exiting population.
 void validate_global_population(block **blocks) {
     long total_population = blocks[CASSA_FAST]->completed_jobs + blocks[CASSA_STD]->completed_jobs;
-    if (total_population != blocks[CONSUMAZIONE]->completed_jobs) {
-        printf("Global Population: The sum of completed jobs %ld is not equal to the starting population %ld",
-               total_population, blocks[CONSUMAZIONE]->completed_jobs); // se togli la coda sottrai i job perduti
+    long computed_tot_pop = blocks[CONSUMAZIONE]->completed_jobs + blocks[CONSUMAZIONE]->rejected_jobs;
+    if (total_population != computed_tot_pop) {
+        printf("Global Population: The sum of completed jobs %ld is not equal to the starting population %ld\n",
+               total_population, computed_tot_pop); // senza coda sommiamo i job perduti
     }
 }
 
