@@ -80,6 +80,7 @@ typedef struct block_t {
     server **servers;               // pointer to eventually multi-server
     int num_servers;                // number of server in this block
     int queue_jobs;                 // job in queue
+    long int rejected_jobs;
     // int has_infinite_queue;      // possible values: TRUE (has infinite queue) FALSE (doesn't have any queue)
 } block;
 

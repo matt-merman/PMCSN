@@ -1,5 +1,6 @@
 #include "start.h"
 #include "event_list.h"
+#include <stdio.h>
 
 int	main(void)
 {
@@ -128,6 +129,7 @@ int	start_simulation(void)
         free(current_event);
 	}
     show_and_validate_stats(blocks, system_clock);
+    printf("Rejected job = %ld\n", blocks[CONSUMAZIONE]->rejected_jobs);
 	free(system_clock);
 	clear_mem(blocks);
 	return (0);
@@ -175,6 +177,40 @@ void schedule_arrival_completion_or_enqueue(event *arrival_event, clock *c, bloc
 	double	next_completion_time;
     event * next_completion_event;
 
+	if(block->type == CONSUMAZIONE){
+		// process the (immediate) arrival
+		if(block->jobs < block->num_servers){
+			block->jobs++;
+			// we retrieve the server id of an idle server in the block
+			s_index = retrieve_idle_server(block);
+		// if the server is idle, we generate the process_completion event otherwise we enqueue the job
+			if (s_index != -1)
+			{
+				s = block->servers[s_index]; // the selected server
+			// next process_completion time (for this server)
+				next_completion_event = create_insert_event(block->type, s_index, COMPLETION, c, arrival_event);
+				if (next_completion_event != NULL){
+					next_completion_time = next_completion_event->time;
+			//        PRINTF("%36s (id %d) Service time for process_completion after %g: %g\n",block->name, s_index, c->current, next_completion_time);
+					// we increment the cumulative service time for THIS SERVER!
+					s->sum->service += next_completion_time - c->current; // the service time for this (immediate) arrival
+					// PRINTF("Event %ld: Tempo di servizio arrivo %f - %f = %f\n",arrival_event->event_id, next_completion_time, c->current, next_completion_time - c->current);
+					s->sum->served++;
+					block->block_area->service += (next_completion_time - c->current);
+				}
+			}else{
+				printf("PROBLEMA GROSSO COME UNA CASA!!!\n");
+				printf("Number of jobs = %ld\n", block->jobs);
+				printf("Event id = %ld\n", arrival_event->linked_event_id);
+				exit(-1);
+			}
+
+		}else{
+			block->rejected_jobs++;
+		}
+	return;
+	}
+
 	block->jobs++;
 	// we retrieve the server id of an idle server in the block
 	s_index = retrieve_idle_server(block);
@@ -184,7 +220,7 @@ void schedule_arrival_completion_or_enqueue(event *arrival_event, clock *c, bloc
 		s = block->servers[s_index]; // the selected server
         // next process_completion time (for this server)
 		next_completion_event = create_insert_event(block->type, s_index, COMPLETION, c, arrival_event);
-        if (next_completion_event != NULL){
+	   if (next_completion_event != NULL){
             next_completion_time = next_completion_event->time;
 //        PRINTF("%36s (id %d) Service time for process_completion after %g: %g\n",block->name, s_index, c->current, next_completion_time);
             // we increment the cumulative service time for THIS SERVER!
@@ -240,16 +276,36 @@ void process_completion(event *completion_event, clock *c, block *block)
     double next_completion_time;
 	server *s;
 
+	// per qualsiasi blocco (soprattutto CONSUMAZIONE), il numero di job completati va incrementato
+	// poichè siamo in un completamento.
 	block->completed_jobs++;
 	block->jobs--;
 
-	if (completion_event->target_server != -1)
+	if (completion_event->target_server != -1){
 		free_busy_server(block, completion_event->target_server);
-	else
+	}else
 	{
 		PRINTF("This is bad! A completion from who knows from!\n");
 		exit(-1);
 	}
+
+	if (block->type == CONSUMAZIONE){
+		int serv_id = retrieve_idle_server(block);
+         	if (serv_id != -1) {
+          	s = block->servers[completion_event->target_server];    
+			next_completion_event = create_insert_event(block->type, serv_id, COMPLETION, c, completion_event);
+            	if (next_completion_event != NULL){
+				next_completion_time = next_completion_event->time;
+				s->sum->service += (next_completion_time - c->current);
+				block->block_area->service += (next_completion_time - c->current);
+				s->sum->served++;
+          	}
+		}else{
+			block->rejected_jobs++;
+		}
+		return; 
+	}
+	
     // We generate a new completion if there are jobs in queue. We now for sure that a server is empty
     if (block->queue_jobs > 0) {
         int serv_id = retrieve_idle_server(block);
@@ -268,5 +324,5 @@ void process_completion(event *completion_event, clock *c, block *block)
         }
     }
 
-    schedule_immediate_arrival(block->type, c, completion_event);
+   schedule_immediate_arrival(block->type, c, completion_event);
 }

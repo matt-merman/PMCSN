@@ -20,6 +20,7 @@ block	**init_blocks(int *config)
 		b[i]->block_area = malloc(sizeof(area));
 		b[i]->type = i;
 		b[i]->num_servers = config[i];
+		b[i]->rejected_jobs = 0;
 		if (b[i]->block_area == NULL || b[i] == NULL)
 		{
 			printf("Error Malloc\n");
