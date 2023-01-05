@@ -77,8 +77,7 @@ int	start_simulation(void)
 			all events are processed and all servers are idle */
 		if (system_clock->last_arrival >= PERIOD && !are_there_more_events()
 			&& !are_there_busy_servers(blocks))
-			break;
-			
+			break ;
 		current_event = get_next_event();
 		if (current_event->event_type == ARRIVAL)
 			// we update the last arrival time
@@ -144,6 +143,7 @@ void	process_immediate_arrival(event *arrival_event, clock *c, block *block)
 	double	next_completion_time;
 	event	*next_completion_event;
 
+	block->jobs++;
 	s_index = retrieve_idle_server(block);
 	if (s_index != -1)
 	{
@@ -152,16 +152,17 @@ void	process_immediate_arrival(event *arrival_event, clock *c, block *block)
 				COMPLETION, c, arrival_event);
 		if (next_completion_event != NULL)
 		{
-			next_completion_time = (next_completion_event->time - c->current);
-			block->block_area->service += next_completion_time;
-			s->sum->service += next_completion_time;
+			next_completion_time = next_completion_event->time;
+			s->sum->service += next_completion_time - c->current;
 			s->sum->served++;
-			if (block->type == CONSUMAZIONE)
-				block->jobs++;
+			block->block_area->service += (next_completion_time - c->current);
 		}
 	}
 	else if (block->type == CONSUMAZIONE)
+	{
+		block->jobs--;
 		block->rejected_jobs++;
+	}
 	else
 		block->queue_jobs++;
 }

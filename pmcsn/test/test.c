@@ -17,6 +17,7 @@ void analytic_testsuite(test_count *t){
     erlang_c_queue_time_test(t);
     erlang_c_response_time_test(t);
     erlang_b_loss_probability_test(t);
+    global_response_time(t);
     insert_test(t);
     delete_test(t);
     sort_test(t);

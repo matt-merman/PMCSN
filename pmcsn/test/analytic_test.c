@@ -121,3 +121,10 @@ int erlang_b_loss_probability_test(test_count *t){
 
     SUCCESS;
 }
+
+int global_response_time(test_count *t){
+
+    //double serv_time_1 = 
+    
+    SUCCESS;
+}
