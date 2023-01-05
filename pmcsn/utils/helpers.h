@@ -5,6 +5,8 @@
 #include "../libs/rvgs.h"
 #include "./constants.h"
 #include "./structs.h"
+#include "../src/events.h"
+#include "../src/server.h"
 #include "../src/validation.h"
 #include "../src/analytic.h"
 #include <stdio.h>
@@ -28,7 +30,7 @@ double	get_next_service(block_type type, int stream);
 void    get_stats(block *b, clock *clock, statistics *stats);
 void	show_and_validate_stats(block **blocks, clock *clock);
 void    clear_mem(block **blocks);
-
+void debug(clock *system_clock, block **blocks, event *event);
 
 #endif
 

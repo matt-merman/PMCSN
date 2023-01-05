@@ -112,3 +112,21 @@ void clear_mem(block **blocks) {
     }
 }
 
+void debug(clock *system_clock, block **blocks, event *event) {
+    PRINTF("Event %ld(linked event id %ld): Time: %lf - %-18s Target Block: %-12s in server: %d jobs in blocks [%s, %s, %s, %s, %s, %s] events: %d\n",
+           event->event_id,
+           event->linked_event_id,
+           system_clock->current,
+           to_str_event(event->event_type),
+           to_str_block(event->block_type),
+           event->target_server,
+           get_server_contents(blocks[PRIMO]),
+           get_server_contents(blocks[SECONDO]),
+           get_server_contents(blocks[DESSERT]),
+           get_server_contents(blocks[CASSA_FAST]),
+           get_server_contents(blocks[CASSA_STD]),
+           get_server_contents(blocks[CONSUMAZIONE]),
+           length());
+
+}
+

@@ -84,48 +84,45 @@ int length() {
 
 // first has minimum time, i.e. is the next event
 void sort_by_time() {
+    int i, j, k;
+    event *current_event, *next;
 
-    int i, j, k, tempTargetServer;
-    long tempEventId;
-    block_type tempBlockType;
-    event_type tempEventType;
-    double tempTime;
-    event *current_event;
-    event *next;
-
-    k = size ;
-    for ( i = 0 ; i < size - 1 ; i++, k-- ) {
+    k = size;
+    for (i = 0; i < size - 1; i++, k--) {
         current_event = head;
         next = head->next;
-
-        for ( j = 1 ; j < k ; j++ ) {
-
-            if (current_event->time > next->time ) {
-                // Swap all data
-                tempEventId = current_event->event_id;
-                current_event->event_id = next->event_id;
-                next->event_id = tempEventId;
-
-                tempTime = current_event->time;
-                current_event->time = next->time;
-                next->time = tempTime;
-
-                tempTargetServer = current_event->target_server;
-                current_event->target_server = next->target_server;
-                next->target_server = tempTargetServer;
-
-                tempBlockType = current_event->block_type;
-                current_event->block_type = next->block_type;
-                next->block_type = tempBlockType;
-
-                tempEventType = current_event->event_type;
-                current_event->event_type = next->event_type;
-                next->event_type = tempEventType;
-
-            }
-
+        for (j = 1; j < k; j++) {
+            if (current_event->time > next->time)
+                swap_events(current_event, next);
             current_event = current_event->next;
             next = next->next;
         }
     }
 }
+
+void swap_events(event *event1, event *event2) {
+    int tempTargetServer;
+    long tempEventId;
+    double tempTime;
+
+    tempTargetServer = event1->target_server;
+    event1->target_server = event2->target_server;
+    event2->target_server = tempTargetServer;
+
+    tempEventId = event1->event_id;
+    event1->event_id = event2->event_id;
+    event2->event_id = tempEventId;
+
+    tempTime = event1->time;
+    event1->time = event2->time;
+    event2->time = tempTime;
+
+    block_type tempBlockType = event1->block_type;
+    event1->block_type = event2->block_type;
+    event2->block_type = tempBlockType;
+
+    event_type tempEventType = event1->event_type;
+    event1->event_type = event2->event_type;
+    event2->event_type = tempEventType;
+}
+

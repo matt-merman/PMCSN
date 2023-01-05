@@ -9,7 +9,7 @@
 #include "events.h"
 
 void process_completion(event *completion_event, clock *c, block *block);
-void schedule_arrival_completion_or_enqueue(event *event, clock *c, block *block);
+void process_immediate_arrival(event *event, clock *c, block *block);
 int start_simulation(void);
 void debug(clock *system_clock, block **blocks, event *event);
 void update_area_stats(block **blocks, event *event, clock *clock);

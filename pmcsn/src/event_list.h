@@ -19,5 +19,6 @@ event*  pop_first();
 bool    is_empty();
 int     length();
 void    sort_by_time();
+void swap_events(event *event1, event *event2);
 
 #endif //PROGETTOPMCSN_EVENT_LIST_H
