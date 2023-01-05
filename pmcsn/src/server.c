@@ -26,15 +26,28 @@ int get_busy_server_num() {
 
 int retrieve_idle_server(block *block)
 {
-    server** multi_servers = block->servers;
-    for (int i = 0; i < block->num_servers; i++) {
+    server** multi_servers;
+    int idle_servers[block->num_servers];
+    int s,i,j;
+
+    multi_servers = block->servers;
+
+    j = 0;
+    for (i = 0; i < block->num_servers; i++) {
         if (multi_servers[i]->status == IDLE) {
-            multi_servers[i]->status = BUSY;
-            busy_servers[block->type]++;
-            return i;
+            idle_servers[j] = i;
+            j++;
         }
 	}
-	return -1;
+
+    if(!j)
+        return -1;
+
+    i = rand() % j;
+    s = idle_servers[i];
+    multi_servers[s]->status = BUSY;
+
+    return s;
 }
 
 void free_busy_server(block *block, int server_index){
