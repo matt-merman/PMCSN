@@ -1,4 +1,5 @@
-//
+// Verification phase: to check if all implemented formulas are equal 
+// to the theoretical formulas.     
 // Created by giaco on 22/10/22.
 //
 
@@ -122,9 +123,42 @@ int erlang_b_loss_probability_test(test_count *t){
     SUCCESS;
 }
 
-int global_response_time(test_count *t){
+double get_response_time(block_type type, int m){
 
-    //double serv_time_1 = 
+    double service_time, queue_time, 
+        rho, service_time_multi, block_probability;
+
+    service_time = get_theoretical_service(type);
+    rho = get_theoretical_rho(type, m);
+    block_probability = erlang_c_block_probability(m, rho);
+    service_time_multi = service_time/m;
+    queue_time = erlang_c_queue_time(block_probability, service_time_multi, rho);
     
+    return erlang_c_response_time(service_time, queue_time); 
+}
+
+int global_response_time_test(test_count *t){
+
+    double m = 139;
+    double lambda = 25./108.;
+    double mhu = 1./600.;
+
+    double response_time_b1 = get_response_time(PRIMO, 3);
+    double response_time_b2 = get_response_time(SECONDO, 3);
+    double response_time_b3 = get_response_time(DESSERT, 2);
+    double response_time_b4 = get_response_time(CASSA_FAST, 1);  
+    double response_time_b5 = get_response_time(CASSA_STD, 4);
+    double response_time_b6 = get_theoretical_service(CONSUMAZIONE);
+
+    double response_time = response_time_b1*get_theoretical_visits(PRIMO) + 
+        response_time_b2*get_theoretical_visits(SECONDO) + 
+        response_time_b3*get_theoretical_visits(DESSERT) + 
+        response_time_b4*get_theoretical_visits(CASSA_FAST) + 
+        response_time_b5*get_theoretical_visits(CASSA_STD) + 
+        response_time_b6*get_theoretical_visits(CONSUMAZIONE)*(1 - erlang_b_loss_probability(m, lambda, mhu));
+ 
+    
+    ASSERT_DOUBLE_EQUAL(response_time, 649.78441, "global_response_time");
+
     SUCCESS;
 }

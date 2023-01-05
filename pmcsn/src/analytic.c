@@ -118,5 +118,18 @@ double erlang_c_response_time(double queue_time, double service_time) {
 }
 
 double erlang_b_loss_probability(int m, double lambda, double mhu){
-    return 0.0;
+    double pi_0, rho, pi_m;
+    int i;
+    
+    for(i = 0; i <= m; i++){
+        rho = lambda/mhu;
+        pi_0 += pow(rho, i) / factorial(i);
+    }
+    pi_0 = pow(pi_0, -1);
+
+    rho = lambda/mhu;
+    pi_m = pow(rho, m) / factorial(m); 
+    pi_m = pi_m * pi_0;
+
+    return pi_m;
 }

@@ -41,7 +41,7 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     stats->multiserver_utilization = malloc(sizeof(double) * b->num_servers);
     stats->multiserver_service_time = malloc(sizeof(double) * b->num_servers);
     for (int s = 0; s < b->num_servers; s++) {
-        stats->multiserver_utilization[s] = b->servers[s]->sum->service / clock->current;
+        stats->multiserver_utilization[s] = b->servers[s]->sum->service / PERIOD;
         stats->multiserver_service_time[s] = b->servers[s]->sum->service / b->servers[s]->sum->served;
     }
 }
@@ -127,6 +127,5 @@ void debug(clock *system_clock, block **blocks, event *event) {
            get_server_contents(blocks[CASSA_STD]),
            get_server_contents(blocks[CONSUMAZIONE]),
            length());
-
 }
 
