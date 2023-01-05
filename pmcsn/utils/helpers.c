@@ -73,6 +73,11 @@ void show_and_validate_stats(block **blocks, clock *clock) {
         printf("\t\taverage # in the node ... = %6.2f\tpeople\n", stats.node_pop);
         printf("\t\taverage # in the queue .. = %6.2f\tpeople\n", stats.queue_pop);
         printf("\t\tutilization ............. = %6.4f\t-\n", stats.utilization);
+
+        printf("\t\tarea node %Lf\n", blocks[i]->block_area->node);
+        printf("\t\tarea queue %Lf\n", blocks[i]->block_area->queue);
+        printf("\t\tarea service %Lf\n", blocks[i]->block_area->service);
+
         printf("\n\t\tMulti-server statistics:\n");
         printf("\t\t    server     utilization     avg service\n");
         // print all utilization and average service of each server in the node
