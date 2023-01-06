@@ -1,5 +1,4 @@
 #include "helpers.h"
-#include "../src/event_list.h"
 
 
 double get_next_arrival(double current, double lambda) {
@@ -27,7 +26,9 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     area *area = b->block_area;
     stats->completed_jobs = b->completed_jobs;
     stats->interarrival_time = clock->last / completed_jobs;
-    printf("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
+    
+    if (DEBUG) printf("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
+    
     // FIXME ricontrollare come viene calcolata area e se questa formula è corretta.
     stats->wait = area->node / completed_jobs;
     stats->delay = area->queue / completed_jobs;
@@ -47,8 +48,25 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     }
 }
 
-// computes and validate the job averaged and time averaged statistics for each block
-void show_and_validate_stats(block **blocks, clock *clock, int replication_index) {
+void write_stats_on_file(block **blocks, clock *clock, FILE **file){
+
+    statistics stats;
+    int i;
+
+    for (i = 0; i < BLOCKS; i++) {
+        get_stats(blocks[i], clock, &stats);
+        // TODO: per ora solo la popolazione media viene scritta
+        // bisogna dunque scrivere anche tutte le altre nello stesso file
+        // oppure su più file (in questo caso 6 * 6 * REPLICAS)
+        // Meglio un solo file in cui ogni ad ogni riga corrisponde un attributo
+        // in questo modo estimace.c legge per riga valori consecutivi e non più a capo.  
+        write_result(file[i], stats.node_pop);
+    }
+
+    return;
+}
+
+void show_stats(block **blocks, clock *clock){
     long double total_cost = 0.0;
     statistics stats;
 //    double queue_time_sum = 0.0;
@@ -65,7 +83,10 @@ void show_and_validate_stats(block **blocks, clock *clock, int replication_index
         printf("\t----------------------------------------------------------\n");
         printf("\t'%s' block info:\n\n", blocks[i]->name);
         printf("\t\tpeople in the block ..... = % 10ld\tpeople\n", stats.completed_jobs);
-        if (blocks[i]->type == CONSUMAZIONE) printf("\t\trejected people ......... = % 10ld\tpeople\n", blocks[CONSUMAZIONE]->rejected_jobs);
+        
+        if (blocks[i]->type == CONSUMAZIONE) 
+            printf("\t\trejected people ......... = % 10ld\tpeople\n", blocks[CONSUMAZIONE]->rejected_jobs);
+        
         printf("\n\tjob averaged statistics:\n");
         printf("\t\taverage interarrival time = %6.2f\ts\n", stats.interarrival_time);
         printf("\t\taverage node wait ....... = %6.2f\ts\n", stats.wait);
@@ -83,36 +104,44 @@ void show_and_validate_stats(block **blocks, clock *clock, int replication_index
         printf("\n\t\tMulti-server statistics:\n");
         printf("\t\t    server     utilization     avg service\n");
         // print all utilization and average service of each server in the node
-        for (int s = 0; s < blocks[i]->num_servers; s++) {
+        for (int s = 0; s < blocks[i]->num_servers; s++)
             printf("\t\t%8d %14.4f %15.2f\n", s, stats.multiserver_utilization[s], stats.multiserver_service_time[s]);
-        }
 
         total_cost += (long double) stats.daily_cost;
         printf("\n\t\tDaily Configuration Cost for '%s': %Lg \u20AC \n\n", blocks[i]->name, stats.daily_cost);
 
-        validate_block(blocks[i], &stats);
-        update_ensemble(blocks[i]->replications[replication_index], &stats);
     }
-    // validates global population, global queue time and response time
-    validate_global_population(blocks);
-    // validate_global_queue_time(queue_time_sum, 0);
-    // validate_global_response_time(response_time_sum, 0);
     printf("\t----------------------------------------------------------\n");
     printf("\n\t\tTotal Daily Configuration Cost: %Lg \u20AC \n\n", total_cost);
     free(stats.multiserver_utilization);
     free(stats.multiserver_service_time);
 }
 
-void update_ensemble(ensemble replica, statistics *stats) {
-    replica->interarrival = stats->interarrival_time;
-    replica->wait = stats->wait;
-    replica->delay = stats->delay;
-    replica->service = stats->service_time;
-    replica->node_pop = stats->node_pop;
-    replica->queue_pop = stats->queue_pop;
-    replica->utilization = stats->utilization;
+void validate_stats(block **blocks, clock *clock){
+
+    statistics stats;
+    int i;
+
+    for (i = 0; i < BLOCKS; i++) {
+        get_stats(blocks[i], clock, &stats);
+        validate_block(blocks[i], &stats);
+    }
+
+    // validates global population, global queue time and response time
+    validate_global_population(blocks);
+    // validate_global_queue_time(queue_time_sum, 0);
+    // validate_global_response_time(response_time_sum, 0);
 }
 
+// void update_ensemble(ensemble replica, statistics *stats) {
+//     replica->interarrival = stats->interarrival_time;
+//     replica->wait = stats->wait;
+//     replica->delay = stats->delay;
+//     replica->service = stats->service_time;
+//     replica->node_pop = stats->node_pop;
+//     replica->queue_pop = stats->queue_pop;
+//     replica->utilization = stats->utilization;
+// }
 
 void clear_mem(block **blocks) {
     for (int i = 0; i < BLOCKS; i++) {

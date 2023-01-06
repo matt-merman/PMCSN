@@ -37,6 +37,9 @@ void validate_MMk(block *block, statistics *stats) {
 //    double queue_time = erlang_c_queue_time(block_probability, stats->service_time / m,
 //                                            rho); // here we need the multiserver service time (time to free any server)
 
+    if (block->type == CONSUMAZIONE)
+        queue_time_theoretical = 0;
+        
     CHECK_DOUBLE_EQUAL(queue_time_theoretical, stats->delay, block->name, 0.001, "queue time");
 
     // checking erlangC response time with theoretic formula
