@@ -11,7 +11,8 @@
 
 
 double  factorial(int n);
-int     get_costs(int num);
+int to_days_rounding_up(int hours);
+int     get_costs(block *block);
 double  utilization(int num_servers, double lambda, double mhu);
 double  get_theoretical_lambda_raw(block_type type); // arrival frequency
 double  get_theoretical_mhu(block_type type); // service frequency

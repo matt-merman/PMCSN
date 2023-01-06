@@ -162,3 +162,20 @@ int global_response_time_test(test_count *t){
 
     SUCCESS;
 }
+
+int hour_to_days_test(test_count *t){
+    int one_day = to_days_rounding_up(3);
+
+    ASSERT_INT_EQUAL(one_day, 1, "hour_to_days_test");
+
+    int two_days = to_days_rounding_up(25);
+
+    ASSERT_INT_EQUAL(two_days, 2, "hour_to_days_test");
+
+    int zero_days = to_days_rounding_up(0);
+
+    ASSERT_INT_EQUAL(zero_days, 0, "hour_to_days_test");
+
+
+    SUCCESS;
+}

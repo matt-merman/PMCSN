@@ -14,14 +14,24 @@ double factorial(int n) {
     return tgamma((double) n + 1.0);
 }
 
+int to_days_rounding_up(int hours) {
+    return (int) ceil((double) hours / 24.);
+}
+
 /**
  * Computes costs of center node given the number of servers in it
  * @param num number of server
  * @return
  */
-int get_costs(int num) {
-    return SALARY * N_HOURS * num;
-    // TODO: ci sono altri costi oltre al numero di serventi?
+int get_costs(block *block) {
+    if (block->type == CONSUMAZIONE) {
+        // The costs are given by:
+        // - fixed cost for energy, food and gas, per hour
+        // - fixed cost for renting the canteen, per day.
+        // - the canteen and kitchen dimension depends on the number of seats
+        return HOURLY_FIXED_COST * N_HOURS + DAILY_RENT_COST_MQ * to_days_rounding_up(N_HOURS) * block->num_servers * (SQUARE_METER_PER_SEAT + KITCHEN_SQUARE_METER_PER_SEAT);
+    }
+    return SALARY * N_HOURS * block->num_servers;
 }
 
 /**
@@ -117,18 +127,18 @@ double erlang_c_response_time(double queue_time, double service_time) {
     return queue_time + service_time;
 }
 
-double erlang_b_loss_probability(int m, double lambda, double mhu){
+double erlang_b_loss_probability(int m, double lambda, double mhu) {
     double pi_0, rho, pi_m;
     int i;
-    
-    for(i = 0; i <= m; i++){
-        rho = lambda/mhu;
+
+    for (i = 0; i <= m; i++) {
+        rho = lambda / mhu;
         pi_0 += pow(rho, i) / factorial(i);
     }
     pi_0 = pow(pi_0, -1);
 
-    rho = lambda/mhu;
-    pi_m = pow(rho, m) / factorial(m); 
+    rho = lambda / mhu;
+    pi_m = pow(rho, m) / factorial(m);
     pi_m = pi_m * pi_0;
 
     return pi_m;

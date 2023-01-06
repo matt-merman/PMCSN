@@ -1,6 +1,7 @@
 #ifndef _CONST_H_
 #define _CONST_H_
 
+#define NAME_SIZE 32                                // Size of block name string
 #define BLOCKS 6
 #define START 0
 #define N (BLOCKS * 100)
@@ -8,10 +9,10 @@
 #define USER 2500                                   // mean number of user in the observation period
 #define HOUR (60*60)
 #define N_HOURS 3
-#define PERIOD (N_HOURS*HOUR)                      // observation period in seconds
-#define INF 100*PERIOD                             // max int is 2147483647
-#define LAMBDA 0.2314814815                        // Mean outside arrivals: 0.2314814815 Mean inter-arrival time 4.32
-//#define LAMBDA ((double) USER/(double) PERIOD)     // Mean outside arrivals: 0.2314814815
+#define PERIOD (N_HOURS*HOUR)                       // observation period in seconds
+#define INF 100*PERIOD                              // max int is 2147483647
+#define LAMBDA 0.2314814815                         // Computed from USER / 3h (in seconds)
+//#define LAMBDA ((double) USER/(double) PERIOD)    // Mean outside arrivals: 0.2314814815 Mean inter-arrival time 4.32
 #define LAMBDA_DEFAULT 0.2314814815
 
 // TODO: probabilità di arrivo nei tre time slots 
@@ -64,6 +65,23 @@
 #define CONFIG_2 2 // multiserver on first course and canteen
 #define CONFIG_3 3 // mix
 
-#define SALARY 8 // 8 [eur/h]
+#define SALARY 8 // 8 [eur/h] (you must count 3h for preparation and 2h for cleanup, so we have fixed 5h/day +3h/day serving)
+
+/*
+ * L'affitto MENSILE di un immobile costa circa 10€ a metro quadro
+ * Diviso 30 giorni e diviso 24 ore, si ottiene il costo orario a metro quadro.
+ *
+ * */
+// Regulation Source: CE 852 / 2004, DPR 327 / 1980, DM 12/04/1996
+#define KITCHEN_SQUARE_METER_PER_SEAT 1.0 // 0.5 for preparing meal + 0.5 for washing dishes
+#define SQUARE_METER_PER_SEAT 1.0 // Regolamento Comunale N 18 20/03/2006 Firenze - Igiene in materia di alimenti e bevande. The minimum is 1 square meter for each seat.
+#define MONTLY_RENT_COST_MQ 10. // € cost for renting a square meter in a property
+#define DAILY_RENT_COST_MQ (MONTLY_RENT_COST_MQ / 30.0)
+#define HOURLY_RENT_COST_MQ (MONTLY_RENT_COST_MQ / 30. / 24.)
+#define HOURLY_FIXED_COST (250.0 / 24.0) // € food, water, energy, gas cost for each hour of work
 #define PER_USER_PENALTY 1 // 1 [eur/penalty] amount that must be payed PER USER if FOR HIM the response time is greater than the MAX_GLOBAL_MEAN_RESPONSE_TIME
+
+// Finite-Horizon
+#define REPLICAS 20
+
 #endif

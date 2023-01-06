@@ -8,14 +8,14 @@
 
 long test_next_event_id = 0L;
 
-// inserts one thing and checks length
+// inserts one thing and checks event_list_length
 int insert_test(test_count *t){
-    int prev_size = length();
+    int prev_size = event_list_length();
     insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, get_next_arrival(0.0, LAMBDA));
 
-    int next_size = length();
+    int next_size = event_list_length();
 
-    ASSERT_INT_EQUAL(prev_size + 1, next_size, "length of event list");
+    ASSERT_INT_EQUAL(prev_size + 1, next_size, "event_list_length of event list");
 
     SUCCESS;
 }
@@ -27,9 +27,9 @@ int delete_test(test_count *t){
     insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.7);
 
     while(!is_empty()) {
-        int prev_size = length();
+        int prev_size = event_list_length();
         pop_first();
-        int curr_size = length();
+        int curr_size = event_list_length();
         ASSERT_INT_EQUAL(curr_size, prev_size - 1, "delete test");
     }
 

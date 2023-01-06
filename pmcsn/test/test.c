@@ -21,6 +21,7 @@ void analytic_testsuite(test_count *t){
     insert_test(t);
     delete_test(t);
     sort_test(t);
+    hour_to_days_test(t);
 }
 
 void all_tests(test_count *t){

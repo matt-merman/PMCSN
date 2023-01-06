@@ -10,8 +10,7 @@
 
 void process_completion(event *completion_event, clock *c, block *block);
 void process_immediate_arrival(event *event, clock *c, block *block);
-int start_simulation(void);
-void debug(clock *system_clock, block **blocks, event *event);
+int start_simulation(int experiment);
 void update_area_stats(block **blocks, event *event, clock *clock);
 void schedule_immediate_arrival(int type, clock *c, event *triggering_event);
 void process_arrival(event *event, clock *c, block *block);

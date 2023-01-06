@@ -1,6 +1,8 @@
 #ifndef _STRUCT_H_
 #define _STRUCT_H_
 
+#include "constants.h"
+
 typedef enum block_types_t {
     PRIMO,
     SECONDO,
@@ -69,7 +71,15 @@ typedef struct server_t {
     sum *sum;
 } server;
 
-#define NAME_SIZE 32
+typedef struct ensemble_t {
+    double interarrival;
+    double wait;
+    double delay;
+    double service;
+    double node_pop;
+    double queue_pop;
+    double utilization;
+} ensemble[REPLICAS];
 
 typedef struct block_t {
     char name[NAME_SIZE];
@@ -82,6 +92,8 @@ typedef struct block_t {
     int queue_jobs;                 // job in queue
     long int rejected_jobs;
     // int has_infinite_queue;      // possible values: TRUE (has infinite queue) FALSE (doesn't have any queue)
+    ensemble replications[REPLICAS];
 } block;
+
 
 #endif

@@ -78,7 +78,7 @@ bool is_empty() {
     return size == 0;
 }
 
-int length() {
+int event_list_length() {
    return size;
 }
 
