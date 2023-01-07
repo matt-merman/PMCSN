@@ -39,7 +39,11 @@ void restart_blocks(network *canteen){
         block->completed_jobs = 0;
         block->rejected_jobs = 0;
         block->jobs = 0;
-        // memset(block->servers, 0x0, block->num_servers * sizeof(server *));
+        for(int j = 0 ; j < block->num_servers; j++){
+            block->servers[j]->sum->service = 0.0;
+            block->servers[j]->sum->service = 0;
+            block->servers[j]->status = IDLE;
+        }
     }
 }
 
