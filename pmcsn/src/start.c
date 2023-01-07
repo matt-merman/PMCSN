@@ -130,22 +130,26 @@ int start_finite_horizon_simulation(int config)
 			return (-1);
 		}
 		init_event_list(canteen->system_clock->type);
-		canteen->blocks = init_blocks(canteen->network_servers, BLOCK_NAMES);
-		if (canteen->blocks == NULL)
-		{
-            perror("Error on blocks");
-			return (-1);
-		}
+        if (replica == 0) {
+            canteen->blocks = init_blocks(canteen->network_servers, BLOCK_NAMES);
+            if (canteen->blocks == NULL)
+            {
+                perror("Error on blocks");
+                return (-1);
+            }
+        } else {
+            restart_blocks(canteen);
+        }
 
 		simulation(canteen->system_clock, canteen->blocks);
         update_ensemble(canteen, replica);
 
 		free(canteen->system_clock);
-        clear_mem(canteen->blocks);
     }
     calculate_all_interval_estimate(canteen);
+    clear_mem(canteen->blocks);
     free(canteen);
-	return (0);
+    return (0);
 }
 
 //void calculate_single_stat(const char * stat_name, const char * block_name, double *stat_sample){
@@ -327,8 +331,7 @@ void	process_completion(event *completion_event, clock *c, block *block)
 					COMPLETION, c, completion_event);
 			if (next_completion_event != NULL)
 			{
-				next_completion_time = (next_completion_event->time
-						- c->current);
+				next_completion_time = (next_completion_event->time - c->current);
 				block->queue_jobs--;
 				block->block_area->service += next_completion_time;
 				s->sum->service += next_completion_time;

@@ -31,6 +31,18 @@ block **init_blocks(int *config, const char **block_names)
 	return (b);
 }
 
+void restart_blocks(network *canteen){
+    for (int i = 0; i < BLOCKS; i++){
+        block *block = canteen->blocks[i];
+        memset(block->block_area, 0x0, sizeof(area));
+        block->queue_jobs = 0;
+        block->completed_jobs = 0;
+        block->rejected_jobs = 0;
+        block->jobs = 0;
+        // memset(block->servers, 0x0, block->num_servers * sizeof(server *));
+    }
+}
+
 // Initializes the servers inside a block
 void	init_servers(block *block, int num)
 {
