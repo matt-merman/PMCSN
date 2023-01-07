@@ -7,24 +7,19 @@ int	main(int argc, __attribute__((unused)) char **argv)
 	int		c;
 	char	*parameter;
 
-    if (argc == 1){
-        start_standard_simulation();
-        return 0;
-    }
-
 	parameter = NULL;
 	c = getopt(argc, argv, "s:");
-	switch (c)
-	{
-	case 's':
-		parameter = optarg;
-		break ;
-	case '?':
-    default:
-        printf("Usage: ./start -s [finite/infinite]\n");
-		return 0;
-	}
-	
+    switch (c) {
+        case 's':
+            parameter = optarg;
+            break;
+        case '?':
+        default:
+            start_standard_simulation();
+            printf("To run finite or infinite horizon simulation, use:\n./start -s [finite/infinite]\n");
+            return 0;
+    }
+
 	// initializing multi-stream lehmer generator
 	PlantSeeds(123456789);
 
@@ -34,7 +29,7 @@ int	main(int argc, __attribute__((unused)) char **argv)
 		start_infinite_horizon_simulation();
 	else
 		printf("Usage: ./start -s [finite/infinite]\n");
-	
+
 	return (0);
 }
 
@@ -116,10 +111,10 @@ int start_finite_horizon_simulation()
 	block	**blocks;
 	FILE	**files;
 	int *network_status, replica;
-	
+
 	network_status = init_network(CONFIG_2);
 	files = open_files("w", BLOCK_NAMES);
-	
+
 	for (replica = 0; replica < REPLICAS; replica++)
 	{
 		system_clock = init_clock();
@@ -143,29 +138,39 @@ int start_finite_horizon_simulation()
         clear_mem(blocks);
     }
     close_files(files);
-    calculate_interval_estimate();
+    calculate_interval_estimate("Mean Node Population");
 
 	return (0);
 }
-
-void calculate_interval_estimate(void)
+/**
+ * Uses the program estimate.c to compute the estimation interval of the ensemble
+ */
+void calculate_interval_estimate(char *statistic)
 {
 	FILE **files;
 	int i;
-	
+
 	files = open_files("r", BLOCK_NAMES);
 	for(i = 0; i < BLOCKS; i++){
-        printf("\n============== Ensemble Node Population for block %s =============", BLOCK_NAMES[i]);
+        printf("\n============== Ensemble %s for block %s =============", statistic, BLOCK_NAMES[i]);
 		CalculateIntervalEstimate(files[i]);
+        //TODO stampare se il valore teorico è dentro o fuori l'intervallo di confidenza
 	}
 	close_files(files);
 }
-
+/**
+ *
+ * @return
+ */
 int	start_infinite_horizon_simulation(void)
 {
 	return (0);
 }
-
+/**
+ *
+ * @param system_clock
+ * @param blocks
+ */
 void	simulation(clock *system_clock, block **blocks)
 {
 	event		*current_event;
@@ -193,8 +198,7 @@ void	simulation(clock *system_clock, block **blocks)
 			break ;
 		case IMMEDIATE_ARRIVAL:
 			// schedule its completion or add to queue
-			process_immediate_arrival(current_event, system_clock,
-					blocks[btype]);
+			process_immediate_arrival(current_event, system_clock,blocks[btype]);
 			break ;
 		case COMPLETION:
 			// schedule the next completion and generate an immediate arrival
@@ -210,8 +214,12 @@ void	simulation(clock *system_clock, block **blocks)
 	}
 }
 
-/* To process an arrival,
-	we need to schedule or enqueue the job and then generate a new ARRIVAL event*/
+/**
+ * To process an arrival, we need to schedule or enqueue the job and then generate a new ARRIVAL event
+ * @param event
+ * @param c
+ * @param block
+ */
 void	process_arrival(event *event, clock *c, block *block)
 {
 	double	p;
@@ -263,7 +271,12 @@ void	process_immediate_arrival(event *arrival_event, clock *c, block *block)
 		block->queue_jobs++;
 }
 
-// A completion should schedule another completion event (if there are job in queue) and an arrival.
+/**
+ * A completion should schedule another completion event (if there are job in queue) and an arrival.
+ * @param completion_event
+ * @param c
+ * @param block
+ */
 void	process_completion(event *completion_event, clock *c, block *block)
 {
 	event	*next_completion_event;
@@ -304,6 +317,12 @@ void	process_completion(event *completion_event, clock *c, block *block)
 	schedule_immediate_arrival(block->type, c, completion_event);
 }
 
+/**
+ *
+ * @param type
+ * @param c
+ * @param triggering_event
+ */
 void	schedule_immediate_arrival(int type, clock *c, event *triggering_event)
 {
 	double	p;
@@ -321,6 +340,7 @@ void	schedule_immediate_arrival(int type, clock *c, event *triggering_event)
 			next_type = CASSA_FAST;
 		break ;
 	case SECONDO:
+        // TODO: se abbiamo tempo, invece di andare a random alle casse, bisogna scegliere a seconda del percorso preso dall'utente.
 		p = Random();
 		if (p < P_DESSERT_SECONDO)
 			next_type = DESSERT;

@@ -24,6 +24,6 @@ void update_area_stats(block **blocks, event *event, clock *clock);
 void schedule_immediate_arrival(int type, clock *c, event *triggering_event);
 void process_arrival(event *event, clock *c, block *block);
 void simulation(clock *system_clock, block **blocks);
-void calculate_interval_estimate();
+void calculate_interval_estimate(char *statistic);
 
 #endif //PROGETTOPMCSN_START_H
