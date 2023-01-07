@@ -131,13 +131,13 @@ void validate_global_population(block **blocks) {
 }
 
 // TODO: valida il tempo in coda usando la legge di Little
-/**
- * Checks that sum of mean queue times is equal to the global queue time from Little's Law.
- * E[Tq] = E[Nq]/lambda
- * This works only if the system is ergodic
- * @param queue_time sum of time spent in queues in all block
- * @param queue_pop sum of queue population in all blocks
- */
+///**
+// * Checks that sum of mean queue times is equal to the global queue time from Little's Law.
+// * E[Tq] = E[Nq]/lambda
+// * This works only if the system is ergodic
+// * @param queue_time sum of time spent in queues in all block
+// * @param queue_pop sum of queue population in all blocks
+// */
 //void validate_global_queue_time(double erlang_c_queue_time_test, double queue_pop) {
 //    // TODO: ricavare la formula per calcolare i tempi in coda
 //    // TODO: verificare che la somma dei tempi in coda sia pari al valore teorico
@@ -149,10 +149,9 @@ void validate_global_population(block **blocks) {
 /**
  *
  * @param response_time
- * @param mean_population
+ * @param network_servers
  */
-//void validate_global_response_time(double response_time, double mean_population) {
-//    // TODO: verificare che la somma dei tempo di risposta dei singoli blocchi sia pari al valore teorico
-//    // TODO: ricavare la formula per calcolare il tempo di risposta globale
-//    // printf("TODO: The computed global response time doesn't match with the one from Little's Law\n");
-//}
+void validate_global_response_time(double response_time, int *network_servers) {
+    double global_wait_theoretical = global_respones_time(network_servers);
+    printf("\tThe computed global response time (%f) doesn't match with the theoretical global response time (%f)\n", response_time, global_wait_theoretical);
+}

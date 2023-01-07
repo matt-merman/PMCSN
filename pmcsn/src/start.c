@@ -18,7 +18,7 @@ int	main(int argc, __attribute__((unused)) char **argv)
         case '?':
         default:
             start_standard_simulation(NETWORK_CONFIGURATION);
-            printf("To run finite or infinite horizon simulation, use:\n./start -s [finite/infinite]\n");
+            printf("\nTo run finite or infinite horizon simulation, use:\n./start -s [finite/infinite]\n");
             return 0;
     }
 
@@ -39,24 +39,23 @@ int	main(int argc, __attribute__((unused)) char **argv)
  * FIXME: This doesn't work!
  *
  * Updates time-averaged integrals for node and queue populations
- *
- * @param diff time before next event
- * @param blocks
+ * @param event the current event to process
+ * @param canteen the network that represents the canteen
  */
-void	update_area_stats(block **blocks, event *event, clock *clock)
+void update_area_stats(event *event, network *canteen)
 {
 	area	*area;
 	double	diff;
 	int		i;
 
-	diff = event->time - clock->current;
+	diff = event->time - canteen->system_clock->current;
 	for (i = 0; i < BLOCKS; i++)
 	{
-		if (blocks[i]->jobs > 0)
+		if (canteen->blocks[i]->jobs > 0)
 		{
-			area = blocks[i]->block_area;
-			area->node += diff * (double)blocks[i]->jobs;
-			area->queue += diff * (double)blocks[i]->queue_jobs;
+			area = canteen->blocks[i]->block_area;
+			area->node += diff * (double) canteen->blocks[i]->jobs;
+			area->queue += diff * (double) canteen->blocks[i]->queue_jobs;
 		}
 	}
 }
@@ -96,11 +95,11 @@ int start_standard_simulation(int config) {
     }
     init_event_list(canteen->system_clock->type); // type is arrival
 
-    simulation(canteen->system_clock, canteen->blocks);
+    simulation(canteen);
 
     // if you run one replica, we'll have a standard execution
-    show_stats(canteen->blocks, canteen->system_clock);
-    validate_stats(canteen->blocks, canteen->system_clock);
+    show_stats(canteen);
+    validate_stats(canteen);
 
 
     free(canteen->system_clock);
@@ -141,7 +140,7 @@ int start_finite_horizon_simulation(int config)
             restart_blocks(canteen);
         }
 
-		simulation(canteen->system_clock, canteen->blocks);
+        simulation(canteen);
         update_ensemble(canteen, replica);
 
 		free(canteen->system_clock);
@@ -151,12 +150,6 @@ int start_finite_horizon_simulation(int config)
     free(canteen);
     return (0);
 }
-
-//void calculate_single_stat(const char * stat_name, const char * block_name, double *stat_sample){
-//    const char * stat1 = "Interarrival time";
-//    printf("\n============== Ensemble %s for block %s =============", stat_name, block_name);
-//    calculate_interval_estimate_for_stat(stat1, stat_sample, NULL);
-//}
 
 /**
  * Uses the program estimate.c to compute the estimation interval of the replica_stats
@@ -174,14 +167,12 @@ void calculate_all_interval_estimate(network *canteen)
             "Queue population",
             "Utilization"
     };
-	// files = open_files("r", BLOCK_NAMES);
 	for(i = 0; i < BLOCKS; i++){
-        for (s = 0; s < 7; s++) {
+        for (s = 0; s < STAT_NUMBER; s++) {
             calculate_interval_estimate_for_stat(s, stats[s], canteen->blocks[i]->ensemble_stats, BLOCK_NAMES[i]);
         }
         //TODO stampare se il valore teorico è dentro o fuori l'intervallo di confidenza
 	}
-	// close_files(files);
 }
 /**
  *
@@ -194,10 +185,9 @@ int start_infinite_horizon_simulation(int config)
 }
 /**
  *
- * @param system_clock
- * @param blocks
+ * @param canteen the network of service nodes that represents a canteen
  */
-void	simulation(clock *system_clock, block **blocks)
+void simulation(network *canteen)
 {
 	event		*current_event;
 	block_type	btype;
@@ -206,36 +196,36 @@ void	simulation(clock *system_clock, block **blocks)
 	{
 		/* break if the times is finished,
           all events are processed and all servers are idle */
-		if (system_clock->last_arrival >= PERIOD && !are_there_more_events()
-			&& !are_there_busy_servers(blocks))
+		if (canteen->system_clock->last_arrival >= PERIOD && !are_there_more_events()
+			&& !are_there_busy_servers(canteen->blocks))
 			break ;
 		current_event = get_next_event();
 		if (current_event->event_type == ARRIVAL)
 			// we update the last arrival time
-			system_clock->last_arrival = current_event->time;
-		update_area_stats(blocks, current_event, system_clock);
-		system_clock->current = current_event->time;
+			canteen->system_clock->last_arrival = current_event->time;
+        update_area_stats(current_event, canteen);
+		canteen->system_clock->current = current_event->time;
 		btype = current_event->block_type;
 		switch (current_event->event_type)
 		{
 		case ARRIVAL:
 			// schedule its completion (if a server is idle) or add to queue and generate a new outside arrival
-			process_arrival(current_event, system_clock, blocks[btype]);
+			process_arrival(current_event, canteen->system_clock, canteen->blocks[btype]);
 			break ;
 		case IMMEDIATE_ARRIVAL:
 			// schedule its completion or add to queue
-			process_immediate_arrival(current_event, system_clock,blocks[btype]);
+			process_immediate_arrival(current_event, canteen->system_clock,canteen->blocks[btype]);
 			break ;
 		case COMPLETION:
 			// schedule the next completion and generate an immediate arrival
-			process_completion(current_event, system_clock, blocks[btype]);
+			process_completion(current_event, canteen->system_clock, canteen->blocks[btype]);
 			break ;
 		default:
 			break ;
 		}
 		// the current_event is processed and now it can be freed
 		sort_list();
-		debug(system_clock, blocks, current_event);
+        debug(current_event, canteen);
 		free(current_event);
 	}
 }
@@ -278,8 +268,7 @@ void	process_immediate_arrival(event *arrival_event, clock *c, block *block)
 	if (s_index != -1)
 	{
 		s = block->servers[s_index];
-		next_completion_event = create_insert_event(block->type, s_index,
-				COMPLETION, c, arrival_event);
+		next_completion_event = create_insert_event(block->type, s_index,COMPLETION, c, arrival_event);
 		if (next_completion_event != NULL)
 		{
 			next_completion_time = (next_completion_event->time - c->current);
@@ -348,7 +337,7 @@ void	process_completion(event *completion_event, clock *c, block *block)
  * @param c
  * @param triggering_event
  */
-void	schedule_immediate_arrival(int type, clock *c, event *triggering_event)
+void	schedule_immediate_arrival(block_type type, clock *c, event *triggering_event)
 {
 	double	p;
 	int		next_type;

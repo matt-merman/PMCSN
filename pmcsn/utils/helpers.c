@@ -27,7 +27,7 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     stats->completed_jobs = b->completed_jobs;
     stats->interarrival_time = clock->last / completed_jobs;
 
-    PRINTF("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
+    // PRINTF("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
 
     // FIXME ricontrollare come viene calcolata area e se questa formula è corretta.
     stats->wait = area->node / completed_jobs;
@@ -64,26 +64,27 @@ void write_stats_on_file(block **blocks, clock *clock, FILE **file){
     }
 }
 
-void show_stats(block **blocks, clock *clock){
+void show_stats(network *canteen) {
     long double total_cost = 0.0;
     statistics stats;
 //    double queue_time_sum = 0.0;
 //    double queue_population_sum = 0.0;
-//    double response_time_sum = 0.0;
-//    double population_sum = 0.0;
+    double network_response_time = 0.0;
+    double network_mean_population = 0.0;
     for (int i = 0; i < BLOCKS; i++) {
         // at each iteration we overwrite the statistics struct
-        get_stats(blocks[i], clock, &stats);
+        get_stats(canteen->blocks[i], canteen->system_clock, &stats);
 //        queue_time_sum += stats.delay; // TODO: bisogna tenere conto delle visite medie a ogni centro!!!
 //        queue_population_sum += stats.queue_pop;
-//        response_time_sum += stats.wait;
-//        population_sum += stats.node_pop;
+        double visits = get_theoretical_visits(canteen->blocks[i]->type, canteen->blocks[i]->num_servers);
+        network_response_time += stats.wait * visits;
+        network_mean_population += stats.node_pop * visits;
         printf("\t----------------------------------------------------------\n");
-        printf("\t'%s' block info:\n\n", blocks[i]->name);
+        printf("\t'%s' block info:\n\n", canteen->blocks[i]->name);
         printf("\t\tpeople in the block ..... = % 10ld\tpeople\n", stats.completed_jobs);
 
-        if (blocks[i]->type == CONSUMAZIONE)
-            printf("\t\trejected people ......... = % 10ld\tpeople\n", blocks[CONSUMAZIONE]->rejected_jobs);
+        if (canteen->blocks[i]->type == CONSUMAZIONE)
+            printf("\t\trejected people ......... = % 10ld\tpeople\n", canteen->blocks[CONSUMAZIONE]->rejected_jobs);
 
         printf("\n\tjob averaged statistics:\n");
         printf("\t\taverage interarrival time = %6.2f\ts\n", stats.interarrival_time);
@@ -95,40 +96,42 @@ void show_stats(block **blocks, clock *clock){
         printf("\t\taverage # in the queue .. = %6.2f\tpeople\n", stats.queue_pop);
         printf("\t\tutilization ............. = %6.4f\t-\n", stats.utilization);
 
-        printf("\t\tarea node %Lf\n", blocks[i]->block_area->node);
-        printf("\t\tarea queue %Lf\n", blocks[i]->block_area->queue);
-        printf("\t\tarea service %Lf\n", blocks[i]->block_area->service);
+        printf("\t\tarea node %Lf\n", canteen->blocks[i]->block_area->node);
+        printf("\t\tarea queue %Lf\n", canteen->blocks[i]->block_area->queue);
+        printf("\t\tarea service %Lf\n", canteen->blocks[i]->block_area->service);
 
         printf("\n\t\tMulti-server statistics:\n");
         printf("\t\t    server     utilization     avg service\n");
         // print all utilization and average service of each server in the node
-        for (int s = 0; s < blocks[i]->num_servers; s++)
+        for (int s = 0; s < canteen->blocks[i]->num_servers; s++)
             printf("\t\t%8d %14.4f %15.2f\n", s, stats.multiserver_utilization[s], stats.multiserver_service_time[s]);
 
         total_cost += (long double) stats.daily_cost;
-        printf("\n\t\tDaily Configuration Cost for '%s': %Lg \u20AC \n\n", blocks[i]->name, stats.daily_cost);
+        printf("\n\t\tDaily Configuration Cost for '%s': %Lg \u20AC \n\n", canteen->blocks[i]->name, stats.daily_cost);
 
     }
+    canteen->ensemble_response_time[0] = network_response_time;
+    canteen->ensemble_mean_population[0] = network_mean_population;
     printf("\t----------------------------------------------------------\n");
     printf("\n\t\tTotal Daily Configuration Cost: %Lg \u20AC \n\n", total_cost);
     free(stats.multiserver_utilization);
     free(stats.multiserver_service_time);
 }
 
-void validate_stats(block **blocks, clock *clock){
+void validate_stats(network *canteen) {
 
     statistics stats;
     int i;
 
     for (i = 0; i < BLOCKS; i++) {
-        get_stats(blocks[i], clock, &stats);
-        validate_block(blocks[i], &stats);
+        get_stats(canteen->blocks[i], canteen->system_clock, &stats);
+        validate_block(canteen->blocks[i], &stats);
     }
 
     // validates global population, global queue time and response time
-    validate_global_population(blocks);
+    validate_global_population(canteen->blocks);
     // validate_global_queue_time(queue_time_sum, 0);
-    // validate_global_response_time(response_time_sum, 0);
+    validate_global_response_time(canteen->ensemble_response_time[0], canteen->network_servers);
 }
 
 /**
@@ -167,20 +170,20 @@ void clear_mem(block **blocks) {
     }
 }
 
-void debug(clock *system_clock, block **blocks, event *event) {
+void debug(event *event, network *canteen) {
     PRINTF("Event %ld(linked event id %ld): Time: %lf - %-18s Target Block: %-12s in server: %d jobs in blocks [%s, %s, %s, %s, %s, %s] events: %d\n",
            event->event_id,
            event->linked_event_id,
-           system_clock->current,
+           canteen->system_clock->current,
            to_str_event(event->event_type),
            to_str_block(event->block_type),
            event->target_server,
-           get_server_contents(blocks[PRIMO]),
-           get_server_contents(blocks[SECONDO]),
-           get_server_contents(blocks[DESSERT]),
-           get_server_contents(blocks[CASSA_FAST]),
-           get_server_contents(blocks[CASSA_STD]),
-           get_server_contents(blocks[CONSUMAZIONE]),
+           get_server_contents(canteen->blocks[PRIMO]),
+           get_server_contents(canteen->blocks[SECONDO]),
+           get_server_contents(canteen->blocks[DESSERT]),
+           get_server_contents(canteen->blocks[CASSA_FAST]),
+           get_server_contents(canteen->blocks[CASSA_STD]),
+           get_server_contents(canteen->blocks[CONSUMAZIONE]),
            event_list_length());
 }
 

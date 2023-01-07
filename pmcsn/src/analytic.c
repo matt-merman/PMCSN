@@ -97,14 +97,22 @@ double get_theoretical_lambda_raw(block_type type) {
         case CASSA_STD: // who doesn't go to the fast cashier, goes to the standard cashier
             return lambdaC;
         case CONSUMAZIONE: // the entire arrival flow will come to CONSUMAZIONE
-            return lambdaS; // * (1-erlang_b_loss_probability(139, lambdaS, get_theoretical_mhu(type))); // TODO FIXME 139 !!!NOO!!!
+            return lambdaS;
         default:
             return (0.0);
     }
 }
 
-double get_theoretical_visits(block_type type) {
-    return get_theoretical_lambda_raw(type) / LAMBDA;
+double get_theoretical_lambda(block_type type, int num_servers){
+    double lambda_raw = get_theoretical_lambda_raw(type);
+    if (type != CONSUMAZIONE) {
+        return lambda_raw;
+    }
+    return lambda_raw * (1-erlang_b_loss_probability(num_servers, lambda_raw, get_theoretical_mhu(type)));
+}
+
+double get_theoretical_visits(block_type type, int num_servers) {
+    return get_theoretical_lambda(type, num_servers) / LAMBDA;
 }
 
 /**
@@ -147,10 +155,29 @@ double erlang_b_loss_probability(int m, double lambda, double mhu) {
     return pi_m;
 }
 
+double get_response_time(block_type type, int m) {
+
+    double service_time = get_theoretical_service(type);
+    if (type == CONSUMAZIONE) {
+        return service_time;
+    }
+    double rho = get_theoretical_rho(type, m);
+    double block_probability = erlang_c_block_probability(m, rho);
+    double service_time_multi = service_time / m;
+    double queue_time = erlang_c_queue_time(block_probability, service_time_multi, rho);
+    return erlang_c_response_time(queue_time, service_time);
+}
+
+double global_respones_time(int *network_servers) {
+    double global_wait = 0.0;
+    for (int i = 0; i<BLOCKS; i++){
+        global_wait += get_response_time(i, network_servers[i]) * get_theoretical_visits(i, network_servers[i]);
+    }
+    return global_wait;
+}
+
 // the erlang b queue time is 0, the erlang b response time is equal to service time.
 #define LOC 0.95                       /* level of confidence,        */
-
-
 
 void calculate_interval_estimate_for_stat(stat_type stat, const char *stat_name, replica_stats *replica_stats_ensemble,
                                           const char *block_name) {
@@ -165,7 +192,7 @@ void calculate_interval_estimate_for_stat(stat_type stat, const char *stat_name,
 
     /* use Welford's one-pass method to compute sample mean and standard deviation */
     for (int rep = 0; rep < REPLICAS; rep++) {
-        switch(stat){
+        switch (stat) {
             case INTERARRIVAL:
                 data = replica_stats_ensemble[rep].interarrival;
                 break;

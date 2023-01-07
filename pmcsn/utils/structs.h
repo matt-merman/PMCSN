@@ -111,6 +111,7 @@ typedef struct network_t {
     clock *system_clock;
     double ensemble_response_time[REPLICAS];
     double ensemble_serving_response_time[REPLICAS];
+    double ensemble_mean_population[REPLICAS];
 } network;
 
 #endif

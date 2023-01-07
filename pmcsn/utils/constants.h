@@ -82,6 +82,8 @@
 #define HOURLY_FIXED_COST (250.0 / 24.0) // € food, water, energy, gas cost for each hour of work
 #define PER_USER_PENALTY 1 // 1 [eur/penalty] amount that must be payed PER USER if FOR HIM the response time is greater than the MAX_GLOBAL_MEAN_RESPONSE_TIME
 
+#define STAT_NUMBER 7
+
 // Finite-Horizon
 #define REPLICAS 20
 
