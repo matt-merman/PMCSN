@@ -53,7 +53,7 @@ typedef struct statistics_t {
     double queue_pop;
     //float trafficIntensity; // can be greater than 1
     double utilization; // same as trafficIntensity for sufficiently long observation periods
-    double block_probabiliity;
+    // double block_probabiliity;
     long double daily_cost;
     double *multiserver_utilization;
     double *multiserver_service_time;
@@ -71,7 +71,7 @@ typedef struct server_t {
     sum *sum;
 } server;
 
-typedef struct ensemble_t {
+typedef struct replica_stats_t {
     double interarrival;
     double wait;
     double delay;
@@ -79,7 +79,7 @@ typedef struct ensemble_t {
     double node_pop;
     double queue_pop;
     double utilization;
-} ensemble[REPLICAS];
+} replica_stats;
 
 typedef struct block_t {
     char name[NAME_SIZE];
@@ -92,8 +92,14 @@ typedef struct block_t {
     int queue_jobs;                 // job in queue
     long int rejected_jobs;
     // int has_infinite_queue;      // possible values: TRUE (has infinite queue) FALSE (doesn't have any queue)
-    ensemble replications[REPLICAS];
+    replica_stats ensemble_stats[REPLICAS];
 } block;
 
+typedef struct network_t {
+    block blocks[BLOCKS];
+    int network_servers[BLOCKS];
+    double ensemble_response_time[REPLICAS];
+    double ensemble_serving_response_time[REPLICAS];
+} network;
 
 #endif

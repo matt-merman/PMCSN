@@ -131,7 +131,7 @@ void validate_stats(block **blocks, clock *clock){
     // validate_global_response_time(response_time_sum, 0);
 }
 
-// void update_ensemble(ensemble replica, statistics *stats) {
+// void update_ensemble(replica_stats replica, statistics *stats) {
 //     replica->interarrival = stats->interarrival_time;
 //     replica->wait = stats->wait;
 //     replica->delay = stats->delay;

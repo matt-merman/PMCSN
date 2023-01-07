@@ -143,7 +143,7 @@ int start_finite_horizon_simulation()
 	return (0);
 }
 /**
- * Uses the program estimate.c to compute the estimation interval of the ensemble
+ * Uses the program estimate.c to compute the estimation interval of the replica_stats
  */
 void calculate_interval_estimate(char *statistic)
 {
