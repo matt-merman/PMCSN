@@ -26,9 +26,9 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     area *area = b->block_area;
     stats->completed_jobs = b->completed_jobs;
     stats->interarrival_time = clock->last / completed_jobs;
-    
+
     PRINTF("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
-    
+
     // FIXME ricontrollare come viene calcolata area e se questa formula è corretta.
     stats->wait = area->node / completed_jobs;
     stats->delay = area->queue / completed_jobs;
@@ -81,10 +81,10 @@ void show_stats(block **blocks, clock *clock){
         printf("\t----------------------------------------------------------\n");
         printf("\t'%s' block info:\n\n", blocks[i]->name);
         printf("\t\tpeople in the block ..... = % 10ld\tpeople\n", stats.completed_jobs);
-        
-        if (blocks[i]->type == CONSUMAZIONE) 
+
+        if (blocks[i]->type == CONSUMAZIONE)
             printf("\t\trejected people ......... = % 10ld\tpeople\n", blocks[CONSUMAZIONE]->rejected_jobs);
-        
+
         printf("\n\tjob averaged statistics:\n");
         printf("\t\taverage interarrival time = %6.2f\ts\n", stats.interarrival_time);
         printf("\t\taverage node wait ....... = %6.2f\ts\n", stats.wait);
@@ -131,15 +131,25 @@ void validate_stats(block **blocks, clock *clock){
     // validate_global_response_time(response_time_sum, 0);
 }
 
-// void update_ensemble(replica_stats replica, statistics *stats) {
-//     replica->interarrival = stats->interarrival_time;
-//     replica->wait = stats->wait;
-//     replica->delay = stats->delay;
-//     replica->service = stats->service_time;
-//     replica->node_pop = stats->node_pop;
-//     replica->queue_pop = stats->queue_pop;
-//     replica->utilization = stats->utilization;
-// }
+/**
+ * Adds the statistics to a replica
+ * @param canteen the network
+ * @param replica index of replica in 0...REPLICAS-1
+ */
+void update_ensemble(network *canteen, int replica_index) {
+    for (int i = 0; i < BLOCKS; i++) {
+        replica_stats *replica = &canteen->blocks[i]->ensemble_stats[replica_index];
+        statistics stats;
+        get_stats(canteen->blocks[i], canteen->system_clock, &stats);
+        replica->interarrival = stats.interarrival_time;
+        replica->wait = stats.wait;
+        replica->delay = stats.delay;
+        replica->service = stats.service_time;
+        replica->node_pop = stats.node_pop;
+        replica->queue_pop = stats.queue_pop;
+        replica->utilization = stats.utilization;
+    }
+}
 
 void clear_mem(block **blocks) {
     for (int i = 0; i < BLOCKS; i++) {

@@ -36,6 +36,7 @@ void debug(clock *system_clock, block **blocks, event *event);
 void write_stats_on_file(block **blocks, clock *clock, FILE **file);
 void show_stats(block **blocks, clock *clock);
 void validate_stats(block **blocks, clock *clock);
+void update_ensemble(network *canteen, int replica_index);
 
 #endif
 

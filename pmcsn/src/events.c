@@ -6,12 +6,25 @@ int		terminated = FALSE;
 // used to track events
 long next_event_id = 0L;
 
-void	init_event_list(int type)
+/**
+ * Initializes the event list
+ * @param type the type of block to which the event will occur. It can be PRIMO or SECONDO.
+ */
+void	init_event_list(block_type type)
 {
     event *e = create_event(type, -1, ARRIVAL, START, NULL);
     insert_event_first(e);
 }
 
+/**
+ * Creates an event for the next-event simulation
+ * @param target the block type to which the event will occur
+ * @param server_id the server id of the block in which the event will be happening
+ * @param type the type of event (ARRIVAL, COMPLETION or IMMEDIATE ARRIVAL)
+ * @param current the current time
+ * @param linked_event the linked event, i.e. the event which triggered the creation of this event
+ * @return the newly created event
+ */
 event *create_event(block_type target, int server_id, event_type type, double current, event *linked_event)
 {
 	int		stream;

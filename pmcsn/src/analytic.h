@@ -23,5 +23,6 @@ double  erlang_c_block_probability(int m, double rho);
 double  erlang_c_queue_time(double block_probability, double service_time_multi, double rho);
 double  erlang_c_response_time(double queue_time, double service_time);
 double  erlang_b_loss_probability(int m, double lambda, double mhu);
+void calculate_interval_estimate_for_stat(stat_type stat, const char *stat_name, replica_stats *replica_stats_ensemble, const char *block_name);
 
 #endif //PROGETTOPMCSN_ANALYTIC_H

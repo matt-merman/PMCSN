@@ -17,13 +17,13 @@
 
 void process_completion(event *completion_event, clock *c, block *block);
 void process_immediate_arrival(event *event, clock *c, block *block);
-int start_standard_simulation();
-int start_finite_horizon_simulation();
-int start_infinite_horizon_simulation();
+int start_standard_simulation(int config);
+int start_finite_horizon_simulation(int config);
+int start_infinite_horizon_simulation(int config);
 void update_area_stats(block **blocks, event *event, clock *clock);
 void schedule_immediate_arrival(int type, clock *c, event *triggering_event);
 void process_arrival(event *event, clock *c, block *block);
 void simulation(clock *system_clock, block **blocks);
-void calculate_interval_estimate(char *statistic);
+void calculate_all_interval_estimate(network *canteen);
 
 #endif //PROGETTOPMCSN_START_H

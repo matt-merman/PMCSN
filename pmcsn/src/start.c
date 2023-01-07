@@ -2,6 +2,8 @@
 
 const char * BLOCK_NAMES[BLOCKS] = {"Primi", "Secondi e Contorni", "Frutta e Dessert", "Casse Fast", "Casse standard", "Locale Mensa"};
 
+#define NETWORK_CONFIGURATION CONFIG_2
+
 int	main(int argc, __attribute__((unused)) char **argv)
 {
 	int		c;
@@ -15,7 +17,7 @@ int	main(int argc, __attribute__((unused)) char **argv)
             break;
         case '?':
         default:
-            start_standard_simulation();
+            start_standard_simulation(NETWORK_CONFIGURATION);
             printf("To run finite or infinite horizon simulation, use:\n./start -s [finite/infinite]\n");
             return 0;
     }
@@ -24,9 +26,9 @@ int	main(int argc, __attribute__((unused)) char **argv)
 	PlantSeeds(123456789);
 
 	if (strcmp(parameter, "finite") == 0)
-        start_finite_horizon_simulation();
+        start_finite_horizon_simulation(NETWORK_CONFIGURATION);
 	else if (strcmp(parameter, "infinite") == 0)
-		start_infinite_horizon_simulation();
+        start_infinite_horizon_simulation(NETWORK_CONFIGURATION);
 	else
 		printf("Usage: ./start -s [finite/infinite]\n");
 
@@ -73,98 +75,118 @@ void	update_areas_for_block(block *block, event *event, clock *clock)
 	}
 }
 
-int start_standard_simulation() {
-    clock *system_clock;
-    block **blocks;
-    int *network_status;
+int start_standard_simulation(int config) {
+    network * canteen;
 
-    network_status = init_network(CONFIG_2);
-
-    system_clock = init_clock();
-    if (system_clock == NULL) {
-        PRINTF("Error on system clock\n");
+    canteen = (network *) malloc(sizeof(network));
+    if (canteen == NULL) {
+        perror("Error in allocation of canteen queue network ");
+        return -1;
+    }
+    canteen->network_servers = init_network(config);
+    canteen->system_clock = init_clock(); // also sets next arrival time
+    canteen->blocks = init_blocks(canteen->network_servers, BLOCK_NAMES);
+    if (canteen->system_clock == NULL) {
+        perror("Error on system clock\n");
         return (-1);
     }
-    init_event_list(system_clock->type);
-    blocks = init_blocks(network_status, BLOCK_NAMES);
-    if (blocks == NULL) {
-        PRINTF("Error on blocks");
+    if (canteen->blocks == NULL) {
+        perror("Error on blocks");
         return (-1);
     }
+    init_event_list(canteen->system_clock->type); // type is arrival
 
-    simulation(system_clock, blocks);
+    simulation(canteen->system_clock, canteen->blocks);
 
     // if you run one replica, we'll have a standard execution
-    show_stats(blocks, system_clock);
-    validate_stats(blocks, system_clock);
+    show_stats(canteen->blocks, canteen->system_clock);
+    validate_stats(canteen->blocks, canteen->system_clock);
 
 
-    free(system_clock);
-    clear_mem(blocks);
-
+    free(canteen->system_clock);
+    clear_mem(canteen->blocks);
+    free(canteen);
     return (0);
 }
 
-int start_finite_horizon_simulation()
+int start_finite_horizon_simulation(int config)
 {
-	clock	*system_clock;
-	block	**blocks;
-	FILE	**files;
-	int *network_status, replica;
+    network *canteen;
+    int replica;
 
-	network_status = init_network(CONFIG_2);
-	files = open_files("w", BLOCK_NAMES);
+    canteen = malloc(sizeof(network));
+    if (canteen == NULL){
+        perror("Error in allocation of canteen queue network (finite-horizon)");
+        return -1;
+    }
 
+    canteen->network_servers = init_network(config);
 	for (replica = 0; replica < REPLICAS; replica++)
 	{
-		system_clock = init_clock();
-		if (system_clock == NULL)
+		canteen->system_clock = init_clock();
+		if (canteen->system_clock == NULL)
 		{
-			PRINTF("Error on system clock\n");
+			perror("Error on system clock\n");
 			return (-1);
 		}
-		init_event_list(system_clock->type);
-		blocks = init_blocks(network_status, BLOCK_NAMES);
-		if (blocks == NULL)
+		init_event_list(canteen->system_clock->type);
+		canteen->blocks = init_blocks(canteen->network_servers, BLOCK_NAMES);
+		if (canteen->blocks == NULL)
 		{
-			PRINTF("Error on blocks");
+            perror("Error on blocks");
 			return (-1);
 		}
 
-		simulation(system_clock, blocks);
-        write_stats_on_file(blocks, system_clock, files);
+		simulation(canteen->system_clock, canteen->blocks);
+        update_ensemble(canteen, replica);
 
-		free(system_clock);
-        clear_mem(blocks);
+		free(canteen->system_clock);
+        clear_mem(canteen->blocks);
     }
-    close_files(files);
-    calculate_interval_estimate("Mean Node Population");
-
+    calculate_all_interval_estimate(canteen);
+    free(canteen);
 	return (0);
 }
+
+//void calculate_single_stat(const char * stat_name, const char * block_name, double *stat_sample){
+//    const char * stat1 = "Interarrival time";
+//    printf("\n============== Ensemble %s for block %s =============", stat_name, block_name);
+//    calculate_interval_estimate_for_stat(stat1, stat_sample, NULL);
+//}
+
 /**
  * Uses the program estimate.c to compute the estimation interval of the replica_stats
  */
-void calculate_interval_estimate(char *statistic)
+void calculate_all_interval_estimate(network *canteen)
 {
-	FILE **files;
-	int i;
-
-	files = open_files("r", BLOCK_NAMES);
+	// FILE **files;
+	int i,s;
+    const char *stats[18] = {
+            "Interarrival time",
+            "Response time",
+            "Queue time",
+            "Service time",
+            "Node population",
+            "Queue population",
+            "Utilization"
+    };
+	// files = open_files("r", BLOCK_NAMES);
 	for(i = 0; i < BLOCKS; i++){
-        printf("\n============== Ensemble %s for block %s =============", statistic, BLOCK_NAMES[i]);
-		CalculateIntervalEstimate(files[i]);
+        for (s = 0; s < 7; s++) {
+            calculate_interval_estimate_for_stat(s, stats[s], canteen->blocks[i]->ensemble_stats, BLOCK_NAMES[i]);
+        }
         //TODO stampare se il valore teorico è dentro o fuori l'intervallo di confidenza
 	}
-	close_files(files);
+	// close_files(files);
 }
 /**
  *
  * @return
  */
-int	start_infinite_horizon_simulation(void)
+int start_infinite_horizon_simulation(int config)
 {
-	return (0);
+    printf("config :%d", config);
+    return (0);
 }
 /**
  *

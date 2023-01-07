@@ -16,7 +16,7 @@ compile_test:
 	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) $(TEST_SOURCES) $(LIB) -o tests
 
 compile_msq:
-	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c prog/msq.c src/analytic.c -o msq -lm
+	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c prog/msq.c libs/rvms.c src/analytic.c -o msq -lm
 
 compile_estimate:
 	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c libs/rvms.c prog/estimate.c -o estimate -lm

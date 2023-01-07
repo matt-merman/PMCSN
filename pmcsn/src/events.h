@@ -4,7 +4,7 @@
 #include "../utils/helpers.h"
 #include "event_list.h"
 
-void init_event_list(int type);
+void init_event_list(block_type type);
 
 void insert_event(event *elem);
 event *create_event(block_type target, int server_id, event_type type, double current, event *linked_event);

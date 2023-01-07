@@ -15,7 +15,7 @@
 
 #include "estimate.h"
 
-void CalculateIntervalEstimate(FILE *stdin)
+void CalculateIntervalEstimateFromFile(FILE *stdin)
 {
     long   n    = 0;                     /* counts data points */
     double sum  = 0.0;
