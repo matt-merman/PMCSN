@@ -2,9 +2,9 @@ CC				= gcc
 CFLAGS			= -Wall -Wextra
 LIB 			= -lm
 SRC 			= ./src
-LIBS 			= libs/rngs.c libs/rvgs.c libs/rvms.c
+LIBS 			= libs/rngs.c libs/rvgs.c libs/rvms.c libs/estimate.c
 MAIN			= src/start.c
-SOURCES			= src/init.c src/server.c src/events.c src/validation.c src/analytic.c utils/helpers.c src/event_list.c
+SOURCES			= src/init.c src/server.c src/events.c src/validation.c src/analytic.c utils/helpers.c src/event_list.c utils/files.c
 TEST_SOURCES	= test/analytic_test.c test/test.c test/events_test.c
 
 all: compile compile_test compile_msq compile_estimate
@@ -21,8 +21,11 @@ compile_msq:
 compile_estimate:
 	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c libs/rvms.c prog/estimate.c -o estimate -g -lm
 
-run: compile
-	./start
+finite_simulation: compile
+	./start -s finite
+
+infinite_simulation: compile
+	./start -s infinite
 
 test: compile_test
 	./tests
@@ -31,4 +34,4 @@ msq: compile_msq
 	./msq
 
 estimate: compile_estimate
-	./estimate < prova.txt
+	./estimate < ./result/Primi.txt

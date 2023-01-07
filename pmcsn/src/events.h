@@ -2,6 +2,7 @@
 #define PROGETTOPMCSN_EVENT_H
 
 #include "../utils/helpers.h"
+#include "event_list.h"
 
 void init_event_list(int type);
 

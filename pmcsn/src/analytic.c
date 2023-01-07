@@ -26,10 +26,11 @@ int to_days_rounding_up(int hours) {
 int get_costs(block *block) {
     if (block->type == CONSUMAZIONE) {
         // The costs are given by:
-        // - fixed cost for energy, food and gas, per hour
-        // - fixed cost for renting the canteen, per day.
-        // - the canteen and kitchen dimension depends on the number of seats
-        return HOURLY_FIXED_COST * N_HOURS + DAILY_RENT_COST_MQ * to_days_rounding_up(N_HOURS) * block->num_servers * (SQUARE_METER_PER_SEAT + KITCHEN_SQUARE_METER_PER_SEAT);
+        // - fixed cost for energy, per hour;
+        // - fixed cost for renting the canteen, per day;
+        // - the canteen and kitchen dimension depends on the number of seats;
+        double total_mq = block->num_servers * (SQUARE_METER_PER_SEAT + KITCHEN_SQUARE_METER_PER_SEAT); 
+        return (HOURLY_FIXED_COST + (HOURLY_RENT_COST_MQ * total_mq)) * N_HOURS;
     }
     return SALARY * N_HOURS * block->num_servers;
 }

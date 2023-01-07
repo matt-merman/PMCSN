@@ -9,6 +9,9 @@
 #include "../src/server.h"
 #include "../src/validation.h"
 #include "../src/analytic.h"
+#include "../src/event_list.h"
+#include "files.h"
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -28,9 +31,11 @@
 double	get_next_arrival(double current, double lambda);
 double	get_next_service(block_type type, int stream);
 void    get_stats(block *b, clock *clock, statistics *stats);
-void	show_and_validate_stats(block **blocks, clock *clock);
 void    clear_mem(block **blocks);
 void debug(clock *system_clock, block **blocks, event *event);
+void write_stats_on_file(block **blocks, clock *clock, FILE **file);
+void show_stats(block **blocks, clock *clock);
+void validate_stats(block **blocks, clock *clock);
 
 #endif
 

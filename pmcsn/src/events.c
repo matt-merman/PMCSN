@@ -1,5 +1,4 @@
 #include "events.h"
-#include "event_list.h"
 
 // true if Clock is terminated
 int		terminated = FALSE;

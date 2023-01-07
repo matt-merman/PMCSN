@@ -1,20 +1,32 @@
-#include "event_list.h"
 #include "start.h"
-#include <stdio.h>
-
-/**
- * With 2 arguments, we run the replication. Otherwise, we run only once
- * @param argc the number of program arguments
- * @return TRUE, i.e we replicate, if the given arguments are 2.
- */
-int replicate(int argc){
-    if (argc == 2) return TRUE;
-    return FALSE;
-}
 
 int	main(int argc, __attribute__((unused)) char **argv)
 {
-    start_simulation(replicate(argc));
+	int		c;
+	char	*parameter;
+
+	parameter = NULL;
+	c = getopt(argc, argv, "s:");
+	switch (c)
+	{
+	case 's':
+		parameter = optarg;
+		break ;
+	case '?':
+		break ;
+	}
+	
+	// initializing multi-stream lehmer generator
+	PlantSeeds(123456789);
+
+	if (strcmp(parameter, "finite") == 0)
+		start_finite_horizon_simulation();
+	else if (strcmp(parameter, "infinite") == 0)
+		start_infinite_horizon_simulation();
+	else
+		printf("Usage: ./start -s [finite/infinite]\n");
+	
+	return (0);
 }
 
 /**
@@ -57,83 +69,112 @@ void	update_areas_for_block(block *block, event *event, clock *clock)
 	}
 }
 
-int start_simulation(int experiment) // numero repliche
+int	start_finite_horizon_simulation(void)
 {
-	clock		*system_clock;
-	block		**blocks;
-	event		*current_event;
-	int			*network_status;
-	block_type	btype;
-
-	// initializing multi-stream lehmer generator
-	PlantSeeds(123456789);
+	clock	*system_clock;
+	block	**blocks;
+	FILE	**files;
+	int *network_status, replica;
+	
 	network_status = init_network(CONFIG_2);
+	files = open_files("w");
+	
+	for (replica = 0; replica < REPLICAS; replica++)
+	{
+		system_clock = init_clock();
+		if (system_clock == NULL)
+		{
+			PRINTF("Error on system clock\n");
+			return (-1);
+		}
+		init_event_list(system_clock->type);
+		blocks = init_blocks(network_status);
+		if (blocks == NULL)
+		{
+			PRINTF("Error on blocks");
+			return (-1);
+		}
 
-    double replicas = experiment ? REPLICAS : 1;
+		simulation(system_clock, blocks);
 
-    for (int replica_index = 0; replica_index < replicas; replica_index++){
-        system_clock = init_clock();
-        if (system_clock == NULL)
-        {
-            PRINTF("Error on system clock\n");
-            return (-1);
-        }
-        init_event_list(system_clock->type);
-        blocks = init_blocks(network_status);
-        if (blocks == NULL)
-        {
-            PRINTF("Error on blocks");
-            return (-1);
-        }
-        while (true)
-        {
-            /* break if the times is finished,
-                all events are processed and all servers are idle */
-            if (system_clock->last_arrival >= PERIOD && !are_there_more_events()
-                && !are_there_busy_servers(blocks))
-                break ;
-            current_event = get_next_event();
-            if (current_event->event_type == ARRIVAL)
-                // we update the last arrival time
-                system_clock->last_arrival = current_event->time;
-            update_area_stats(blocks, current_event, system_clock);
-            system_clock->current = current_event->time;
-            btype = current_event->block_type;
-            switch (current_event->event_type)
-            {
-                case ARRIVAL:
-                    // schedule its completion (if a server is idle) or add to queue and generate a new outside arrival
-                    process_arrival(current_event, system_clock, blocks[btype]);
-                    break ;
-                case IMMEDIATE_ARRIVAL:
-                    // schedule its completion or add to queue
-                    process_immediate_arrival(current_event, system_clock,blocks[btype]);
-                    break ;
-                case COMPLETION:
-                    // schedule the next completion and generate an immediate arrival
-                    process_completion(current_event, system_clock, blocks[btype]);
-                    break ;
-                default:
-                    break ;
-            }
-            // the current_event is processed and now it can be freed
-            sort_list();
-            debug(system_clock, blocks, current_event);
-            free(current_event);
-        }
-        if (!experiment) {
-            show_and_validate_stats(blocks, system_clock, 0);
-        } else {
-            show_and_validate_stats(blocks, system_clock, replica_index);
-            // write_stats_to_file(blocks, system_clock); // 7 x 6 x 20 file
-        }
-        free(system_clock);
-        clear_mem(blocks);
-    }
+		// to run a standard execution uncomment the following statements
+		// show_stats(blocks, system_clock);
+		// validate_stats(blocks, system_clock);
+		
+		write_stats_on_file(blocks, system_clock, files);	
+
+		free(system_clock);
+		clear_mem(blocks);
+	}
+	close_files(files);	
+	calculate_interval_estimate();
+
 	return (0);
 }
 
-// To process an arrival, we need to schedule or enqueue the job and then generate a new ARRIVAL event
+void calculate_interval_estimate(void)
+{
+	FILE **files;
+	int i;
+	
+	files = open_files("r");
+	for(i = 0; i < BLOCKS; i++){
+		CalculateIntervalEstimate(files[i]);
+	}
+	close_files(files);
+}
+
+int	start_infinite_horizon_simulation(void)
+{
+	return (0);
+}
+
+void	simulation(clock *system_clock, block **blocks)
+{
+	event		*current_event;
+	block_type	btype;
+
+	while (true)
+	{
+		/* break if the times is finished,
+          all events are processed and all servers are idle */
+		if (system_clock->last_arrival >= PERIOD && !are_there_more_events()
+			&& !are_there_busy_servers(blocks))
+			break ;
+		current_event = get_next_event();
+		if (current_event->event_type == ARRIVAL)
+			// we update the last arrival time
+			system_clock->last_arrival = current_event->time;
+		update_area_stats(blocks, current_event, system_clock);
+		system_clock->current = current_event->time;
+		btype = current_event->block_type;
+		switch (current_event->event_type)
+		{
+		case ARRIVAL:
+			// schedule its completion (if a server is idle) or add to queue and generate a new outside arrival
+			process_arrival(current_event, system_clock, blocks[btype]);
+			break ;
+		case IMMEDIATE_ARRIVAL:
+			// schedule its completion or add to queue
+			process_immediate_arrival(current_event, system_clock,
+					blocks[btype]);
+			break ;
+		case COMPLETION:
+			// schedule the next completion and generate an immediate arrival
+			process_completion(current_event, system_clock, blocks[btype]);
+			break ;
+		default:
+			break ;
+		}
+		// the current_event is processed and now it can be freed
+		sort_list();
+		debug(system_clock, blocks, current_event);
+		free(current_event);
+	}
+}
+
+/* To process an arrival,
+	we need to schedule or enqueue the job and then generate a new ARRIVAL event*/
 void	process_arrival(event *event, clock *c, block *block)
 {
 	double	p;
@@ -170,10 +211,10 @@ void	process_immediate_arrival(event *arrival_event, clock *c, block *block)
 				COMPLETION, c, arrival_event);
 		if (next_completion_event != NULL)
 		{
-			next_completion_time = next_completion_event->time;
-			s->sum->service += next_completion_time - c->current;
+			next_completion_time = (next_completion_event->time - c->current);
+			s->sum->service += next_completion_time;
 			s->sum->served++;
-			block->block_area->service += (next_completion_time - c->current);
+			block->block_area->service += next_completion_time;
 		}
 	}
 	else if (block->type == CONSUMAZIONE)
