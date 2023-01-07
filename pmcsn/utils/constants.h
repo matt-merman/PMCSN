@@ -3,6 +3,7 @@
 
 #define NAME_SIZE 32                                // Size of block name string
 #define BLOCKS 6
+
 #define START 0
 #define N (BLOCKS * 100)
 

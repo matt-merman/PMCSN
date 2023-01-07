@@ -1,5 +1,7 @@
 #include "start.h"
 
+const char * BLOCK_NAMES[BLOCKS] = {"Primi", "Secondi e Contorni", "Frutta e Dessert", "Casse Fast", "Casse standard", "Locale Mensa"};
+
 int	main(int argc, __attribute__((unused)) char **argv)
 {
 	int		c;
@@ -89,7 +91,7 @@ int start_standard_simulation() {
         return (-1);
     }
     init_event_list(system_clock->type);
-    blocks = init_blocks(network_status);
+    blocks = init_blocks(network_status, BLOCK_NAMES);
     if (blocks == NULL) {
         PRINTF("Error on blocks");
         return (-1);
@@ -116,7 +118,7 @@ int start_finite_horizon_simulation()
 	int *network_status, replica;
 	
 	network_status = init_network(CONFIG_2);
-	files = open_files("w");
+	files = open_files("w", BLOCK_NAMES);
 	
 	for (replica = 0; replica < REPLICAS; replica++)
 	{
@@ -127,7 +129,7 @@ int start_finite_horizon_simulation()
 			return (-1);
 		}
 		init_event_list(system_clock->type);
-		blocks = init_blocks(network_status);
+		blocks = init_blocks(network_status, BLOCK_NAMES);
 		if (blocks == NULL)
 		{
 			PRINTF("Error on blocks");
@@ -151,8 +153,9 @@ void calculate_interval_estimate(void)
 	FILE **files;
 	int i;
 	
-	files = open_files("r");
+	files = open_files("r", BLOCK_NAMES);
 	for(i = 0; i < BLOCKS; i++){
+        printf("\n============== Ensemble Node Population for block %s =============", BLOCK_NAMES[i]);
 		CalculateIntervalEstimate(files[i]);
 	}
 	close_files(files);

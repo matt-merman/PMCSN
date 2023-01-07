@@ -6,13 +6,12 @@
  * @param p Mode of operation: 'r' for read-only, 'w' for read-write
  * @return an array of file pointers with the finite-simulation results
  */
-FILE	**open_files(char *p)
+FILE **open_files(char *p, const char **block_names)
 {
 	FILE	**files;
 	int		i;
     char *path, *ext, file_name[100];
 
-    char *names[] = {"Primi", "Secondi e Contorni", "Frutta_Dessert", "Casse_Fast", "Casse_standard", "Locale_Mensa"};
 	// We suppose that the current directory is pmcsn/
     path = "./result/";
 	ext = ".txt";
@@ -32,7 +31,7 @@ FILE	**open_files(char *p)
 			return (NULL);
 		}
 		strcat(file_name, path);
-		strcat(file_name, names[i]);
+		strcat(file_name, block_names[i]);
 		strcat(file_name, ext);
         // removes the file if already exists. We have to write in it
 		if(strcmp(p, "w") == 0)
