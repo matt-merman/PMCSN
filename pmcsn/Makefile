@@ -1,5 +1,5 @@
 CC				= gcc
-CFLAGS			= -Wall -Wextra
+CFLAGS			= -Wall -Wextra -g
 LIB 			= -lm
 SRC 			= ./src
 LIBS 			= libs/rngs.c libs/rvgs.c libs/rvms.c libs/estimate.c
@@ -10,16 +10,16 @@ TEST_SOURCES	= test/analytic_test.c test/test.c test/events_test.c
 all: compile compile_test compile_msq compile_estimate
 
 compile:
-	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) src/start.c  $(LIB) -o start -g
+	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) src/start.c  $(LIB) -o start
 
 compile_test:
-	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) $(TEST_SOURCES) $(LIB) -o tests -g
+	$(CC) $(CFLAGS) $(LIBS) $(SOURCES) $(TEST_SOURCES) $(LIB) -o tests
 
 compile_msq:
-	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c prog/msq.c src/analytic.c -o msq -g -lm
+	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c prog/msq.c src/analytic.c -o msq -lm
 
 compile_estimate:
-	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c libs/rvms.c prog/estimate.c -o estimate -g -lm
+	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c libs/rvms.c prog/estimate.c -o estimate -lm
 
 finite_simulation: compile
 	./start -s finite

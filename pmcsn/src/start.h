@@ -17,6 +17,7 @@
 
 void process_completion(event *completion_event, clock *c, block *block);
 void process_immediate_arrival(event *event, clock *c, block *block);
+int start_standard_simulation();
 int start_finite_horizon_simulation();
 int start_infinite_horizon_simulation();
 void update_area_stats(block **blocks, event *event, clock *clock);

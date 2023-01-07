@@ -82,6 +82,6 @@
 #define PER_USER_PENALTY 1 // 1 [eur/penalty] amount that must be payed PER USER if FOR HIM the response time is greater than the MAX_GLOBAL_MEAN_RESPONSE_TIME
 
 // Finite-Horizon
-#define REPLICAS 2
+#define REPLICAS 20
 
 #endif

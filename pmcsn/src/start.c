@@ -5,6 +5,11 @@ int	main(int argc, __attribute__((unused)) char **argv)
 	int		c;
 	char	*parameter;
 
+    if (argc == 1){
+        start_standard_simulation();
+        return 0;
+    }
+
 	parameter = NULL;
 	c = getopt(argc, argv, "s:");
 	switch (c)
@@ -13,14 +18,16 @@ int	main(int argc, __attribute__((unused)) char **argv)
 		parameter = optarg;
 		break ;
 	case '?':
-		break ;
+    default:
+        printf("Usage: ./start -s [finite/infinite]\n");
+		return 0;
 	}
 	
 	// initializing multi-stream lehmer generator
 	PlantSeeds(123456789);
 
 	if (strcmp(parameter, "finite") == 0)
-		start_finite_horizon_simulation();
+        start_finite_horizon_simulation();
 	else if (strcmp(parameter, "infinite") == 0)
 		start_infinite_horizon_simulation();
 	else
@@ -69,7 +76,39 @@ void	update_areas_for_block(block *block, event *event, clock *clock)
 	}
 }
 
-int	start_finite_horizon_simulation(void)
+int start_standard_simulation() {
+    clock *system_clock;
+    block **blocks;
+    int *network_status;
+
+    network_status = init_network(CONFIG_2);
+
+    system_clock = init_clock();
+    if (system_clock == NULL) {
+        PRINTF("Error on system clock\n");
+        return (-1);
+    }
+    init_event_list(system_clock->type);
+    blocks = init_blocks(network_status);
+    if (blocks == NULL) {
+        PRINTF("Error on blocks");
+        return (-1);
+    }
+
+    simulation(system_clock, blocks);
+
+    // if you run one replica, we'll have a standard execution
+    show_stats(blocks, system_clock);
+    validate_stats(blocks, system_clock);
+
+
+    free(system_clock);
+    clear_mem(blocks);
+
+    return (0);
+}
+
+int start_finite_horizon_simulation()
 {
 	clock	*system_clock;
 	block	**blocks;
@@ -96,18 +135,13 @@ int	start_finite_horizon_simulation(void)
 		}
 
 		simulation(system_clock, blocks);
-
-		// to run a standard execution uncomment the following statements
-		// show_stats(blocks, system_clock);
-		// validate_stats(blocks, system_clock);
-		
-		write_stats_on_file(blocks, system_clock, files);	
+        write_stats_on_file(blocks, system_clock, files);
 
 		free(system_clock);
-		clear_mem(blocks);
-	}
-	close_files(files);	
-	calculate_interval_estimate();
+        clear_mem(blocks);
+    }
+    close_files(files);
+    calculate_interval_estimate();
 
 	return (0);
 }

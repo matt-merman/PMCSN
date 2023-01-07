@@ -27,7 +27,7 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     stats->completed_jobs = b->completed_jobs;
     stats->interarrival_time = clock->last / completed_jobs;
     
-    if (DEBUG) printf("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
+    PRINTF("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
     
     // FIXME ricontrollare come viene calcolata area e se questa formula è corretta.
     stats->wait = area->node / completed_jobs;
@@ -62,8 +62,6 @@ void write_stats_on_file(block **blocks, clock *clock, FILE **file){
         // in questo modo estimace.c legge per riga valori consecutivi e non più a capo.  
         write_result(file[i], stats.node_pop);
     }
-
-    return;
 }
 
 void show_stats(block **blocks, clock *clock){
