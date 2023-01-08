@@ -60,20 +60,6 @@ void update_area_stats(event *event, network *canteen)
 	}
 }
 
-void	update_areas_for_block(block *block, event *event, clock *clock)
-{
-	area	*area;
-	double	diff;
-
-	if (block->jobs > 0)
-	{
-		area = block->block_area;
-		diff = event->time - clock->current;
-		area->node += diff * (double)block->jobs;
-		area->queue += diff * (double)block->queue_jobs;
-	}
-}
-
 int start_standard_simulation(int config) {
     network * canteen;
 
@@ -195,9 +181,8 @@ void simulation(network *canteen)
 	while (true)
 	{
 		/* break if the times is finished,
-          all events are processed and all servers are idle */
-		if (canteen->system_clock->last_arrival >= PERIOD && !are_there_more_events()
-			&& !are_there_busy_servers(canteen->blocks))
+          	all events are processed and all servers are idle */
+		if (canteen->system_clock->last_arrival >= PERIOD && !are_there_more_events())
 			break ;
 		current_event = get_next_event();
 		if (current_event->event_type == ARRIVAL)
