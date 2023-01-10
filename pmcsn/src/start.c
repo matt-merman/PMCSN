@@ -1,4 +1,5 @@
 #include "start.h"
+#include <time.h>
 
 const char * BLOCK_NAMES[BLOCKS] = {"Primi", "Secondi e Contorni", "Frutta e Dessert", "Casse Fast", "Casse standard", "Locale Mensa"};
 
@@ -177,9 +178,19 @@ void simulation(network *canteen)
 {
 	event		*current_event;
 	block_type	btype;
-
+    int perc = 0;
+    int prev_perc = 0;
+    long elapsed_time;
+    time_t begin, end;
+    time(&begin);
 	while (true)
 	{
+        perc = (int) ((long) canteen->system_clock->current / (PERIOD / 100));
+        if ( (int) perc > prev_perc || perc == 100){
+            printf("%d%%\r", perc);
+            fflush(stdout);
+            prev_perc = perc;
+        }
 		/* break if the times is finished,
           	all events are processed and all servers are idle */
 		if (canteen->system_clock->last_arrival >= PERIOD && !are_there_more_events())
@@ -213,6 +224,13 @@ void simulation(network *canteen)
         debug(current_event, canteen);
 		free(current_event);
 	}
+    time(&end);
+    // compute and print the elapsed time in millisec
+    elapsed_time = end - begin;
+    long elapsed_time_hours = elapsed_time / 3600L;
+    long elapsed_time_minutes = (elapsed_time % 3600L) / 60L;
+    long elapsed_time_seconds = elapsed_time % 60L;
+    printf("Simulation time hh:mm:ss - %02li:%02li:%02li\n", elapsed_time_hours, elapsed_time_minutes, elapsed_time_seconds);
 }
 
 /**
@@ -221,7 +239,7 @@ void simulation(network *canteen)
  * @param c
  * @param block
  */
-void	process_arrival(event *event, clock *c, block *block)
+void	process_arrival(event *event, timer *c, block *block)
 {
 	double	p;
 
@@ -241,7 +259,7 @@ void	process_arrival(event *event, clock *c, block *block)
  * @param c the time of the current arrival event
  * @param block the service node to which the job is arrived
  */
-void	process_immediate_arrival(event *arrival_event, clock *c, block *block)
+void	process_immediate_arrival(event *arrival_event, timer *c, block *block)
 {
 	int		s_index;
 	server	*s;
@@ -277,7 +295,7 @@ void	process_immediate_arrival(event *arrival_event, clock *c, block *block)
  * @param c
  * @param block
  */
-void	process_completion(event *completion_event, clock *c, block *block)
+void	process_completion(event *completion_event, timer *c, block *block)
 {
 	event	*next_completion_event;
 	double	next_completion_time;
@@ -322,7 +340,7 @@ void	process_completion(event *completion_event, clock *c, block *block)
  * @param c
  * @param triggering_event
  */
-void	schedule_immediate_arrival(block_type type, clock *c, event *triggering_event)
+void	schedule_immediate_arrival(block_type type, timer *c, event *triggering_event)
 {
 	double	p;
 	int		next_type;

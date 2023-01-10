@@ -7,11 +7,11 @@
 #define START 0
 #define N (BLOCKS * 100)
 
-#define USER 2500                                   // mean number of user in the observation period
-#define HOUR (60*60)
-#define N_HOURS 3
+#define USER 2500L                                   // mean number of user in the observation period
+#define HOUR (60L*60L)
+#define N_HOURS 3L
 #define PERIOD (N_HOURS*HOUR)                       // observation period in seconds
-#define INF 100*PERIOD                              // max int is 2147483647
+#define INF (100L * PERIOD)                              // max int is 2147483647
 #define LAMBDA 0.2314814815                         // Computed from USER / 3h (in seconds)
 //#define LAMBDA ((double) USER/(double) PERIOD)    // Mean outside arrivals: 0.2314814815 Mean inter-arrival time 4.32
 #define LAMBDA_DEFAULT 0.2314814815
@@ -53,7 +53,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define DEBUG FALSE
+#define DEBUG TRUE
 #define PRINTF if(DEBUG) printf
 #define IDLE 0
 #define BUSY 1
@@ -86,5 +86,6 @@
 
 // Finite-Horizon
 #define REPLICAS 20
+#define LOC 0.95                       /* level of confidence, for estimate intervals */
 
 #endif

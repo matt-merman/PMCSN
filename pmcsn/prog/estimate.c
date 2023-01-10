@@ -29,9 +29,10 @@ int main(void)
     double stdev;
     double u, t, w;
     double diff;
+    int useless = 0;
 
     while (!feof(stdin)) {                 /* use Welford's one-pass method */
-        scanf("%lf\n", &data);               /* to calculate the sample mean  */
+        useless = scanf("%lf\n", &data);               /* to calculate the sample mean  */
         n++;                                 /* and standard deviation        */
         diff  = data - mean;
         sum  += diff * diff * (n - 1.0) / n;
@@ -49,6 +50,6 @@ int main(void)
         printf("%10.2f +/- %6.2f\n", mean, w);
     }
     else
-        printf("ERROR - insufficient data\n");
+        printf("ERROR - insufficient data %d\n", useless);
     return (0);
 }

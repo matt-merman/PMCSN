@@ -50,7 +50,7 @@ double utilization(int num_servers, double lambda, double mhu) {
 
 // Computes the theoretical utilization of the block, even if it's a multiserver block.
 double get_theoretical_rho(block_type block_type, int num_servers) {
-    double lambda = get_theoretical_lambda_raw(block_type);
+    double lambda = get_theoretical_lambda(block_type, num_servers);
     double mhu = get_theoretical_mhu(block_type);
     return utilization(num_servers, lambda, mhu);
 }
@@ -139,7 +139,7 @@ double erlang_c_response_time(double queue_time, double service_time) {
 }
 
 double erlang_b_loss_probability(int m, double lambda, double mhu) {
-    double pi_0, rho, pi_m;
+    double pi_0 = 0.0, rho = 0.0, pi_m = 0.0;
     int i;
 
     for (i = 0; i <= m; i++) {
@@ -177,7 +177,6 @@ double global_respones_time(int *network_servers) {
 }
 
 // the erlang b queue time is 0, the erlang b response time is equal to service time.
-#define LOC 0.95                       /* level of confidence,        */
 
 void calculate_interval_estimate_for_stat(stat_type stat, const char *stat_name, replica_stats *replica_stats_ensemble,
                                           const char *block_name) {

@@ -72,7 +72,7 @@ event *create_event(block_type target, int server_id, event_type type, double cu
 
 // if time of event is greater than termination period,
 //we stop the arrival flow.
-int	try_terminate_clock(clock *c, double time)
+int	try_terminate_clock(timer *c, double time)
 {
 	if (time > PERIOD)
 	{
@@ -91,7 +91,7 @@ int	is_clock_terminated(void)
 }
 // creates an event and return its time (the time at which the event will occurr)
 // the clock contains the time of this event
-event * create_insert_event(block_type target, int server_id, event_type eventType, clock *c, event *linked_event)
+event * create_insert_event(block_type target, int server_id, event_type eventType, timer *c, event *linked_event)
 {
 	event	*e;
 

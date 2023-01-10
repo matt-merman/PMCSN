@@ -75,10 +75,10 @@ void	init_servers(block *block, int num)
 }
 
 // Initializes the clock, and generates the first arrival
-clock * 	init_clock(void)
+timer * 	init_clock(void)
 {
 	double p = Random();
-	clock *c = (clock *)malloc(sizeof(clock));
+	timer *c = (timer *)malloc(sizeof(timer));
 	if (c == NULL)
 	{
 		printf("Error allocating clock\n");

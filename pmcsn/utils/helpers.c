@@ -21,22 +21,22 @@ double get_next_service(block_type type, int stream) {
 }
 
 // reduced number of parameters
-void get_stats(block *b, clock *clock, statistics *stats) {
+void get_stats(block *b, timer *clock, statistics *stats) {
     double completed_jobs = (double) b->completed_jobs;
     area *area = b->block_area;
     stats->completed_jobs = b->completed_jobs;
-    stats->interarrival_time = clock->last / completed_jobs;
+    stats->interarrival_time = clock->last / completed_jobs; // rejected jobs are excluded
 
     // PRINTF("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
 
     // FIXME ricontrollare come viene calcolata area e se questa formula è corretta.
-    stats->wait = area->node / completed_jobs;
-    stats->delay = area->queue / completed_jobs;
-    stats->service_time = area->service / completed_jobs;
+    stats->wait = (double) (area->node / (long double) completed_jobs);
+    stats->delay = (double) (area->queue / (long double) completed_jobs);
+    stats->service_time = (double) (area->service / (long double) completed_jobs);
 //    printf("area_node: %g\tarea_queue: %g\tarea_service: %g\t completed jobs: %f\n", area->node, area->queue, area->service, completed_jobs);
-    stats->node_pop = area->node / PERIOD;
-    stats->queue_pop = area->queue / PERIOD;
-    stats->utilization = area->service / (PERIOD * b->num_servers);
+    stats->node_pop = (double) ( area->node / (long double) PERIOD);
+    stats->queue_pop = (double) ( area->queue / (long double) PERIOD) ;
+    stats->utilization = (double) ( area->service / ((long double) PERIOD * (long double) b->num_servers));
 //    stats->block_probabiliity = / PERIOD;
     stats->daily_cost = get_costs(b);
     // multiserver statistics
@@ -48,7 +48,7 @@ void get_stats(block *b, clock *clock, statistics *stats) {
     }
 }
 
-void write_stats_on_file(block **blocks, clock *clock, FILE **file){
+void write_stats_on_file(block **blocks, timer *clock, FILE **file){
 
     statistics stats;
     int i;
@@ -83,8 +83,10 @@ void show_stats(network *canteen) {
         printf("\t'%s' block info:\n\n", canteen->blocks[i]->name);
         printf("\t\tpeople in the block ..... = % 10ld\tpeople\n", stats.completed_jobs);
 
-        if (canteen->blocks[i]->type == CONSUMAZIONE)
+        if (canteen->blocks[i]->type == CONSUMAZIONE) {
             printf("\t\trejected people ......... = % 10ld\tpeople\n", canteen->blocks[CONSUMAZIONE]->rejected_jobs);
+            printf("\t\tblock probability ....... = % 10g\tpeople\n", (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs / ( (double) canteen->blocks[CONSUMAZIONE]->completed_jobs + (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs));
+        }
 
         printf("\n\tjob averaged statistics:\n");
         printf("\t\taverage interarrival time = %6.2f\ts\n", stats.interarrival_time);

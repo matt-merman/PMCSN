@@ -43,7 +43,7 @@ typedef struct clock_t_n {
     double current;                 /* current time */
     double last;                    /* last arrival time: used to compute interarrival time */
     block_type type;                /* the type of block for the first event */
-} clock;
+} timer;
 
 // time-averaged integral for entire block
 typedef struct area_t {
@@ -108,7 +108,7 @@ typedef struct block_t {
 typedef struct network_t {
     block **blocks;
     int *network_servers;
-    clock *system_clock;
+    timer *system_clock;
     double ensemble_response_time[REPLICAS];
     double ensemble_serving_response_time[REPLICAS];
     double ensemble_mean_population[REPLICAS];
