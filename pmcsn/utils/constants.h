@@ -9,7 +9,7 @@
 
 #define USER 2500L                                   // mean number of user in the observation period
 #define HOUR (60L*60L)
-#define N_HOURS 3L
+#define N_HOURS 24L
 #define PERIOD (N_HOURS*HOUR)                       // observation period in seconds
 #define INF (100L * PERIOD)                              // max int is 2147483647
 #define LAMBDA 0.2314814815                         // Computed from USER / 3h (in seconds)
@@ -87,7 +87,5 @@
 // Finite-Horizon
 #define REPLICAS 20
 #define LOC 0.95                       /* level of confidence, for estimate intervals */
-
-#define MAX_ROUTING_PATH 6
 
 #endif

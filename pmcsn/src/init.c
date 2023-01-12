@@ -14,26 +14,24 @@ block **init_blocks(int *config, const char **block_names)
 	for (int i = 0; i < BLOCKS; i++)
 	{
 		b[i] = malloc(sizeof(block));
-		memset(b[i], 0x0, sizeof(block));
-		b[i]->block_area = malloc(sizeof(area));
-		b[i]->type = i;
-		b[i]->num_servers = config[i];
-		b[i]->rejected_jobs = 0;
-		
-		b[i]->count_to_next = malloc(sizeof(long int) * MAX_ROUTING_PATH);
-		if (b[i]->count_to_next == NULL)
+		if (b[i] == NULL)
 		{
 			printf("Error Malloc\n");
 			return (NULL);
 		}
-		
-		memset(b[i]->count_to_next, 0, sizeof(long int) * MAX_ROUTING_PATH);
 
-		if (b[i]->block_area == NULL || b[i] == NULL)
+		memset(b[i], 0, sizeof(block));
+		b[i]->block_area = malloc(sizeof(area));
+		b[i]->count_to_next = malloc(sizeof(long int) * BLOCKS);
+		b[i]->type = i;
+		b[i]->num_servers = config[i];	
+
+		if (b[i]->block_area == NULL || b[i]->count_to_next == NULL)
 		{
 			printf("Error Malloc\n");
 			return (NULL);
 		}
+		memset(b[i]->count_to_next, 0, sizeof(long int) * BLOCKS);
 		strncpy(b[i]->name, block_names[i], NAME_SIZE - 1);
 		memset(b[i]->block_area, 0x0, sizeof(area));
 		init_servers(b[i], config[i]);
@@ -44,15 +42,13 @@ block **init_blocks(int *config, const char **block_names)
 void restart_blocks(network *canteen){
     for (int i = 0; i < BLOCKS; i++){
         block *block = canteen->blocks[i];
-        memset(block->block_area, 0x0, sizeof(area));
+        memset(block->block_area, 0, sizeof(area));
         block->queue_jobs = 0;
         block->completed_jobs = 0;
         block->rejected_jobs = 0;
         block->jobs = 0;
         for(int j = 0 ; j < block->num_servers; j++){
-            block->servers[j]->sum->service = 0.0;
-            block->servers[j]->sum->service = 0;
-            block->servers[j]->status = IDLE;
+	        memset(block->servers[j], 0, sizeof(server));
         }
     }
 }

@@ -47,9 +47,9 @@ void get_stats(block *b, timer *clock, statistics *stats) {
         stats->multiserver_service_time[s] = b->servers[s]->sum->service / b->servers[s]->sum->served;
     }
 
-    stats->routing_p = malloc(sizeof(long double) * MAX_ROUTING_PATH);
+    stats->routing_p = malloc(sizeof(long double) * BLOCKS);
     // to calculate the routing probabilities
-    for (int s = 0; s < MAX_ROUTING_PATH; s++){
+    for (int s = 0; s < BLOCKS; s++){
         stats->routing_p[s] = (long double) b->count_to_next[s] / (long double) b->completed_jobs;
     }
 
@@ -114,15 +114,15 @@ void show_stats(network *canteen) {
         if (canteen->blocks[i]->type == PRIMO){
             printf("\n\trouting probabilities statistics:\n");
             printf("\t\tP(to SECONDO) ....... = %6.4Lf\n", stats.routing_p[1]);
-            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[2]);
-            printf("\t\tP(to CASSA STD) ..... = %6.4Lf\n", stats.routing_p[3]);
+            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[3]);
+            printf("\t\tP(to DESSERT) ....... = %6.4Lf\n", stats.routing_p[2]);
         }
         
         else if (canteen->blocks[i]->type == SECONDO){
             printf("\n\trouting probabilities statistics:\n");
-            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[2]);
-            printf("\t\tP1(to CASSA STD) .... = %6.4Lf\n", stats.routing_p[3]);
-            printf("\t\tP2(to DESSERT) ...... = %6.4Lf\n", stats.routing_p[4]);
+            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[3]);
+            printf("\t\tP1(to CASSA STD) .... = %6.4Lf\n", stats.routing_p[4]);
+            printf("\t\tP2(to DESSERT) ...... = %6.4Lf\n", stats.routing_p[2]);
         }
         
         else if (canteen->blocks[i]->type == DESSERT){
