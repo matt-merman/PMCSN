@@ -19,6 +19,16 @@ block **init_blocks(int *config, const char **block_names)
 		b[i]->type = i;
 		b[i]->num_servers = config[i];
 		b[i]->rejected_jobs = 0;
+		
+		b[i]->count_to_next = malloc(sizeof(long int) * MAX_ROUTING_PATH);
+		if (b[i]->count_to_next == NULL)
+		{
+			printf("Error Malloc\n");
+			return (NULL);
+		}
+		
+		memset(b[i]->count_to_next, 0, sizeof(long int) * MAX_ROUTING_PATH);
+
 		if (b[i]->block_area == NULL || b[i] == NULL)
 		{
 			printf("Error Malloc\n");

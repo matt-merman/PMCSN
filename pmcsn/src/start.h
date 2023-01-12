@@ -20,7 +20,7 @@ int start_standard_simulation(int config);
 int start_finite_horizon_simulation(int config);
 int start_infinite_horizon_simulation(int config);
 void update_area_stats(event *event, network *canteen);
-void schedule_immediate_arrival(block_type type, timer *c, event *triggering_event);
+void schedule_immediate_arrival(block* block, timer *c, event *triggering_event);
 void process_arrival(event *event, timer *c, block *block);
 void simulation(network *canteen);
 void calculate_all_interval_estimate(network *canteen);

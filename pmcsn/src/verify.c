@@ -155,117 +155,27 @@ double erlang_b_loss_probability(int m, double lambda, double mhu) {
     return pi_m;
 }
 
-double get_response_time(block_type type, int m) {
+double get_response_time(block_type type, int m, statistics stats) {
 
-    double service_time = get_theoretical_service(type);
+
+    double service_time = stats.service_time;
     if (type == CONSUMAZIONE) {
         return service_time;
     }
-    double rho = get_theoretical_rho(type, m);
+    double rho = stats.utilization;
     double block_probability = erlang_c_block_probability(m, rho);
     double service_time_multi = service_time / m;
     double queue_time = erlang_c_queue_time(block_probability, service_time_multi, rho);
     return erlang_c_response_time(queue_time, service_time);
 }
 
-double global_respones_time(int *network_servers) {
+double global_respones_time_real(int *network_servers, network *canteen) {
     double global_wait = 0.0;
+    statistics stats;
     for (int i = 0; i<BLOCKS; i++){
-        global_wait += get_response_time(i, network_servers[i]) * get_theoretical_visits(i, network_servers[i]);
+     
+          get_stats(canteen->blocks[i], canteen->system_clock, &stats);
+        global_wait += get_response_time(i, network_servers[i], stats) * get_theoretical_visits(i, network_servers[i]);
     }
     return global_wait;
-}
-
-// the erlang b queue time is 0, the erlang b response time is equal to service time.
-
-// void calculate_interval_estimate_for_stat(stat_type stat, const char *stat_name, replica_stats *replica_stats_ensemble,
-//                                           const char *block_name) {
-//     long n = 0;                     /* counts data points */
-//     double sum = 0.0;
-//     double mean = 0.0;
-//     double data;
-//     double stdev;
-//     double u, t, w;
-//     double diff;
-
-
-//     /* use Welford's one-pass method to compute sample mean and standard deviation */
-//     for (int rep = 0; rep < REPLICAS; rep++) {
-//         switch (stat) {
-//             case INTERARRIVAL:
-//                 data = replica_stats_ensemble[rep].interarrival;
-//                 break;
-//             case WAIT:
-//                 data = replica_stats_ensemble[rep].wait;
-//                 break;
-//             case DELAY:
-//                 data = replica_stats_ensemble[rep].delay;
-//                 break;
-//             case SERVICE:
-//                 data = replica_stats_ensemble[rep].service;
-//                 break;
-//             case NODE_POP:
-//                 data = replica_stats_ensemble[rep].node_pop;
-//                 break;
-//             case QUEUE_POP:
-//                 data = replica_stats_ensemble[rep].queue_pop;
-//                 break;
-//             case UTILIZATION:
-//                 data = replica_stats_ensemble[rep].utilization;
-//                 break;
-//             default:
-//                 data = 0.0;
-//         }
-//         n++;
-//         diff = data - mean;
-//         sum += diff * diff * (n - 1.0) / n;
-//         mean += diff / n;
-//     }
-
-//     stdev = sqrt(sum / n);
-
-//     if (n > 1) {
-//         u = 1.0 - 0.5 * (1.0 - LOC);              /* interval parameter  */
-//         t = idfStudent(n - 1, u);                 /* critical value of t */
-//         w = t * stdev / sqrt(n - 1);              /* interval half width */
-//         printf("\n============== Ensemble %s for block %s =============", stat_name, block_name);
-//         printf("\nbased upon %ld data points", n);
-//         printf(" and with %d%% confidence\n", (int) (100.0 * LOC + 0.5));
-//         printf("the expected value is in the interval");
-//         printf("%10.2f +/- %6.2f\n", mean, w);
-//     } else
-//         printf("ERROR - insufficient data\n");
-// }
-
-void calculate_interval_estimate_for_stat(const char *stat_name, double *global_respones_time) {
-    long n = 0;                     /* counts data points */
-    double sum = 0.0;
-    double mean = 0.0;
-    double data;
-    double stdev;
-    double u, t, w;
-    double diff;
-
-
-    /* use Welford's one-pass method to compute sample mean and standard deviation */
-    for (int rep = 0; rep < REPLICAS; rep++) {
-        n++;
-        diff = global_respones_time[rep] - mean;
-        sum += diff * diff * (n - 1.0) / n;
-        mean += diff / n;
-    }
-
-    stdev = sqrt(sum / n);
-
-    if (n > 1) {
-        u = 1.0 - 0.5 * (1.0 - LOC);              /* interval parameter  */
-        t = idfStudent(n - 1, u);                 /* critical value of t */
-        w = t * stdev / sqrt(n - 1);              /* interval half width */
-        printf("\n============== Ensemble %s for block %s =============", stat_name, stat_name);
-        printf("\nbased upon %ld data points", n);
-        printf(" and with %d%% confidence\n", (int) (100.0 * LOC + 0.5));
-        printf("the expected value is in the interval");
-        printf("%10.2f +/- %6.2f\n", mean, w);
-    } else
-        printf("ERROR - insufficient data\n");
 }

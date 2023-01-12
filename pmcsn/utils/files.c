@@ -1,49 +1,35 @@
-#include <unistd.h>
 #include "files.h"
+#include <unistd.h>
 
 /**
  * Opens file to read computed replica means
  * @param p Mode of operation: 'r' for read-only, 'w' for read-write
  * @return an array of file pointers with the finite-simulation results
  */
-FILE **open_files(char *p, const char **block_names)
+FILE	**open_files(char *p, const char **block_names)
 {
-	FILE	**files;
+	FILE	*file;
 	int		i;
-    char *path, *ext, file_name[100];
 
+	char *path, *ext, file_name[100];
 	// We suppose that the current directory is pmcsn/
-    path = "./result/";
+	path = "./result/";
 	ext = ".txt";
-	files = (FILE **)malloc(BLOCKS * sizeof(FILE *));
-	if (files == NULL)
+	memset(file_name, '\0', sizeof(file_name));
+	strcat(file_name, path);
+	// strcat(file_name, block_names[i]);
+	strcat(file_name, "finite");
+	strcat(file_name, ext);
+	// removes the file if already exists. We have to write in it
+	if (strcmp(p, "w") == 0)
+		remove(file_name);
+	file = fopen(file_name, p);
+	if (file == NULL)
 	{
-		printf("Error on file list allocation\n");
-		return (NULL);
+		printf("File %s not found. Make sure to run the program from pmcsn/ folder", file_name);
+		exit(-1);
 	}
-	for (i = 0; i < BLOCKS; i++)
-	{
-		memset(file_name, '\0', sizeof(file_name));
-		files[i] = (FILE *)malloc(sizeof(FILE));
-		if (files[i] == NULL)
-		{
-			printf("Error on file allocation\n");
-			return (NULL);
-		}
-		strcat(file_name, path);
-		strcat(file_name, block_names[i]);
-		strcat(file_name, ext);
-        // removes the file if already exists. We have to write in it
-		if(strcmp(p, "w") == 0)
-			remove(file_name);
-		
-		files[i] = fopen(file_name, p);
-        if (files[i] == NULL){
-            printf("File %s not found. Make sure to run the program from pmcsn/ folder", file_name);
-            exit(-1);
-        }
-	}
-	return (files);
+return (file);
 }
 
 void	write_result(FILE *file, double value)
@@ -59,11 +45,13 @@ void	close_files(FILE **files)
 {
 	int i;
 
-	for (i = 0; i < BLOCKS; i++){
-        if (files[i] != NULL){
-            fclose(files[i]);
-        }
-    }
+	for (i = 0; i < BLOCKS; i++)
+	{
+		if (files[i] != NULL)
+		{
+			fclose(files[i]);
+		}
+	}
 
 	free(files);
 }

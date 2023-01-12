@@ -88,7 +88,6 @@ int start_standard_simulation(int config) {
     show_stats(canteen);
     validate_stats(canteen);
 
-
     free(canteen->system_clock);
     clear_mem(canteen->blocks);
     free(canteen);
@@ -130,7 +129,7 @@ int start_finite_horizon_simulation(int config)
         simulation(canteen);
         update_ensemble(canteen, replica);
 
-		free(canteen->system_clock);
+	free(canteen->system_clock);
     }
     calculate_all_interval_estimate(canteen);
     clear_mem(canteen->blocks);
@@ -145,21 +144,24 @@ void calculate_all_interval_estimate(network *canteen)
 {
 	// FILE **files;
 	int i,s;
-    const char *stats[18] = {
-            "Interarrival time",
-            "Response time",
-            "Queue time",
-            "Service time",
-            "Node population",
-            "Queue population",
-            "Utilization"
-    };
-	for(i = 0; i < BLOCKS; i++){
-        for (s = 0; s < STAT_NUMBER; s++) {
-            calculate_interval_estimate_for_stat(s, stats[s], canteen->blocks[i]->ensemble_stats, BLOCK_NAMES[i]);
-        }
-        //TODO stampare se il valore teorico è dentro o fuori l'intervallo di confidenza
-	}
+//     const char *stats[18] = {
+//             "Interarrival time",
+//             "Response time",
+//             "Queue time",
+//             "Service time",
+//             "Node population",
+//             "Queue population",
+//             "Utilization"
+//     };
+	// for(i = 0; i < BLOCKS; i++){
+     //    for (s = 0; s < STAT_NUMBER; s++) {
+     //        calculate_interval_estimate_for_stat(s, stats[s], canteen->blocks[i]->ensemble_stats, BLOCK_NAMES[i]);
+     //    }
+     //    //TODO stampare se il valore teorico è dentro o fuori l'intervallo di confidenza
+	// }
+
+     calculate_interval_estimate_for_stat("Global Response Time", canteen->global_response_time);
+
 }
 /**
  *
@@ -331,7 +333,7 @@ void	process_completion(event *completion_event, timer *c, block *block)
 			}
 		}
 	}
-	schedule_immediate_arrival(block->type, c, completion_event);
+	schedule_immediate_arrival(block, c, completion_event);
 }
 
 /**
@@ -340,12 +342,12 @@ void	process_completion(event *completion_event, timer *c, block *block)
  * @param c
  * @param triggering_event
  */
-void	schedule_immediate_arrival(block_type type, timer *c, event *triggering_event)
+void	schedule_immediate_arrival(block* block, timer *c, event *triggering_event)
 {
 	double	p;
 	int		next_type;
 
-	switch (type)
+	switch (block->type)
 	{
 	case PRIMO:
 		p = Random();
@@ -376,5 +378,8 @@ void	schedule_immediate_arrival(block_type type, timer *c, event *triggering_eve
 	default:
 		return ;
 	}
+
+	block->count_to_next[next_type] ++;
 	create_insert_event(next_type, -1, IMMEDIATE_ARRIVAL, c, triggering_event);
+
 }

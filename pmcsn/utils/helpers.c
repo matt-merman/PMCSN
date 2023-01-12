@@ -46,6 +46,14 @@ void get_stats(block *b, timer *clock, statistics *stats) {
         stats->multiserver_utilization[s] = b->servers[s]->sum->service / PERIOD;
         stats->multiserver_service_time[s] = b->servers[s]->sum->service / b->servers[s]->sum->served;
     }
+
+    stats->routing_p = malloc(sizeof(long double) * MAX_ROUTING_PATH);
+    // to calculate the routing probabilities
+    for (int s = 0; s < MAX_ROUTING_PATH; s++){
+        stats->routing_p[s] = (long double) b->count_to_next[s] / (long double) b->completed_jobs;
+    }
+
+
 }
 
 void write_stats_on_file(block **blocks, timer *clock, FILE **file){
@@ -93,14 +101,34 @@ void show_stats(network *canteen) {
         printf("\t\taverage node wait ....... = %6.2f\ts\n", stats.wait);
         printf("\t\taverage queue delay ..... = %6.2f\ts\n", stats.delay);
         printf("\t\taverage service time .... = %6.2f\ts\n", stats.service_time);
+        
         printf("\n\ttime averaged statistics:\n");
         printf("\t\taverage # in the node ... = %6.2f\tpeople\n", stats.node_pop);
         printf("\t\taverage # in the queue .. = %6.2f\tpeople\n", stats.queue_pop);
         printf("\t\tutilization ............. = %6.4f\t-\n", stats.utilization);
 
-        printf("\t\tarea node %Lf\n", canteen->blocks[i]->block_area->node);
-        printf("\t\tarea queue %Lf\n", canteen->blocks[i]->block_area->queue);
-        printf("\t\tarea service %Lf\n", canteen->blocks[i]->block_area->service);
+        // printf("\t\tarea node %Lf\n", canteen->blocks[i]->block_area->node);
+        // printf("\t\tarea queue %Lf\n", canteen->blocks[i]->block_area->queue);
+        // printf("\t\tarea service %Lf\n", canteen->blocks[i]->block_area->service);
+
+        if (canteen->blocks[i]->type == PRIMO){
+            printf("\n\trouting probabilities statistics:\n");
+            printf("\t\tP(to SECONDO) ....... = %6.4Lf\n", stats.routing_p[1]);
+            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[2]);
+            printf("\t\tP(to CASSA STD) ..... = %6.4Lf\n", stats.routing_p[3]);
+        }
+        
+        else if (canteen->blocks[i]->type == SECONDO){
+            printf("\n\trouting probabilities statistics:\n");
+            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[2]);
+            printf("\t\tP1(to CASSA STD) .... = %6.4Lf\n", stats.routing_p[3]);
+            printf("\t\tP2(to DESSERT) ...... = %6.4Lf\n", stats.routing_p[4]);
+        }
+        
+        else if (canteen->blocks[i]->type == DESSERT){
+            printf("\n\trouting probabilities statistics:\n");
+            printf("\t\tP(to CASSA STD) ..... = %6.4Lf\ts\n", stats.routing_p[4]);
+        }
 
         printf("\n\t\tMulti-server statistics:\n");
         printf("\t\t    server     utilization     avg service\n");
@@ -142,18 +170,23 @@ void validate_stats(network *canteen) {
  * @param replica index of replica in 0...REPLICAS-1
  */
 void update_ensemble(network *canteen, int replica_index) {
-    for (int i = 0; i < BLOCKS; i++) {
-        replica_stats *replica = &canteen->blocks[i]->ensemble_stats[replica_index];
-        statistics stats;
-        get_stats(canteen->blocks[i], canteen->system_clock, &stats);
-        replica->interarrival = stats.interarrival_time;
-        replica->wait = stats.wait;
-        replica->delay = stats.delay;
-        replica->service = stats.service_time;
-        replica->node_pop = stats.node_pop;
-        replica->queue_pop = stats.queue_pop;
-        replica->utilization = stats.utilization;
-    }
+    // for (int i = 0; i < BLOCKS; i++) {
+    //     replica_stats *replica = &canteen->blocks[i]->ensemble_stats[replica_index];
+    //     statistics stats;
+    //     get_stats(canteen->blocks[i], canteen->system_clock, &stats);
+    //     replica->interarrival = stats.interarrival_time;
+    //     replica->wait = stats.wait;
+    //     replica->delay = stats.delay;
+    //     replica->service = stats.service_time;
+    //     replica->node_pop = stats.node_pop;
+    //     replica->queue_pop = stats.queue_pop;
+    //     replica->utilization = stats.utilization;
+    // }
+
+	int	ergodic[] = {3, 3, 2, 1, 4, 139}; // TODO: ATTENZIONE non cambiare il 139!!!!
+    //canteen->global_response_time[replica_index] += global_respones_time_real(ergodic, canteen);
+    printf("%lf\n", canteen->global_response_time[replica_index]);
+
 }
 
 void clear_mem(block **blocks) {

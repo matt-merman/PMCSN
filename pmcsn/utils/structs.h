@@ -67,6 +67,8 @@ typedef struct statistics_t {
     long double daily_cost;
     double *multiserver_utilization;
     double *multiserver_service_time;
+    
+    long double *routing_p;
 } statistics;
 
 // cumulative sum of service for a single server
@@ -89,6 +91,8 @@ typedef struct replica_stats_t {
     double node_pop;
     double queue_pop;
     double utilization;
+
+    double global_response_time;
 } replica_stats;
 
 typedef struct block_t {
@@ -103,12 +107,16 @@ typedef struct block_t {
     long int rejected_jobs;
     // int has_infinite_queue;      // possible values: TRUE (has infinite queue) FALSE (doesn't have any queue)
     replica_stats ensemble_stats[REPLICAS];
+    long int *count_to_next;
 } block;
 
 typedef struct network_t {
     block **blocks;
     int *network_servers;
     timer *system_clock;
+
+    double global_response_time[REPLICAS];
+    
     double ensemble_response_time[REPLICAS];
     double ensemble_serving_response_time[REPLICAS];
     double ensemble_mean_population[REPLICAS];

@@ -53,7 +53,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define DEBUG TRUE
+#define DEBUG FALSE
 #define PRINTF if(DEBUG) printf
 #define IDLE 0
 #define BUSY 1
@@ -87,5 +87,7 @@
 // Finite-Horizon
 #define REPLICAS 20
 #define LOC 0.95                       /* level of confidence, for estimate intervals */
+
+#define MAX_ROUTING_PATH 6
 
 #endif
