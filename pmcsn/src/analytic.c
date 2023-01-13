@@ -241,7 +241,7 @@ void calculate_interval_estimate_for_stat(const char *stat_name, double *global_
     long n = 0;                     /* counts data points */
     double sum = 0.0;
     double mean = 0.0;
-    double data;
+    // double data;
     double stdev;
     double u, t, w;
     double diff;

@@ -6,11 +6,11 @@
  * @param p Mode of operation: 'r' for read-only, 'w' for read-write
  * @return an array of file pointers with the finite-simulation results
  */
-FILE	**open_files(char *p, const char **block_names)
+FILE	*open_files(char *p)//, const char **block_names)
 {
 	FILE	*file;
-	int		i;
-
+	// int		i;
+	
 	char *path, *ext, file_name[100];
 	// We suppose that the current directory is pmcsn/
 	path = "./result/";
@@ -29,7 +29,7 @@ FILE	**open_files(char *p, const char **block_names)
 		printf("File %s not found. Make sure to run the program from pmcsn/ folder", file_name);
 		exit(-1);
 	}
-return (file);
+	return (file);
 }
 
 void	write_result(FILE *file, double value)

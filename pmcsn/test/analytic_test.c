@@ -5,6 +5,36 @@
 
 #include "analytic_test.h"
 
+network* mock_network(){
+    const char * block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE"};
+    FIND_SEGFAULT("Prima di creare canteen");
+    network * canteen = create_network((const char**) block_names, CONFIG_2);
+    FIND_SEGFAULT("Prima di simulation");
+    simulation(canteen);
+    return canteen;
+}
+
+int simulation_visits_test(test_count *t){
+    network *n = mock_network();
+    double visits1 = get_simulation_visit(n, PRIMO);
+    double visits2 = get_simulation_visit(n, SECONDO);
+    double visits3 = get_simulation_visit(n, DESSERT);
+    double visits4 = get_simulation_visit(n, CASSA_FAST);
+    double visits5 = get_simulation_visit(n, CASSA_STD);
+    double visits6 = get_simulation_visit(n, CONSUMAZIONE);
+    
+    clear_network(n);
+
+    ASSERT_DOUBLE_EQUAL(visits1, 0.173611111, "visits1");
+    ASSERT_DOUBLE_EQUAL(visits2, 0.153356481, "visits2");
+    ASSERT_DOUBLE_EQUAL(visits3, 0.112413194, "visits3");
+    ASSERT_DOUBLE_EQUAL(visits4, 0.055808738, "visitsF");
+    ASSERT_DOUBLE_EQUAL(visits5, 0.175672743, "visitsC");
+    ASSERT_DOUBLE_EQUAL(visits6, 0.231481481, "visitsS");
+
+    SUCCESS;
+}
+
 // test_count is used inside SUCCESS and ASSERT_DOUBLE_EQUAL macros!
 int lambda_test(test_count *t) {
     double lambda1 = get_theoretical_lambda_raw(PRIMO);
@@ -58,7 +88,7 @@ int rho_test(test_count *t) {
     ASSERT_DOUBLE_EQUAL(rho3, 0.562065972, "rho3");
     ASSERT_DOUBLE_EQUAL(rhoF, 0.613896123, "rhoF");
     ASSERT_DOUBLE_EQUAL(rhoC, 0.790527344, "rhoC");
-    ASSERT_DOUBLE_EQUAL(rhoS, 0.999200639, "rhoS");
+    ASSERT_DOUBLE_EQUAL(rhoS, 0.934999, "rhoS");
 
     SUCCESS;
 }

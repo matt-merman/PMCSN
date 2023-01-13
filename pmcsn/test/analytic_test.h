@@ -6,9 +6,10 @@
 #define PROGETTOPMCSN_TESTS_H
 #include <stdio.h>
 #include "../src/analytic.h"
-#include "../src/start.h"
+#include "../src/simulation.h"
 #include "test.h"
 
+int simulation_visits_test(test_count *t);
 int lambda_test(test_count *t);
 int mhu_test(test_count *t);
 int rho_test(test_count *t);

@@ -183,7 +183,7 @@ void update_ensemble(network *canteen, int replica_index) {
     //     replica->utilization = stats.utilization;
     // }
 
-	int	ergodic[] = {3, 3, 2, 1, 4, 139}; // TODO: ATTENZIONE non cambiare il 139!!!!
+	// int	ergodic[] = {3, 3, 2, 1, 4, 139}; // TODO: ATTENZIONE non cambiare il 139!!!!
     //canteen->global_response_time[replica_index] += global_respones_time_real(ergodic, canteen);
     printf("%lf\n", canteen->global_response_time[replica_index]);
 
