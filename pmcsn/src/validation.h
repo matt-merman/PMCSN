@@ -15,6 +15,8 @@
             (block_name), (msg), (x), (msg), (y)); \
         }} while(0)
 
+double get_simulation_visit(network *canteen, block_type block);
+double get_simulation_lambda(network *canteen, block_type block);
 void validate_block(block * block, statistics *stats);
 void validate_MM1(block* block, statistics* stats);
 void validate_MMk(block *block, statistics *stats);

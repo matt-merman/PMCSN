@@ -5,6 +5,22 @@
 
 #include "validation.h"
 
+double get_simulation_visit(network *canteen, block_type block){
+    // count arrivals from each block to the target block
+    long int arrivals_to_block = 0L;
+    for (int i = 0; i < BLOCKS; i++) {
+        arrivals_to_block = (long) canteen->blocks[i]->count_to_next[block];
+    }
+    block *consumazione = canteen->blocks[CONSUMAZIONE];
+    long int entered_jobs = (consumazione->completed_jobs + consumazione->rejected_jobs);
+    return arrivals_to_block / entered_jobs;
+}
+double get_simulation_lambda(network *canteen, block_type block){
+    block *consumazione = canteen->blocks[CONSUMAZIONE];
+    long int entered_jobs = (consumazione->completed_jobs + consumazione->rejected_jobs);
+    return get_simulation_visit(canteen, block) * (entered_jobs / PERIOD);
+}
+
 void validate_block(block *block, statistics *stats) {
     if (block->num_servers == 1) {
         validate_MM1(block, stats);

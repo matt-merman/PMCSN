@@ -113,16 +113,16 @@ void show_stats(network *canteen) {
 
         if (canteen->blocks[i]->type == PRIMO){
             printf("\n\trouting probabilities statistics:\n");
-            printf("\t\tP(to SECONDO) ....... = %6.4Lf\n", stats.routing_p[1]);
-            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[3]);
-            printf("\t\tP(to DESSERT) ....... = %6.4Lf\n", stats.routing_p[2]);
+            printf("\t\tP(to SECONDO) ....... = %6.4Lf\n", stats.routing_p[SECONDO]);
+            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[CASSA_FAST]);
+            printf("\t\tP(to DESSERT) ....... = %6.4Lf\n", stats.routing_p[DESSERT]);
         }
         
         else if (canteen->blocks[i]->type == SECONDO){
             printf("\n\trouting probabilities statistics:\n");
-            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[3]);
-            printf("\t\tP1(to CASSA STD) .... = %6.4Lf\n", stats.routing_p[4]);
-            printf("\t\tP2(to DESSERT) ...... = %6.4Lf\n", stats.routing_p[2]);
+            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[CASSA_FAST]);
+            printf("\t\tP1(to CASSA STD) .... = %6.4Lf\n", stats.routing_p[CASSA_STD]);
+            printf("\t\tP2(to DESSERT) ...... = %6.4Lf\n", stats.routing_p[DESSERT]);
         }
         
         else if (canteen->blocks[i]->type == DESSERT){
