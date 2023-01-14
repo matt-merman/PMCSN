@@ -74,6 +74,18 @@ int simulation_routing_probabilities_test(test_count *t){
     ASSERT_DOUBLE_APPROX_EQUAL(p_CS, 1.0, "p_CS");
     ASSERT_DOUBLE_APPROX_EQUAL(p_S0, 1.0, "p_CS");
 
+    PRINTF("p_01 = %f\n", p_01);
+    PRINTF("p_02 = %f\n", p_02);
+    PRINTF("p_12 = %f\n", p_12);
+    PRINTF("p_13 = %f\n", p_13);
+    PRINTF("p_1F = %f\n", p_1F);
+    PRINTF("p_23 = %f\n", p_23);
+    PRINTF("p_2F = %f\n", p_2F);
+    PRINTF("p_2C = %f\n", p_2C);
+    PRINTF("p_3C = %f\n", p_3C);
+    PRINTF("p_FS = %f\n", p_FS);
+    PRINTF("p_CS = %f\n", p_CS);
+    PRINTF("p_S0 = %f\n", p_S0);
 
     // we clear the mock_network.
     clear_network(n);

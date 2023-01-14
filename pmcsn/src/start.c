@@ -64,15 +64,15 @@ int start_finite_horizon_simulation(int config)
     }
 
     canteen->network_servers = init_network(config);
-	for (replica = 0; replica < REPLICAS; replica++)
+    for (replica = 0; replica < REPLICAS; replica++)
 	{
-		canteen->system_clock = init_clock();
-		if (canteen->system_clock == NULL)
+        canteen->system_clock = init_clock();
+        if (canteen->system_clock == NULL)
 		{
-			perror("Error on system clock\n");
-			return (-1);
-		}
-		init_event_list(canteen->system_clock->type);
+            perror("Error on system clock\n");
+            return (-1);
+        }
+        init_event_list(canteen->system_clock->type);
         if (replica == 0) {
             canteen->blocks = init_blocks(canteen->network_servers, BLOCK_NAMES);
             if (canteen->blocks == NULL)
@@ -84,10 +84,11 @@ int start_finite_horizon_simulation(int config)
             restart_blocks(canteen);
         }
 
+        FIND_SEGFAULT("tre");
         simulation(canteen);
         update_ensemble(canteen, replica);
 
-	free(canteen->system_clock);
+        free(canteen->system_clock);
     }
     calculate_all_interval_estimate(canteen);
     clear_mem(canteen->blocks);

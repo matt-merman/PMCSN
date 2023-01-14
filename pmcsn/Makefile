@@ -1,5 +1,5 @@
 CC				= gcc
-CFLAGS			= -Wall -Wextra -g
+CFLAGS			= -Wall -Wextra -g -fsanitize=address
 LIB 			= -lm
 SRC 			= ./src
 LIBS 			= libs/rngs.c libs/rvgs.c libs/rvms.c

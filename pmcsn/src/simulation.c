@@ -79,6 +79,7 @@ void simulation(network *canteen)
         debug(current_event, canteen);
 		free(current_event);
 	}
+    FIND_SEGFAULT("TIME");
     time(&end);
     // compute and print the elapsed time in millisec
     elapsed_time = end - begin;
@@ -133,9 +134,10 @@ void	process_immediate_arrival(event *arrival_event, timer *c, block *block)
 		if (next_completion_event != NULL)
 		{
 			next_completion_time = (next_completion_event->time - c->current);
+            printf("%Lf", s->sum->service);
 			s->sum->service += next_completion_time;
 			s->sum->served++;
-			block->block_area->service += next_completion_time;
+            block->block_area->service += next_completion_time;
 		}
 	}
 	else if (block->type == CONSUMAZIONE)

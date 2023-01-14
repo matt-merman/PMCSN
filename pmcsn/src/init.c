@@ -83,8 +83,17 @@ void restart_blocks(network *canteen){
         block->completed_jobs = 0;
         block->rejected_jobs = 0;
         block->jobs = 0;
+        block->count_to_next[0] = 0;
+        block->count_to_next[1] = 0;
+        block->count_to_next[2] = 0;
+        block->count_to_next[3] = 0;
+        block->count_to_next[4] = 0;
+        block->count_to_next[5] = 0;
+        block->count_to_next[6] = 0;
         for(int j = 0 ; j < block->num_servers; j++){
-	        memset(block->servers[j], 0, sizeof(server));
+            block->servers[j]->sum->service = (long double) 0;
+            block->servers[j]->sum->served = 0L;
+            block->servers[j]->status = IDLE;
         }
     }
 }
