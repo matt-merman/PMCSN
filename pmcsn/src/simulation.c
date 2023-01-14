@@ -102,10 +102,10 @@ void	process_arrival(event *event, timer *c, block *block)
 	p = Random();
     if (p < P_PRIMO_FUORI) {
         create_insert_event(PRIMO, -1, ARRIVAL, c, event);
-        block->count_to_next[0]++;
+        block->count_to_next[6]++;
     } else {
         create_insert_event(SECONDO, -1, ARRIVAL, c, event);
-//         block->count_to_next[0]++;
+        block->count_to_next[6]++;
     }
 }
 

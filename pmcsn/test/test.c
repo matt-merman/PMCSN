@@ -10,6 +10,7 @@
 
 void analytic_testsuite(test_count *t){
     simulation_visits_test(t);
+    simulation_routing_probabilities_test(t);
     lambda_test(t);
     mhu_test(t);
     rho_test(t);

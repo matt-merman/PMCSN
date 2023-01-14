@@ -6,21 +6,17 @@ network *create_network(const char** block_names, int config) {
         perror("Error in allocation of canteen queue network ");
         exit(-1);
     }
-	FIND_SEGFAULT("bef init_net");
 	canteen->network_servers = init_network(config);
-	FIND_SEGFAULT("bef init_clock");
     canteen->system_clock = init_clock(); // also sets next arrival time
 	if (canteen->system_clock == NULL) {
         perror("Error on system clock\n");
         exit(-1);
     }
-	FIND_SEGFAULT("bef init_blocks");
     canteen->blocks = init_blocks(canteen->network_servers, block_names);
     if (canteen->blocks == NULL) {
         perror("Error on blocks");
         exit(-1);
     }
-	FIND_SEGFAULT("bef init_event_list");
     init_event_list(canteen->system_clock->type); // type is arrival
 
 	return canteen;

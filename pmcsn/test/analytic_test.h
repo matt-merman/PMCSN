@@ -10,6 +10,7 @@
 #include "test.h"
 
 int simulation_visits_test(test_count *t);
+int simulation_routing_probabilities_test(test_count *t);
 int lambda_test(test_count *t);
 int mhu_test(test_count *t);
 int rho_test(test_count *t);

@@ -5,7 +5,7 @@
 
 #include "validation.h"
 
-double get_simulation_visit(network *canteen, block_type block_type){
+double get_simulation_visit(network *canteen, block_type block_type) {
     block *consumazione = NULL;
     // count arrivals from each block to the target block
     long int arrivals_to_block = 0L;
@@ -14,23 +14,32 @@ double get_simulation_visit(network *canteen, block_type block_type){
     }
 
     consumazione = canteen->blocks[CONSUMAZIONE];
-    long int entered_jobs = (consumazione->completed_jobs + consumazione->rejected_jobs);
-    long int primo_entered = canteen->blocks[PRIMO]->count_to_next[PRIMO];
-    if (block_type == SECONDO) {
-        arrivals_to_block += (long) entered_jobs - primo_entered;
-    }
-    long int rejected_jobs = canteen->blocks[CONSUMAZIONE]->rejected_jobs;
-    if (block_type == CONSUMAZIONE) {
+    long int rejected_jobs = consumazione->rejected_jobs;
+    long int entered_jobs = (consumazione->completed_jobs + rejected_jobs);
+
+    if (block_type <= SECONDO) { // PRIMO E SECONDO
+        arrivals_to_block += (long) canteen->blocks[block_type]->count_to_next[6];
+    } else if (block_type == CONSUMAZIONE) {
         arrivals_to_block -= rejected_jobs;
     }
 
     return (double) arrivals_to_block / (double) entered_jobs;
 }
-double get_simulation_lambda(network *canteen, block_type block_type){
-    block *consumazione;
-    consumazione = canteen->blocks[CONSUMAZIONE];
-    long int entered_jobs = (consumazione->completed_jobs + consumazione->rejected_jobs);
-    return get_simulation_visit(canteen, block_type) * (entered_jobs / PERIOD);
+
+double get_simulation_routing_prob(network *n, block_type from, block_type to) {
+    long jobs_entered_in_network = n->blocks[CASSA_FAST]->completed_jobs + n->blocks[CASSA_STD]->completed_jobs;
+    if (from == ESTERNO && to == PRIMO){
+        return (double) n->blocks[PRIMO]->completed_jobs / (double) jobs_entered_in_network;
+    } else if (from == ESTERNO && to == SECONDO){
+        long jobs_from_primo_to_secondo = n->blocks[PRIMO]->count_to_next[SECONDO];
+        return (double) (n->blocks[PRIMO]->completed_jobs - jobs_from_primo_to_secondo) / (double) jobs_entered_in_network;
+    } else if (to == ESTERNO) {
+        block * cons = n->blocks[CONSUMAZIONE];
+        return (double) jobs_entered_in_network / (double) (cons->completed_jobs + cons->rejected_jobs);
+    }
+    long exiting_jobs = n->blocks[from]->count_to_next[to];
+    long entering_jobs = n->blocks[from]->completed_jobs; // we exclude exiting jobs in CONSUMAZIONE
+    return (double) exiting_jobs / (double) entering_jobs;
 }
 
 void validate_block(block *block, statistics *stats) {
@@ -67,7 +76,7 @@ void validate_MMk(block *block, statistics *stats) {
 
     if (block->type == CONSUMAZIONE)
         queue_time_theoretical = 0;
-        
+
     CHECK_DOUBLE_EQUAL(queue_time_theoretical, stats->delay, block->name, 0.001, "queue time");
 
     // checking erlangC response time with theoretic formula
@@ -159,5 +168,6 @@ void validate_global_population(block **blocks) {
  */
 void validate_global_response_time(double response_time, int *network_servers) {
     double global_wait_theoretical = global_respones_time(network_servers);
-    printf("\tThe computed global response time (%f) doesn't match with the theoretical global response time (%f)\n", response_time, global_wait_theoretical);
+    printf("\tThe computed global response time (%f) doesn't match with the theoretical global response time (%f)\n",
+           response_time, global_wait_theoretical);
 }

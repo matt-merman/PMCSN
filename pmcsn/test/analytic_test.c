@@ -5,23 +5,32 @@
 
 #include "analytic_test.h"
 
-network* mock_network(){
-    const char * block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE"};
-    network * canteen = create_network((const char**) block_names, CONFIG_2);
+// used to cache the simulation results
+network *n = NULL;
+
+
+network *mock_network() {
+    if (n != NULL) {
+        return n; // return the cache if i hits
+    }
+    // re-run simulation otherwise.
+    const char *block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE"};
+    network *canteen = create_network((const char **) block_names, CONFIG_2);
     simulation(canteen);
+    n = canteen;
     return canteen;
 }
 
-int simulation_visits_test(test_count *t){
-    network *n = mock_network();
+int simulation_visits_test(test_count *t) {
+    mock_network();
     double visits1 = get_simulation_visit(n, PRIMO);
     double visits2 = get_simulation_visit(n, SECONDO);
     double visits3 = get_simulation_visit(n, DESSERT);
     double visits4 = get_simulation_visit(n, CASSA_FAST);
     double visits5 = get_simulation_visit(n, CASSA_STD);
     double visits6 = get_simulation_visit(n, CONSUMAZIONE);
-    
-    clear_network(n);
+
+    // don't clear the network here!! we need it for the next test.
 
     ASSERT_DOUBLE_APPROX_EQUAL(visits1, 0.75, "visits1");
     ASSERT_DOUBLE_APPROX_EQUAL(visits2, 0.6625, "visits2");
@@ -30,6 +39,44 @@ int simulation_visits_test(test_count *t){
     ASSERT_DOUBLE_APPROX_EQUAL(visits5, 0.75890625, "visitsC");
     ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.935746984, "visitsS");
 
+    PRINTF("%f\n%f\n%f\n%f\n%f\n%f\n", visits1, visits2, visits3, visits4, visits5, visits6);
+
+    SUCCESS;
+}
+
+int simulation_routing_probabilities_test(test_count *t){
+    // la formula dovrebbe essere. se i = sorgente, j = destinazione, 0 = esterno.
+
+    // p_ij = routing probability from block i to block j
+    double p_01 = get_simulation_routing_prob(n, ESTERNO, PRIMO);
+    double p_02 = get_simulation_routing_prob(n, ESTERNO, SECONDO);
+    double p_12 = get_simulation_routing_prob(n, PRIMO, SECONDO);
+    double p_13 = get_simulation_routing_prob(n, PRIMO, DESSERT);
+    double p_1F = get_simulation_routing_prob(n, PRIMO, CASSA_FAST);
+    double p_23 = get_simulation_routing_prob(n, SECONDO, DESSERT);
+    double p_2F = get_simulation_routing_prob(n, SECONDO, CASSA_FAST);
+    double p_2C = get_simulation_routing_prob(n, SECONDO, CASSA_STD);
+    double p_3C = get_simulation_routing_prob(n, DESSERT, CASSA_STD);
+    double p_FS = get_simulation_routing_prob(n, CASSA_FAST, CONSUMAZIONE);
+    double p_CS = get_simulation_routing_prob(n, CASSA_STD, CONSUMAZIONE);
+    double p_S0 = get_simulation_routing_prob(n, CONSUMAZIONE, ESTERNO);
+
+    ASSERT_DOUBLE_APPROX_EQUAL(p_01, 0.75, "p_01");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_02, 0.25, "p_02");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_12, 0.55, "p_12");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_13, 0.25, "p_13");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_1F, 0.2, "p_1F");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_23, 0.45, "p_23");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_2F, 0.1375, "p_2F");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_2C, 0.4125, "p_2C");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_3C, 1.0, "p_3C");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_FS, 1.0, "p_FS");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_CS, 1.0, "p_CS");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_S0, 1.0, "p_CS");
+
+
+    // we clear the mock_network.
+    clear_network(n);
     SUCCESS;
 }
 
@@ -91,7 +138,7 @@ int rho_test(test_count *t) {
     SUCCESS;
 }
 
-int visits_test(test_count *t){
+int visits_test(test_count *t) {
     double visits1 = get_theoretical_visits(PRIMO, 3);
     double visits2 = get_theoretical_visits(SECONDO, 3);
     double visits3 = get_theoretical_visits(DESSERT, 2);
@@ -140,10 +187,10 @@ int erlang_c_response_time_test(test_count *t) {
     SUCCESS;
 }
 
-int erlang_b_loss_probability_test(test_count *t){
+int erlang_b_loss_probability_test(test_count *t) {
     double m = 139;
-    double lambda = 25./108.;
-    double mhu = 1./600.;
+    double lambda = 25. / 108.;
+    double mhu = 1. / 600.;
     double erlang_b_loss_prob = erlang_b_loss_probability(m, lambda, mhu);
 
     ASSERT_DOUBLE_EQUAL(erlang_b_loss_prob, 0.06425302, "erlang_b_loss_probability");
@@ -151,9 +198,9 @@ int erlang_b_loss_probability_test(test_count *t){
     SUCCESS;
 }
 
-int global_response_time_test(test_count *t){
+int global_response_time_test(test_count *t) {
 
-    int net_servers[] = {3,3,2,1,4,139};
+    int net_servers[] = {3, 3, 2, 1, 4, 139};
     double response_time = global_respones_time(net_servers);
 
     ASSERT_DOUBLE_EQUAL(response_time, 649.78441, "global_response_time");
@@ -161,7 +208,7 @@ int global_response_time_test(test_count *t){
     SUCCESS;
 }
 
-int hour_to_days_test(test_count *t){
+int hour_to_days_test(test_count *t) {
     int one_day = to_days_rounding_up(3);
 
     ASSERT_INT_EQUAL(one_day, 1, "hour_to_days_test");

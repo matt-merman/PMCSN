@@ -9,7 +9,8 @@ typedef enum block_types_t {
     DESSERT,
     CASSA_FAST,
     CASSA_STD,
-    CONSUMAZIONE
+    CONSUMAZIONE,
+    ESTERNO,
 } block_type;
 
 typedef enum stat_types_t {
@@ -107,7 +108,7 @@ typedef struct block_t {
     long int rejected_jobs;
     // int has_infinite_queue;      // possible values: TRUE (has infinite queue) FALSE (doesn't have any queue)
     replica_stats ensemble_stats[REPLICAS];
-    long int count_to_next[BLOCKS];        // list of exiting jobs to a next block
+    long int count_to_next[BLOCKS+1];        // list of exiting jobs to a next block
 } block;
 
 typedef struct network_t {
