@@ -7,9 +7,7 @@
 
 network* mock_network(){
     const char * block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE"};
-    FIND_SEGFAULT("Prima di creare canteen");
     network * canteen = create_network((const char**) block_names, CONFIG_2);
-    FIND_SEGFAULT("Prima di simulation");
     simulation(canteen);
     return canteen;
 }
@@ -25,12 +23,12 @@ int simulation_visits_test(test_count *t){
     
     clear_network(n);
 
-    ASSERT_DOUBLE_EQUAL(visits1, 0.173611111, "visits1");
-    ASSERT_DOUBLE_EQUAL(visits2, 0.153356481, "visits2");
-    ASSERT_DOUBLE_EQUAL(visits3, 0.112413194, "visits3");
-    ASSERT_DOUBLE_EQUAL(visits4, 0.055808738, "visitsF");
-    ASSERT_DOUBLE_EQUAL(visits5, 0.175672743, "visitsC");
-    ASSERT_DOUBLE_EQUAL(visits6, 0.231481481, "visitsS");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits1, 0.75, "visits1");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits2, 0.6625, "visits2");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits3, 0.485625, "visits3");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits4, 0.24109375, "visitsF");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits5, 0.75890625, "visitsC");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.935746984, "visitsS");
 
     SUCCESS;
 }

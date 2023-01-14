@@ -82,8 +82,9 @@ void show_stats(network *canteen) {
     for (int i = 0; i < BLOCKS; i++) {
         // at each iteration we overwrite the statistics struct
         get_stats(canteen->blocks[i], canteen->system_clock, &stats);
-//        queue_time_sum += stats.delay; // TODO: bisogna tenere conto delle visite medie a ogni centro!!!
+//        queue_time_sum += stats.delay;
 //        queue_population_sum += stats.queue_pop;
+        // bisogna tenere conto delle visite medie a ogni centro!!!
         double visits = get_theoretical_visits(canteen->blocks[i]->type, canteen->blocks[i]->num_servers);
         network_response_time += stats.wait * visits;
         network_mean_population += stats.node_pop * visits;

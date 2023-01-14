@@ -107,7 +107,7 @@ typedef struct block_t {
     long int rejected_jobs;
     // int has_infinite_queue;      // possible values: TRUE (has infinite queue) FALSE (doesn't have any queue)
     replica_stats ensemble_stats[REPLICAS];
-    long int *count_to_next;
+    long int count_to_next[BLOCKS];        // list of exiting jobs to a next block
 } block;
 
 typedef struct network_t {

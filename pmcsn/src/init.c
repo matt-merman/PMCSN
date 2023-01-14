@@ -62,11 +62,11 @@ block **init_blocks(int *config, const char **block_names)
 
 		memset(b[i], 0, sizeof(block));
 		b[i]->block_area = malloc(sizeof(area));
-		b[i]->count_to_next = malloc(sizeof(long int) * BLOCKS);
+		// b[i]->count_to_next = malloc(sizeof(long int) * BLOCKS);
 		b[i]->type = i;
 		b[i]->num_servers = config[i];	
 
-		if (b[i]->block_area == NULL || b[i]->count_to_next == NULL)
+		if (b[i]->block_area == NULL)
 		{
 			printf("Error Malloc\n");
 			return (NULL);

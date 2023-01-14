@@ -38,7 +38,7 @@ void simulation(network *canteen)
     long elapsed_time;
     time_t begin, end;
     time(&begin);
-	while (true)
+	while (TRUE)
 	{
         perc = (int) ((long) canteen->system_clock->current / (PERIOD / 100));
         if ( (int) perc > prev_perc || perc == 100){
@@ -100,10 +100,13 @@ void	process_arrival(event *event, timer *c, block *block)
 
 	process_immediate_arrival(event, c, block);
 	p = Random();
-	if (p < P_PRIMO_FUORI)
-		create_insert_event(PRIMO, -1, ARRIVAL, c, event);
-	else
-		create_insert_event(SECONDO, -1, ARRIVAL, c, event);
+    if (p < P_PRIMO_FUORI) {
+        create_insert_event(PRIMO, -1, ARRIVAL, c, event);
+        block->count_to_next[0]++;
+    } else {
+        create_insert_event(SECONDO, -1, ARRIVAL, c, event);
+//         block->count_to_next[0]++;
+    }
 }
 
 /**
@@ -232,7 +235,7 @@ void	schedule_immediate_arrival(block* block, timer *c, event *triggering_event)
 		return ;
 	}
 
-	block->count_to_next[next_type] ++;
+	block->count_to_next[next_type]++;
 	create_insert_event(next_type, -1, IMMEDIATE_ARRIVAL, c, triggering_event);
 
 }

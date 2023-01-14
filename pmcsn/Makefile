@@ -1,5 +1,5 @@
 CC				= gcc
-CFLAGS			= -Wall -Wextra -Ofast -g
+CFLAGS			= -Wall -Wextra -g
 LIB 			= -lm
 SRC 			= ./src
 LIBS 			= libs/rngs.c libs/rvgs.c libs/rvms.c

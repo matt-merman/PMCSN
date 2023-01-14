@@ -10,11 +10,21 @@ double get_simulation_visit(network *canteen, block_type block_type){
     // count arrivals from each block to the target block
     long int arrivals_to_block = 0L;
     for (int i = 0; i < BLOCKS; i++) {
-        arrivals_to_block = (long) canteen->blocks[i]->count_to_next[block_type];
+        arrivals_to_block += (long) canteen->blocks[i]->count_to_next[block_type];
     }
+
     consumazione = canteen->blocks[CONSUMAZIONE];
     long int entered_jobs = (consumazione->completed_jobs + consumazione->rejected_jobs);
-    return arrivals_to_block / entered_jobs;
+    long int primo_entered = canteen->blocks[PRIMO]->count_to_next[PRIMO];
+    if (block_type == SECONDO) {
+        arrivals_to_block += (long) entered_jobs - primo_entered;
+    }
+    long int rejected_jobs = canteen->blocks[CONSUMAZIONE]->rejected_jobs;
+    if (block_type == CONSUMAZIONE) {
+        arrivals_to_block -= rejected_jobs;
+    }
+
+    return (double) arrivals_to_block / (double) entered_jobs;
 }
 double get_simulation_lambda(network *canteen, block_type block_type){
     block *consumazione;
@@ -73,12 +83,6 @@ void validate_MMk(block *block, statistics *stats) {
     validate_theoretical_utilizazion(block, stats);
     is_ergodic(block);
 }
-
-/* Solo se aggiungiamo la coda a CONSUMAZIONE
-void validate_MMkk(block *block, statistics *stats){
-
-}
-*/
 
 
 void is_wait_delay_plus_service(block *block, statistics *stats) {
@@ -148,22 +152,6 @@ void validate_global_population(block **blocks) {
     }
 }
 
-// TODO: valida il tempo in coda usando la legge di Little
-///**
-// * Checks that sum of mean queue times is equal to the global queue time from Little's Law.
-// * E[Tq] = E[Nq]/lambda
-// * This works only if the system is ergodic
-// * @param queue_time sum of time spent in queues in all block
-// * @param queue_pop sum of queue population in all blocks
-// */
-//void validate_global_queue_time(double erlang_c_queue_time_test, double queue_pop) {
-//    // TODO: ricavare la formula per calcolare i tempi in coda
-//    // TODO: verificare che la somma dei tempi in coda sia pari al valore teorico
-//    double global_queue_time_theoretic = queue_pop / LAMBDA;
-//    if (IS_NOT_APPROX_EQUAL(erlang_c_queue_time_test, global_queue_time_theoretic) ){
-//        printf("TODO: The computed global queue time doesn't match with the one from Little's Law\n");
-//    }
-//}
 /**
  *
  * @param response_time
