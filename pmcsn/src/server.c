@@ -1,4 +1,5 @@
 #include "./server.h"
+#include "../libs/rvgs.h"
 
 int busy_servers[BLOCKS] = {0,0,0,0,0,0};
 
@@ -28,24 +29,28 @@ int retrieve_idle_server(block *block)
 {
     server** multi_servers;
     int idle_servers[block->num_servers];
-    int s,i,j;
+    int s,i,curr_idle_servers;
+    long random_server;
 
     multi_servers = block->servers;
 
-    j = 0;
+    // counter of idle_servers
+    curr_idle_servers = 0;
     for (i = 0; i < block->num_servers; i++) {
         if (multi_servers[i]->status == IDLE) {
-            idle_servers[j] = i;
-            j++;
+            idle_servers[curr_idle_servers] = i;
+            curr_idle_servers++;
         }
 	}
 
-    if(!j)
+    if(!curr_idle_servers)
         return -1;
 
-    i = rand() % j;
-    s = idle_servers[i];
+    // i reused as index of random server from those wich are idle
+    random_server = Equilikely(0, curr_idle_servers - 1);
+    s = idle_servers[random_server];
     multi_servers[s]->status = BUSY;
+    busy_servers[block->type]++;
 
     return s;
 }
