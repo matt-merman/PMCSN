@@ -9,7 +9,6 @@
 #include "../src/server.h"
 #include "../src/validation.h"
 #include "../src/analytic.h"
-#include "../src/verify.h"
 #include "../src/event_list.h"
 #include "constants.h"
 #include "files.h"

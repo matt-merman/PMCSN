@@ -7,8 +7,11 @@ const char * BLOCK_NAMES[BLOCKS] = {"Primi", "Secondi e Contorni", "Frutta e Des
 
 int	main(int argc, __attribute__((unused)) char **argv)
 {
-	int		c;
+	int		c,j,i;
 	char	*parameter;
+    char file_name[100];
+    char index_to_str[100];
+    FILE *file;
 
 	parameter = NULL;
 	c = getopt(argc, argv, "s:");
@@ -26,8 +29,24 @@ int	main(int argc, __attribute__((unused)) char **argv)
 	// initializing multi-stream lehmer generator
 	PlantSeeds(123456789);
 
-	if (strcmp(parameter, "finite") == 0)
-        start_finite_horizon_simulation(NETWORK_CONFIGURATION);
+    if (strcmp(parameter, "finite") == 0){
+        j = 1;
+        i = 1;
+        while(i <= MAX_REPLICAS){
+            strcpy(file_name, "");
+            strcat(file_name, "grt_");
+            sprintf(index_to_str, "%d", i);
+            strcat(file_name, index_to_str);
+
+            file = open_file("w", file_name);
+            start_finite_horizon_simulation(NETWORK_CONFIGURATION, file, i);
+
+            fclose(file);
+            i = REPLICAS_STEP*j;
+            j++;
+        }
+        return (0);
+    }
 	else if (strcmp(parameter, "infinite") == 0)
         start_infinite_horizon_simulation(NETWORK_CONFIGURATION);
 	else
@@ -52,10 +71,11 @@ int start_standard_simulation(int config) {
     return (0);
 }
 
-int start_finite_horizon_simulation(int config)
+int start_finite_horizon_simulation(int config, FILE *file, int num_replicas)
 {
     network *canteen;
     int replica;
+    double grt;
 
     canteen = malloc(sizeof(network));
     if (canteen == NULL){
@@ -64,7 +84,7 @@ int start_finite_horizon_simulation(int config)
     }
 
     canteen->network_servers = init_network(config);
-    for (replica = 0; replica < REPLICAS; replica++)
+    for (replica = 0; replica < num_replicas; replica++)
 	{
         canteen->system_clock = init_clock();
         if (canteen->system_clock == NULL)
@@ -88,9 +108,15 @@ int start_finite_horizon_simulation(int config)
         simulation(canteen);
         update_ensemble(canteen, replica);
 
+        grt = global_simulation_respones_time(canteen);
+        write_result(file, grt, num_replicas);
+        printf("%d\n", replica);
+
         free(canteen->system_clock);
     }
-    calculate_all_interval_estimate(canteen);
+    if (num_replicas > 1)
+        calculate_all_interval_estimate(canteen, num_replicas);
+    // TODO: clear_network()
     clear_mem(canteen->blocks);
     free(canteen);
     return (0);
@@ -99,7 +125,7 @@ int start_finite_horizon_simulation(int config)
 /**
  * Uses the program estimate.c to compute the estimation interval of the replica_stats
  */
-void calculate_all_interval_estimate(network *canteen)
+void calculate_all_interval_estimate(network *canteen, int num_replicas)
 {
 	// FILE **files;
 	// int i,s;
@@ -119,7 +145,8 @@ void calculate_all_interval_estimate(network *canteen)
      //    //TODO stampare se il valore teorico è dentro o fuori l'intervallo di confidenza
 	// }
 
-     calculate_interval_estimate_for_stat("Global Response Time", canteen->global_response_time);
+    calculate_interval_estimate_for_stat("Global Response Time", canteen->global_response_time, num_replicas);
+
 
 }
 

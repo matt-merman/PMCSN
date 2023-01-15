@@ -53,7 +53,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define DEBUG TRUE
+#define DEBUG FALSE
 #define PRINTF if(DEBUG) printf
 #define IDLE 0
 #define BUSY 1
@@ -85,7 +85,11 @@
 #define STAT_NUMBER 7
 
 // Finite-Horizon
-#define REPLICAS 20
+#define REPLICAS 10
+
+#define MAX_REPLICAS 500
+#define REPLICAS_STEP 50
+
 #define LOC 0.95                       /* level of confidence, for estimate intervals */
 
 #endif

@@ -237,7 +237,7 @@ double global_respones_time(int *network_servers) {
 //         printf("ERROR - insufficient data\n");
 // }
 
-void calculate_interval_estimate_for_stat(const char *stat_name, double *global_respones_time) {
+void calculate_interval_estimate_for_stat(const char *stat_name, double *global_respones_time, int num_replicas) {
     long n = 0;                     /* counts data points */
     double sum = 0.0;
     double mean = 0.0;
@@ -248,7 +248,7 @@ void calculate_interval_estimate_for_stat(const char *stat_name, double *global_
 
 
     /* use Welford's one-pass method to compute sample mean and standard deviation */
-    for (int rep = 0; rep < REPLICAS; rep++) {
+    for (int rep = 0; rep < num_replicas; rep++) {
         n++;
         diff = global_respones_time[rep] - mean;
         sum += diff * diff * (n - 1.0) / n;

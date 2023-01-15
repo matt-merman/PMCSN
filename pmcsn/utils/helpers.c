@@ -68,7 +68,7 @@ void write_stats_on_file(block **blocks, timer *clock, FILE **file){
         // oppure su più file (in questo caso 6 * 6 * REPLICAS)
         // Meglio un solo file in cui ogni ad ogni riga corrisponde un attributo
         // in questo modo estimace.c legge per riga valori consecutivi e non più a capo.  
-        write_result(file[i], stats.node_pop);
+        // write_result(file[i], stats.node_pop);
     }
 }
 
@@ -184,10 +184,7 @@ void update_ensemble(network *canteen, int replica_index) {
     //     replica->utilization = stats.utilization;
     // }
 
-	// int	ergodic[] = {3, 3, 2, 1, 4, 139}; // TODO: ATTENZIONE non cambiare il 139!!!!
-    //canteen->global_response_time[replica_index] += global_respones_time_real(ergodic, canteen);
-    printf("%lf\n", canteen->global_response_time[replica_index]);
-
+    canteen->global_response_time[replica_index] = global_simulation_respones_time(canteen);
 }
 
 void clear_mem(block **blocks) {

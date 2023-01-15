@@ -116,7 +116,7 @@ typedef struct network_t {
     int *network_servers;
     timer *system_clock;
 
-    double global_response_time[REPLICAS];
+    double global_response_time[MAX_REPLICAS];
     
     double ensemble_response_time[REPLICAS];
     double ensemble_serving_response_time[REPLICAS];

@@ -86,7 +86,7 @@ void simulation(network *canteen)
     long elapsed_time_hours = elapsed_time / 3600L;
     long elapsed_time_minutes = (elapsed_time % 3600L) / 60L;
     long elapsed_time_seconds = elapsed_time % 60L;
-    printf("Simulation time hh:mm:ss - %02li:%02li:%02li\n", elapsed_time_hours, elapsed_time_minutes, elapsed_time_seconds);
+    //printf("Simulation time hh:mm:ss - %02li:%02li:%02li\n", elapsed_time_hours, elapsed_time_minutes, elapsed_time_seconds);
 }
 
 /**
@@ -134,7 +134,7 @@ void	process_immediate_arrival(event *arrival_event, timer *c, block *block)
 		if (next_completion_event != NULL)
 		{
 			next_completion_time = (next_completion_event->time - c->current);
-            printf("%Lf", s->sum->service);
+            //printf("%Lf", s->sum->service);
 			s->sum->service += next_completion_time;
 			s->sum->served++;
             block->block_area->service += next_completion_time;

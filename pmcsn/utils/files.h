@@ -8,8 +8,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-FILE *open_files(char *p);//, const char **block_names);
-void	write_result(FILE *file, double value);
+FILE *open_file(char *p, const char *name);
+void	write_result(FILE *file, double value, double time);
 void	close_files(FILE **files);
 
 #endif
