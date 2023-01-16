@@ -92,4 +92,9 @@
 
 #define LOC 0.95                       /* level of confidence, for estimate intervals */
 
+// Total jobs number in the infinite simulation.
+#define INF_USER (USER * 5)
+// Batches dimension in the infinite simulation.
+#define B 1000
+
 #endif

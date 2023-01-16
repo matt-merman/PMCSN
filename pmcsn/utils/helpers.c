@@ -1,5 +1,12 @@
 #include "helpers.h"
 
+/**
+ * To compute the batches number based on 
+ * B (i.e., batches dimension) and INF_USER (i.e., total jobs number). 
+ */
+int get_batch_number(){
+    return (int)floor(INF_USER/B);
+}
 
 double get_next_arrival(double current, double lambda) {
     double arrival;

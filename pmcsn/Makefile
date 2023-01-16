@@ -21,6 +21,9 @@ compile_msq:
 compile_estimate:
 	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c libs/rvms.c prog/estimate.c -o estimate -lm
 
+compile_acs:
+	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c libs/rvms.c prog/acs.c -o acs -lm
+
 finite_simulation: compile
 	./start -s finite
 
@@ -35,3 +38,6 @@ msq: compile_msq
 
 estimate: compile_estimate
 	./estimate < ./result/Primi.txt
+
+acs: compile_acs
+	./acs < ./test.txt

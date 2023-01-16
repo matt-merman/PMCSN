@@ -151,30 +151,80 @@ void calculate_all_interval_estimate(network *canteen, int num_replicas)
 }
 
 /**
- *
- * @return
+ *  TODO: dato un tempo n=b*k, bisogna trovare il valore migliore di b e k.
+    
+    All'aumentare di b, il metodo batch means produce risultati migliori.
+    1 - Select a batch size b > 1 (seconds).
+
+    1.1 - Compute number of batches k = trunc(n/b). This doesn't have an impact on the point estimate of the mean, only on the width of the interval.
+    2 - Group the sequence into k batches of size b (seconds) and calculate the batch mean
+    x_j = 1/b sum_(i=1)^b x_(j-1)(b+i), with batch index j = 1,2,...,k
+    TODO: qui dobbiamo riutilizzare la funzione simulation per ottenere la media di ciascun batch
+
+    3 - Compute the mean x and standard deviation s of the batch means x_j, j=1,...,k
+    with estimate.c to get the interval estimate
+
+    we are LOC% confident that the true steady-state mean is somewhere in this interval.
+    if the batch size b is large, this is probably true even if the sample is autocorrelated.
+
+    if no points are discarded, the "mean of the means" is the same as the "grand sample mean"
+
+    TODO: verifica che la media di tutta la simulazione lunga sia uguale alla media delle medie dei batch.
  */
 int start_infinite_horizon_simulation(int config)
 {
-    printf("config :%d\n", config);
-    // TODO: dato un tempo n=b*k, bisogna trovare il valore migliore di b e k.
-    // All'aumentare di b, il metodo batch means produce risultati migliori.
-    // 1 - Select a batch size b > 1 (seconds).
 
-    // 1.1 - Compute number of batches k = trunc(n/b). This doesn't have an impact on the point estimate of the mean, only on the width of the interval.
+    int batches = get_batch_number();
+    
+    network *canteen;
+    double grt;
+    int b;
 
-    // 2 - Group the sequence into k batches of size b (seconds) and calculate the batch mean
-    // x_j = 1/b sum_(i=1)^b x_(j-1)(b+i), with batch index j = 1,2,...,k
-    // TODO: qui dobbiamo riutilizzare la funzione simulation per ottenere la media di ciascun batch
+    canteen = malloc(sizeof(network));
+    if (canteen == NULL){
+        perror("Error in allocation of canteen queue network (finite-horizon)");
+        return -1;
+    }
 
-    // 3 - Compute the mean x and standard deviation s of the batch means x_j, j=1,...,k
-    // with estimate.c to get the interval estimate
+    canteen->network_servers = init_network(config);
+    
+    for (b = 0; b < batches; b++)
+	{
+        batch_simulation(canteen);
+    }
 
-    // we are LOC% confident that the true steady-state mean is somewhere in this interval.
-    // if the batch size b is large, this is probably true even if the sample is autocorrelated.
 
-    // if no points are discarded, the "mean of the means" is the same as the "grand sample mean"
-
-    //TODO: verifica che la media di tutta la simulazione lunga sia uguale alla media delle medie dei batch.
+    //clear_mem(canteen->blocks);
+    free(canteen);
     return (0);
+}
+
+void batch_simulation(network *canteen){
+    //  canteen->system_clock = init_clock();
+    //     if (canteen->system_clock == NULL)
+	// 	{
+    //         perror("Error on system clock\n");
+    //         return (-1);
+    //     }
+    //     init_event_list(canteen->system_clock->type);
+       
+    //     if (replica == 0) {
+    //         canteen->blocks = init_blocks(canteen->network_servers, BLOCK_NAMES);
+    //         if (canteen->blocks == NULL)
+    //         {
+    //             perror("Error on blocks");
+    //             return (-1);
+    //         }
+    //     } else {
+    //         restart_blocks(canteen);
+    //     }
+
+    //     simulation(canteen);
+    //     update_ensemble(canteen, b);
+
+    //     // grt = global_simulation_respones_time(canteen);
+    //     // write_result(file, grt, num_replicas);
+    //     // printf("%d\n", replica);
+
+    //     free(canteen->system_clock);
 }

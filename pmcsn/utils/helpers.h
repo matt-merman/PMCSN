@@ -38,6 +38,7 @@ void write_stats_on_file(block **blocks, timer *clock, FILE **file);
 void show_stats(network *canteen);
 void validate_stats(network *canteen);
 void update_ensemble(network *canteen, int replica_index);
+int get_batch_number();
 
 #endif
 
