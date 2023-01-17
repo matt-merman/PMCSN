@@ -5,7 +5,7 @@
  * B (i.e., batches dimension) and INF_USER (i.e., total jobs number). 
  */
 int get_batch_number(){
-    return (int)floor(INF_USER/B);
+    return (int)floor((double) INF_USER/ (double) B);
 }
 
 double get_next_arrival(double current, double lambda) {
@@ -34,48 +34,30 @@ void get_stats(block *b, timer *clock, statistics *stats) {
     stats->completed_jobs = b->completed_jobs;
     stats->interarrival_time = clock->last / completed_jobs; // rejected jobs are excluded
 
-    // PRINTF("clock last: %f last arrival: %f current: %f\n", clock->last, clock->last_arrival, clock->current);
-
-    // FIXME ricontrollare come viene calcolata area e se questa formula è corretta.
     stats->wait = (double) (area->node / (long double) completed_jobs);
     stats->delay = (double) (area->queue / (long double) completed_jobs);
     stats->service_time = (double) (area->service / (long double) completed_jobs);
-//    printf("area_node: %g\tarea_queue: %g\tarea_service: %g\t completed jobs: %f\n", area->node, area->queue, area->service, completed_jobs);
+
     stats->node_pop = (double) ( area->node / (long double) PERIOD);
     stats->queue_pop = (double) ( area->queue / (long double) PERIOD) ;
     stats->utilization = (double) ( area->service / ((long double) PERIOD * (long double) b->num_servers));
-//    stats->block_probabiliity = / PERIOD;
-    stats->daily_cost = get_costs(b);
+    stats->loss_probability = 0.0;
+    if (b->type == CONSUMAZIONE) {
+        stats->loss_probability = (double) b->rejected_jobs / (double) (b->completed_jobs + b->rejected_jobs);
+    }
+
     // multiserver statistics
     stats->multiserver_utilization = malloc(sizeof(double) * b->num_servers);
     stats->multiserver_service_time = malloc(sizeof(double) * b->num_servers);
     for (int s = 0; s < b->num_servers; s++) {
-        stats->multiserver_utilization[s] = b->servers[s]->sum->service / PERIOD;
-        stats->multiserver_service_time[s] = b->servers[s]->sum->service / b->servers[s]->sum->served;
+        stats->multiserver_utilization[s] = (double) (b->servers[s]->sum->service / PERIOD);
+        stats->multiserver_service_time[s] = (double) (b->servers[s]->sum->service / b->servers[s]->sum->served);
     }
 
-    stats->routing_p = malloc(sizeof(long double) * BLOCKS);
+    stats->routing_probability = malloc(sizeof(long double) * BLOCKS);
     // to calculate the routing probabilities
     for (int s = 0; s < BLOCKS; s++){
-        stats->routing_p[s] = (long double) b->count_to_next[s] / (long double) b->completed_jobs;
-    }
-
-
-}
-
-void write_stats_on_file(block **blocks, timer *clock, FILE **file){
-
-    statistics stats;
-    int i;
-
-    for (i = 0; i < BLOCKS; i++) {
-        get_stats(blocks[i], clock, &stats);
-        // TODO: per ora solo la popolazione media viene scritta
-        // bisogna dunque scrivere anche tutte le altre nello stesso file
-        // oppure su più file (in questo caso 6 * 6 * REPLICAS)
-        // Meglio un solo file in cui ogni ad ogni riga corrisponde un attributo
-        // in questo modo estimace.c legge per riga valori consecutivi e non più a capo.  
-        // write_result(file[i], stats.node_pop);
+        stats->routing_probability[s] = (long double) b->count_to_next[s] / (long double) b->completed_jobs;
     }
 }
 
@@ -121,21 +103,21 @@ void show_stats(network *canteen) {
 
         if (canteen->blocks[i]->type == PRIMO){
             printf("\n\trouting probabilities statistics:\n");
-            printf("\t\tP(to SECONDO) ....... = %6.4Lf\n", stats.routing_p[SECONDO]);
-            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[CASSA_FAST]);
-            printf("\t\tP(to DESSERT) ....... = %6.4Lf\n", stats.routing_p[DESSERT]);
+            printf("\t\tP(to SECONDO) ....... = %6.4Lf\n", stats.routing_probability[SECONDO]);
+            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_probability[CASSA_FAST]);
+            printf("\t\tP(to DESSERT) ....... = %6.4Lf\n", stats.routing_probability[DESSERT]);
         }
         
         else if (canteen->blocks[i]->type == SECONDO){
             printf("\n\trouting probabilities statistics:\n");
-            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_p[CASSA_FAST]);
-            printf("\t\tP1(to CASSA STD) .... = %6.4Lf\n", stats.routing_p[CASSA_STD]);
-            printf("\t\tP2(to DESSERT) ...... = %6.4Lf\n", stats.routing_p[DESSERT]);
+            printf("\t\tP(to CASSA FAST) .... = %6.4Lf\n", stats.routing_probability[CASSA_FAST]);
+            printf("\t\tP1(to CASSA STD) .... = %6.4Lf\n", stats.routing_probability[CASSA_STD]);
+            printf("\t\tP2(to DESSERT) ...... = %6.4Lf\n", stats.routing_probability[DESSERT]);
         }
         
         else if (canteen->blocks[i]->type == DESSERT){
             printf("\n\trouting probabilities statistics:\n");
-            printf("\t\tP(to CASSA STD) ..... = %6.4Lf\ts\n", stats.routing_p[4]);
+            printf("\t\tP(to CASSA STD) ..... = %6.4Lf\ts\n", stats.routing_probability[4]);
         }
 
         printf("\n\t\tMulti-server statistics:\n");
@@ -148,8 +130,8 @@ void show_stats(network *canteen) {
         printf("\n\t\tDaily Configuration Cost for '%s': %Lg \u20AC \n\n", canteen->blocks[i]->name, stats.daily_cost);
 
     }
-    canteen->ensemble_response_time[0] = network_response_time;
-    canteen->ensemble_mean_population[0] = network_mean_population;
+    canteen->global_response_time = network_response_time;
+    canteen->global_mean_population = network_mean_population;
     printf("\t----------------------------------------------------------\n");
     printf("\n\t\tTotal Daily Configuration Cost: %Lg \u20AC \n\n", total_cost);
     free(stats.multiserver_utilization);
@@ -164,12 +146,13 @@ void validate_stats(network *canteen) {
     for (i = 0; i < BLOCKS; i++) {
         get_stats(canteen->blocks[i], canteen->system_clock, &stats);
         validate_block(canteen->blocks[i], &stats);
+        clear_stats(&stats);
     }
 
     // validates global population, global queue time and response time
     validate_global_population(canteen->blocks);
     // validate_global_queue_time(queue_time_sum, 0);
-    validate_global_response_time(canteen->ensemble_response_time[0], canteen->network_servers);
+    validate_global_response_time(canteen->global_response_time, canteen->network_servers);
 }
 
 /**
@@ -191,23 +174,12 @@ void update_ensemble(network *canteen, int index) {
     //     replica->utilization = stats.utilization;
     // }
 
-    canteen->global_response_time[index] = global_simulation_respones_time(canteen);
-}   
+    canteen->batch_response_time[index] = global_simulation_response_time(canteen);
+}
 
-void clear_mem(block **blocks) {
-    for (int i = 0; i < BLOCKS; i++) {
-        if (blocks[i]->block_area != NULL) {
-            free(blocks[i]->block_area);
-        }
-        for (int j = 0; j < blocks[i]->num_servers; j++) {
-            if (blocks[i]->servers[j]->sum != NULL) {
-                free(blocks[i]->servers[j]->sum);
-            }
-            if (blocks[i]->servers[j] != NULL) {
-                free(blocks[i]->servers[j]);
-            }
-        }
-    }
+void clear_stats(statistics *stats) {
+    free(stats->multiserver_utilization);
+    free(stats->multiserver_service_time);
 }
 
 void debug(event *event, network *canteen) {

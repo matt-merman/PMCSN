@@ -32,9 +32,10 @@
 double	get_next_arrival(double current, double lambda);
 double	get_next_service(block_type type, int stream);
 void    get_stats(block *b, timer *clock, statistics *stats);
-void    clear_mem(block **blocks);
+
+void clear_stats(statistics *stats);
 void debug(event *event, network *canteen);
-void write_stats_on_file(block **blocks, timer *clock, FILE **file);
+
 void show_stats(network *canteen);
 void validate_stats(network *canteen);
 void update_ensemble(network *canteen, int index);

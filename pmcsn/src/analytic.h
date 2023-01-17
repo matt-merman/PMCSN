@@ -12,7 +12,7 @@
 
 double  factorial(int n);
 int to_days_rounding_up(int hours);
-int     get_costs(block *block);
+
 double  utilization(int num_servers, double lambda, double mhu);
 double  get_theoretical_lambda_raw(block_type type); // arrival frequency
 double get_theoretical_lambda(block_type type, int num_servers); // arrival frequency that accounts for job loss
@@ -25,7 +25,7 @@ double  erlang_c_queue_time(double block_probability, double service_time_multi,
 double  erlang_c_response_time(double queue_time, double service_time);
 double  erlang_b_loss_probability(int m, double lambda, double mhu);
 // void calculate_interval_estimate_for_stat(stat_type stat, const char *stat_name, replica_stats *replica_stats_ensemble, const char *block_name);
-void calculate_interval_estimate_for_stat(const char *stat_name, double *global_respones_time, int num_replicas);
+void calculate_interval_estimate_for_stat(const char *stat_name, const double *global_response_time, int num_replicas);
 double get_response_time(block_type type, int m);
 double global_respones_time(int *network_servers);
 

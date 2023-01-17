@@ -16,7 +16,7 @@ network *mock_network() {
     // re-run simulation otherwise.
     const char *block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE"};
     network *canteen = create_network((const char **) block_names, CONFIG_2);
-    simulation(canteen);
+    simulation(canteen, 0, NULL, STANDARD);
     n = canteen;
     return canteen;
 }
@@ -200,7 +200,7 @@ int erlang_c_response_time_test(test_count *t) {
 }
 
 int erlang_b_loss_probability_test(test_count *t) {
-    double m = 139;
+    int m = 139;
     double lambda = 25. / 108.;
     double mhu = 1. / 600.;
     double erlang_b_loss_prob = erlang_b_loss_probability(m, lambda, mhu);

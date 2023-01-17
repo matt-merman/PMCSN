@@ -9,7 +9,6 @@
 FILE	*open_file(char *p, const char *name)
 {
     FILE	*file;
-    int		i;
 
     char *path, *ext, file_name[100];
     // We suppose that the current directory is pmcsn/

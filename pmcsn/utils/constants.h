@@ -1,25 +1,19 @@
-#ifndef _CONST_H_
-#define _CONST_H_
+#ifndef PMCSN_CONSTANTS_H
+#define PMCSN_CONSTANTS_H
 
 #define NAME_SIZE 32                                // Size of block name string
 #define BLOCKS 6
 
 #define START 0
-#define N (BLOCKS * 100)
+// #define N (BLOCKS * 100)
 
 #define USER 2500L                                   // mean number of user in the observation period
 #define HOUR (60L*60L)
 #define N_HOURS 3L
 #define PERIOD (N_HOURS*HOUR)                       // observation period in seconds
-#define INF (100L * PERIOD)                              // max int is 2147483647
+#define INF (100L * PERIOD)                         // max int is 2147483647
 #define LAMBDA 0.2314814815                         // Computed from USER / 3h (in seconds)
 //#define LAMBDA ((double) USER/(double) PERIOD)    // Mean outside arrivals: 0.2314814815 Mean inter-arrival time 4.32
-#define LAMBDA_DEFAULT 0.2314814815
-
-// TODO: probabilità di arrivo nei tre time slots 
-#define P_ARRIVO_SLOT_1 0.28 // (double) USER * 0.20 /(double) PERIOD
-#define P_ARRIVO_SLOT_2 0.55 // (double) USER * 0.55 /(double) PERIOD
-#define P_ARRIVO_SLOT_3 0.17 // (double) USER * 0.25 /(double) PERIOD
 
 //notazione probabilità di routing: P_[dest]_[source]
 #define P_PRIMO_FUORI 0.75      // Probability that a user buys first course from outside
@@ -37,8 +31,9 @@
 // After buying dessert, the user always go to the cashier
 #define P_CASSA_STD_DESSERT 1.0
 
-// TODO: Probability of not eating in the dining room (not used)
+// Probability of not eating in the dining room
 #define P_ALTROVE 0.05
+#define MAX_GLOBAL_MEAN_RESPONSE_TIME (10*60*30) // 30 min [s] average global response time of entire canteen
 
 // Service time for each server in each block
 #define S_PRIMO 15
@@ -58,43 +53,22 @@
 #define IDLE 0
 #define BUSY 1
 
-#define MAX_GLOBAL_MEAN_RESPONSE_TIME (10*60*30) // 30 min [s] average global response time of entire canteen
-#define MAX_CASHIER_RESPONSE_TIME (1*60) // 1 min average global response time for BOTH the Standard Cashier and Fast cashier
-
 // service node configurations id.
 #define CONFIG_1 1 // all single servers
 #define CONFIG_2 2 // multiserver on first course and canteen
 #define CONFIG_3 3 // mix
 
-#define SALARY 8 // 8 [eur/h] (you must count 3h for preparation and 2h for cleanup, so we have fixed 5h/day +3h/day serving)
-
-/*
- * L'affitto MENSILE di un immobile costa circa 10€ a metro quadro
- * Diviso 30 giorni e diviso 24 ore, si ottiene il costo orario a metro quadro.
- *
- * */
-// Regulation Source: CE 852 / 2004, DPR 327 / 1980, DM 12/04/1996
-#define KITCHEN_SQUARE_METER_PER_SEAT 1.0 // 0.5 for preparing meal + 0.5 for washing dishes
-#define SQUARE_METER_PER_SEAT 1.0 // Regolamento Comunale N 18 20/03/2006 Firenze - Igiene in materia di alimenti e bevande. The minimum is 1 square meter for each seat.
-#define MONTLY_RENT_COST_MQ 10. // € cost for renting a square meter in a property
-#define DAILY_RENT_COST_MQ (MONTLY_RENT_COST_MQ / 30.0)
-#define HOURLY_RENT_COST_MQ (MONTLY_RENT_COST_MQ / 30. / 24.)
-#define HOURLY_FIXED_COST (250.0 / 24.0) // € food, water, energy, gas cost for each hour of work
-#define PER_USER_PENALTY 1 // 1 [eur/penalty] amount that must be payed PER USER if FOR HIM the response time is greater than the MAX_GLOBAL_MEAN_RESPONSE_TIME
-
-#define STAT_NUMBER 7
-
 // Finite-Horizon
-#define REPLICAS 10
-
 #define MAX_REPLICAS 500
 #define REPLICAS_STEP 50
 
 #define LOC 0.95                       /* level of confidence, for estimate intervals */
 
 // Total jobs number in the infinite simulation.
-#define INF_USER (USER * 10)
+#define INF_USER (USER * 10L)
 // Batches dimension in the infinite simulation.
 #define B 1000
+
+#define K ((int) INF_USER / B)
 
 #endif

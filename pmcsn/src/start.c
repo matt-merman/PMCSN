@@ -66,12 +66,17 @@ int start_standard_simulation(int config) {
     validate_stats(canteen);
 
 	clear_network(canteen);
-    // free(canteen->system_clock);
-    // clear_mem(canteen->blocks);
-    // free(canteen);
+
     return (0);
 }
 
+/**
+ *
+ * @param config the number of the configuration for servers
+ * @param file file in which save the times
+ * @param num_replicas number of replicas for this finite horizon simulation
+ * @return
+ */
 int start_finite_horizon_simulation(int config, FILE *file, int num_replicas)
 {
     network *canteen;
@@ -85,7 +90,7 @@ int start_finite_horizon_simulation(int config, FILE *file, int num_replicas)
     }
 
     canteen->network_servers = init_network(config);
-    
+
     for (replica = 0; replica < num_replicas; replica++)
 	{
         canteen->system_clock = init_clock();
@@ -106,49 +111,19 @@ int start_finite_horizon_simulation(int config, FILE *file, int num_replicas)
             restart_blocks(canteen);
         }
 
-        FIND_SEGFAULT("tre");
         simulation(canteen, 0, NULL, FINITE);
-        update_ensemble(canteen, replica);
+        canteen->global_response_time = global_simulation_response_time(canteen);
 
-        grt = global_simulation_respones_time(canteen);
+        grt = global_simulation_response_time(canteen);
         write_result(file, grt, num_replicas);
 
         free(canteen->system_clock);
     }
     if (num_replicas > 1)
-        calculate_all_interval_estimate(canteen, num_replicas);
-    // TODO: clear_network()
-    clear_mem(canteen->blocks);
-    free(canteen);
+        calculate_interval_estimate_for_stat("Global Response Time", canteen->replicas_response_time, num_replicas);
+
+    clear_network(canteen);
     return (0);
-}
-
-/**
- * Uses the program estimate.c to compute the estimation interval of the replica_stats
- */
-void calculate_all_interval_estimate(network *canteen, int num_replicas)
-{
-	// FILE **files;
-	// int i,s;
-//     const char *stats[18] = {
-//             "Interarrival time",
-//             "Response time",
-//             "Queue time",
-//             "Service time",
-//             "Node population",
-//             "Queue population",
-//             "Utilization"
-//     };
-	// for(i = 0; i < BLOCKS; i++){
-     //    for (s = 0; s < STAT_NUMBER; s++) {
-     //        calculate_interval_estimate_for_stat(s, stats[s], canteen->blocks[i]->ensemble_stats, BLOCK_NAMES[i]);
-     //    }
-     //    //TODO stampare se il valore teorico è dentro o fuori l'intervallo di confidenza
-	// }
-
-    calculate_interval_estimate_for_stat("Global Response Time", canteen->global_response_time, num_replicas);
-
-
 }
 
 /**
@@ -194,9 +169,9 @@ int start_infinite_horizon_simulation(int config)
         perror("Error on system clock\n");
         return (-1);
     }
-    
+
     init_event_list(canteen->system_clock->type);
-    
+
     canteen->blocks = init_blocks(canteen->network_servers, BLOCK_NAMES);
     if (canteen->blocks == NULL)
     {
@@ -210,26 +185,26 @@ int start_infinite_horizon_simulation(int config)
         return (-1);
     }
     *arrived_jobs = 0;
-    
+
     for (batch_index = 1; batch_index <= batches; batch_index++)
-	{   
-        simulation(canteen, batch_index*B, arrived_jobs, INFINITE); 
-        
-        // TODO: definire un array apposito per il tempo di risposta globale nell'infinito, 
-        // soprattutto nel caso in cui batches è maggiore di MAX_REPLICAS  
+	{
+        simulation(canteen, batch_index*B, arrived_jobs, INFINITE);
+
+        // TODO: definire un array apposito per il tempo di risposta globale nell'infinito,
+        // soprattutto nel caso in cui batches è maggiore di MAX_REPLICAS
         update_ensemble(canteen, batch_index);
 
         // grt = global_simulation_respones_time(canteen);
         // write_result(file, grt, num_replicas);
     }
-    calculate_all_interval_estimate(canteen, batches);
+    calculate_interval_estimate_for_stat("Global Response Time", canteen->batch_response_time, batches);
     free(canteen->system_clock);
     free(canteen);
     return (0);
 }
 
 // int batch_simulation(network *canteen, int batch_index){
-     
+
 
 //      for(int b = 0; b < B*batch_index)
 //     canteen->system_clock = init_clock();
@@ -239,7 +214,7 @@ int start_infinite_horizon_simulation(int config)
 //         return (-1);
 //     }
 //     init_event_list(canteen->system_clock->type);
-       
+
 //     if (replica == 0) {
 //         canteen->blocks = init_blocks(canteen->network_servers, BLOCK_NAMES);
 //         if (canteen->blocks == NULL)

@@ -29,9 +29,10 @@ void clear_network(network * n){
             free(n->blocks[block]->servers[server]->sum);
             free(n->blocks[block]->servers[server]);
         }
+        free(n->blocks[block]->servers);
+        free(n->blocks[block]);
     }
     free(n->blocks);
-    free(n->system_clock);
     free(n);
 }
 

@@ -30,12 +30,6 @@ void validate_global_population(block **blocks);
 void validate_global_queue_time(double queue_time, double queue_pop);
 void validate_global_response_time(double response_time, int *network_servers);
 
-double get_simulation_lambda(block_type type, network *canteen);
-double get_simulation_visits(block_type type, network *canteen);
-double get_simulation_response_time(block_type type, int m, statistics stats);
-double get_simulation_mhu(block_type type, network *canteen);
-double get_simulation_service(block_type type, network *canteen);
-double get_simulation_lambda_raw(block_type type, network *canteen);
-double global_simulation_respones_time(network *canteen);
+double global_simulation_response_time(network *canteen);
 
 #endif //PROGETTOPMCSN_VALIDATION_H

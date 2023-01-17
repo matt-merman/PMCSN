@@ -32,12 +32,14 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type)
 {
 	event		*current_event;
 	block_type	btype;
-    int perc = 0;
+    int perc;
     int prev_perc = 0;
+#if DEBUG == TRUE
     long elapsed_time;
     time_t begin, end;
     time(&begin);
-	while (TRUE)
+#endif
+    while (TRUE)
 	{
         perc = (int) ((long) canteen->system_clock->current / (PERIOD / 100));
         if ( (int) perc > prev_perc || perc == 100){
@@ -45,7 +47,6 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type)
             fflush(stdout);
             prev_perc = perc;
         }
-		
 		if(termination_conditions(type, canteen, jobs, arrived_jobs))
 			break;
 
@@ -57,7 +58,7 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type)
 			if (arrived_jobs != NULL)
 				(*arrived_jobs)++;
 		}
-		
+
         	update_area_stats(current_event, canteen);
 		canteen->system_clock->current = current_event->time;
 		btype = current_event->block_type;
@@ -83,31 +84,31 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type)
         debug(current_event, canteen);
 		free(current_event);
 	}
-
-	if (arrived_jobs != NULL) 
+#if DEBUG == TRUE
+	if (arrived_jobs != NULL)
 		printf("BATCH MEANS INFO: %d batch dimension - %d counted arrivals\n", jobs, *arrived_jobs);
 
-    FIND_SEGFAULT("TIME");
     time(&end);
     // compute and print the elapsed time in millisec
     elapsed_time = end - begin;
     long elapsed_time_hours = elapsed_time / 3600L;
     long elapsed_time_minutes = (elapsed_time % 3600L) / 60L;
     long elapsed_time_seconds = elapsed_time % 60L;
-    //printf("Simulation time hh:mm:ss - %02li:%02li:%02li\n", elapsed_time_hours, elapsed_time_minutes, elapsed_time_seconds);
+    printf("Simulation time hh:mm:ss - %02li:%02li:%02li\n", elapsed_time_hours, elapsed_time_minutes, elapsed_time_seconds);
+
+#endif
 }
 
-int termination_conditions(sim_type type, network *canteen, int jobs, int * arrived_jobs){
+int termination_conditions(sim_type type, network *canteen, int jobs, const int * arrived_jobs){
 	switch(type){
 		case STANDARD:
 		/* FINITE SIMULATION: breaks if the times is finished,
           	all events are processed and all servers are idle */
-		case FINITE:	
+		case FINITE:
 			return (canteen->system_clock->last_arrival >= PERIOD && !are_there_more_events());
 		/* BATCH MEANS SIMULATION: breaks if all jobs in the batch are arrived. */
 		case INFINITE:
-			printf("%d - %d\n", jobs, *arrived_jobs);
-			return (jobs == (*arrived_jobs));		
+			return (jobs == (*arrived_jobs));
 	}
 }
 
@@ -136,7 +137,7 @@ void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_
 		return;
 	}
 	insert_event_first(new_event);
-      block->count_to_next[6]++;
+      block->count_to_next[ESTERNO]++;
 }
 
 /**
