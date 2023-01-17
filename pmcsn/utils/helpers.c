@@ -177,7 +177,7 @@ void validate_stats(network *canteen) {
  * @param canteen the network
  * @param replica index of replica in 0...REPLICAS-1
  */
-void update_ensemble(network *canteen, int replica_index) {
+void update_ensemble(network *canteen, int index) {
     // for (int i = 0; i < BLOCKS; i++) {
     //     replica_stats *replica = &canteen->blocks[i]->ensemble_stats[replica_index];
     //     statistics stats;
@@ -191,8 +191,8 @@ void update_ensemble(network *canteen, int replica_index) {
     //     replica->utilization = stats.utilization;
     // }
 
-    canteen->global_response_time[replica_index] = global_simulation_respones_time(canteen);
-}
+    canteen->global_response_time[index] = global_simulation_respones_time(canteen);
+}   
 
 void clear_mem(block **blocks) {
     for (int i = 0; i < BLOCKS; i++) {

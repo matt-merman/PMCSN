@@ -1,7 +1,6 @@
 #include "simulation.h"
 #include <time.h>
 
-
 /**
  * Updates time-averaged integrals for node and queue populations
  * @param event the current event to process
@@ -26,10 +25,10 @@ void update_area_stats(event *event, network *canteen)
 }
 
 /**
- *
+ * @param arrived_jobs to count the number of arriving job in batch means simulation
  * @param canteen the network of service nodes that represents a canteen
  */
-void simulation(network *canteen)
+void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type)
 {
 	event		*current_event;
 	block_type	btype;
@@ -46,22 +45,27 @@ void simulation(network *canteen)
             fflush(stdout);
             prev_perc = perc;
         }
-		/* break if the times is finished,
-          	all events are processed and all servers are idle */
-		if (canteen->system_clock->last_arrival >= PERIOD && !are_there_more_events())
-			break ;
+		
+		if(termination_conditions(type, canteen, jobs, arrived_jobs))
+			break;
+
 		current_event = get_next_event();
-		if (current_event->event_type == ARRIVAL)
+
+		if (current_event->event_type == ARRIVAL){
 			// we update the last arrival time
 			canteen->system_clock->last_arrival = current_event->time;
-        update_area_stats(current_event, canteen);
+			if (arrived_jobs != NULL)
+				(*arrived_jobs)++;
+		}
+		
+        	update_area_stats(current_event, canteen);
 		canteen->system_clock->current = current_event->time;
 		btype = current_event->block_type;
 		switch (current_event->event_type)
 		{
 		case ARRIVAL:
 			// schedule its completion (if a server is idle) or add to queue and generate a new outside arrival
-			process_arrival(current_event, canteen->system_clock, canteen->blocks[btype]);
+			process_arrival(current_event, canteen->system_clock, canteen->blocks[btype], type);
 			break ;
 		case IMMEDIATE_ARRIVAL:
 			// schedule its completion or add to queue
@@ -79,6 +83,10 @@ void simulation(network *canteen)
         debug(current_event, canteen);
 		free(current_event);
 	}
+
+	if (arrived_jobs != NULL) 
+		printf("BATCH MEANS INFO: %d batch dimension - %d counted arrivals\n", jobs, *arrived_jobs);
+
     FIND_SEGFAULT("TIME");
     time(&end);
     // compute and print the elapsed time in millisec
@@ -89,25 +97,46 @@ void simulation(network *canteen)
     //printf("Simulation time hh:mm:ss - %02li:%02li:%02li\n", elapsed_time_hours, elapsed_time_minutes, elapsed_time_seconds);
 }
 
+int termination_conditions(sim_type type, network *canteen, int jobs, int * arrived_jobs){
+	switch(type){
+		case STANDARD:
+		/* FINITE SIMULATION: breaks if the times is finished,
+          	all events are processed and all servers are idle */
+		case FINITE:	
+			return (canteen->system_clock->last_arrival >= PERIOD && !are_there_more_events());
+		/* BATCH MEANS SIMULATION: breaks if all jobs in the batch are arrived. */
+		case INFINITE:
+			printf("%d - %d\n", jobs, *arrived_jobs);
+			return (jobs == (*arrived_jobs));		
+	}
+}
+
 /**
  * To process an arrival, we need to schedule or enqueue the job and then generate a new ARRIVAL event
  * @param event
  * @param c
  * @param block
  */
-void	process_arrival(event *event, timer *c, block *block)
+void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_type)
 {
 	double	p;
-
-	process_immediate_arrival(event, c, block);
+	event	*new_event;
+	process_immediate_arrival(current_event, c, block);
 	p = Random();
     if (p < P_PRIMO_FUORI) {
-        create_insert_event(PRIMO, -1, ARRIVAL, c, event);
-        block->count_to_next[6]++;
+		new_event = create_event(PRIMO, -1, ARRIVAL, c->current, current_event);
     } else {
-        create_insert_event(SECONDO, -1, ARRIVAL, c, event);
-        block->count_to_next[6]++;
+		new_event = create_event(SECONDO, -1, ARRIVAL, c->current, current_event);
     }
+    // if we have a new outside arrival but in a time after the observation period,
+	//we skip it.
+	if (sim_type != INFINITE && try_terminate_clock(c, new_event->time))
+	{
+		free(new_event);
+		return;
+	}
+	insert_event_first(new_event);
+      block->count_to_next[6]++;
 }
 
 /**

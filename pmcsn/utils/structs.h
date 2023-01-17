@@ -123,4 +123,10 @@ typedef struct network_t {
     double ensemble_mean_population[REPLICAS];
 } network;
 
+typedef enum sim_type_t {
+    STANDARD,
+    FINITE,
+    INFINITE
+} sim_type;
+
 #endif

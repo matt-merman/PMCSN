@@ -73,7 +73,7 @@ event *create_event(block_type target, int server_id, event_type type, double cu
 // if time of event is greater than termination period,
 //we stop the arrival flow.
 int	try_terminate_clock(timer *c, double time)
-{
+{	
 	if (time > PERIOD)
 	{
 		c->last = c->current;
