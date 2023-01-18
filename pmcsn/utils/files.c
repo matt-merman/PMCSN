@@ -10,14 +10,10 @@ FILE	*open_file(char *p, const char *name)
 {
     FILE	*file;
 
-    char *path, *ext, file_name[100];
-    // We suppose that the current directory is pmcsn/
-    path = "./result/";
+    char *ext, file_name[100];
     ext = ".csv";
 
     memset(file_name, '\0', sizeof(file_name));
-
-    strcat(file_name, path);
     strcat(file_name, name);
     strcat(file_name, ext);
     // removes the file if already exists. We have to write in it
@@ -29,17 +25,16 @@ FILE	*open_file(char *p, const char *name)
         printf("File %s not found. Make sure to run the program from pmcsn/ folder", file_name);
         exit(-1);
     }
-    fprintf(file, "%s", "grt,replica\n");
     return (file);
 }
 
-void	write_result(FILE *file, double value, double time)
+void	write_result(FILE *file, double value, int index)
 {
     char	value_str[100];
     char	time_str[100];
 
     sprintf(value_str, "%f", value);
-    sprintf(time_str, "%f", time);
+    sprintf(time_str, "%d", index);
 
     strcat(value_str, ",");
     strcat(value_str, time_str);

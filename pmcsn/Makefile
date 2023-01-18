@@ -37,7 +37,7 @@ msq: compile_msq
 	./msq
 
 estimate: compile_estimate
-	./estimate < ./result/Primi.txt
+	./estimate < ./result/grt_infinite.csv
 
 acs: compile_acs
-	./acs < ./test.txt
+	./acs < ./result/grt_infinite.csv

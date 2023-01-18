@@ -110,6 +110,7 @@ int termination_conditions(sim_type type, network *canteen, int jobs, const int 
 		case INFINITE:
 			return (jobs == (*arrived_jobs));
 	}
+	return FALSE;
 }
 
 /**

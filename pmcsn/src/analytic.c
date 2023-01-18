@@ -3,6 +3,7 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 #include "analytic.h"
 #include "../libs/rvms.h"
 
@@ -164,7 +165,6 @@ void calculate_interval_estimate_for_stat(const char *stat_name, const double *g
     long n = 0;                     /* counts data points */
     double sum = 0.0;
     double mean = 0.0;
-    // double data;
     double stdev;
     double u, t, w;
     double diff;
@@ -184,11 +184,65 @@ void calculate_interval_estimate_for_stat(const char *stat_name, const double *g
         u = 1.0 - 0.5 * (1.0 - LOC);              /* interval parameter  */
         t = idfStudent(n - 1, u);                 /* critical value of t */
         w = t * stdev / sqrt((double) n - 1);              /* interval half width */
-        printf("\n============== Ensemble %s for block %s =============", stat_name, stat_name);
+        printf("\n============== Ensemble %s =============", stat_name);
         printf("\nbased upon %ld data points", n);
         printf(" and with %d%% confidence\n", (int) (100.0 * LOC + 0.5));
         printf("the expected value is in the interval");
         printf("%10.2f +/- %6.2f\n", mean, w);
     } else
         printf("ERROR - insufficient data\n");
+}
+
+void calculate_autocorrelation_for_stats(const char *stat_name, const double *response_time)
+{
+  long   i = 0;                   /* data point index              */
+  double sum = 0.0;               /* sums x[i]                     */
+  long   n;                       /* number of data points         */
+  long   j;                       /* lag index                     */
+  long   p = 0;                   /* points to the head of 'hold'  */
+  double mean;
+  double hold[SIZE];              /* K + 1 most recent data points */
+  double cosum[SIZE] = {0.0};     /* cosum[j] sums x[i] * x[i+j]   */
+    int k = 0;
+
+//   while (i < SIZE) {              /* initialize the hold array with */
+//     sum     += response_time[k];
+//     hold[i]  = response_time[k];
+//     i++;
+//     k++;
+//   }
+
+  for(k = 0; k < K_BATCH; k++){
+
+    for (j = 0; j < SIZE; j++)
+      cosum[j] += hold[p] * hold[(p + j) % SIZE];
+      
+    sum    += response_time[k];
+    hold[p] = response_time[k];
+    p       = (p + 1) % SIZE;
+    i++;
+  
+  }
+
+  n = i;
+
+  while (i < n + SIZE) {         /* empty the circular array */
+    for (j = 0; j < SIZE; j++)
+      cosum[j] += hold[p] * hold[(p + j) % SIZE];
+    hold[p] = 0.0;
+    p       = (p + 1) % SIZE;
+    i++;
+  } 
+
+  mean = sum / n;
+  for (j = 0; j <= K; j++)
+    cosum[j] = (cosum[j] / (n - j)) - (mean * mean);
+
+  printf("\n============== Ensemble %s =============\n", stat_name);
+  printf("for %ld data points\n", n);
+  printf("the mean is ... %8.2f\n", mean);
+  printf("the stdev is .. %8.2f\n\n", sqrt(cosum[0]));
+  printf("  j (lag)   r[j] (autocorrelation)\n");
+  for (j = 1; j < SIZE; j++)
+    printf("%3ld  %11.3f\n", j, cosum[j] / cosum[0]);
 }

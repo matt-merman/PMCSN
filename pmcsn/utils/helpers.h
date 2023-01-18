@@ -39,7 +39,6 @@ void debug(event *event, network *canteen);
 void show_stats(network *canteen);
 void validate_stats(network *canteen);
 void update_ensemble(network *canteen, int index);
-int get_batch_number();
 
 #endif
 

@@ -28,5 +28,7 @@ double  erlang_b_loss_probability(int m, double lambda, double mhu);
 void calculate_interval_estimate_for_stat(const char *stat_name, const double *global_response_time, int num_replicas);
 double get_response_time(block_type type, int m);
 double global_respones_time(int *network_servers);
+void calculate_autocorrelation_for_stats(const char *stat_name, const double *response_time);
+
 
 #endif //PROGETTOPMCSN_ANALYTIC_H

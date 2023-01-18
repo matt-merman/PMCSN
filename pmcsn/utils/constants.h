@@ -65,10 +65,13 @@
 #define LOC 0.95                       /* level of confidence, for estimate intervals */
 
 // Total jobs number in the infinite simulation.
-#define INF_USER (USER * 10L)
+#define INF_USER (USER * 6L)
 // Batches dimension in the infinite simulation.
-#define B 1000
+#define B 500
+#define K_BATCH ((int) INF_USER / B)
 
-#define K ((int) INF_USER / B)
+// Constants used in analytic.c, in particular to calculate_autocorrelation_for_stats() procedure 
+#define K    1                              /* K is the maximum lag */
+#define SIZE (K + 1)
 
 #endif
