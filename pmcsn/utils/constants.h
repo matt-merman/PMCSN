@@ -65,9 +65,9 @@
 #define LOC 0.95                       /* level of confidence, for estimate intervals */
 
 // Total jobs number in the infinite simulation.
-#define INF_USER (USER * 6L)
+#define INF_USER (USER * 10L)
 // Batches dimension in the infinite simulation.
-#define B 500
+#define B 106
 #define K_BATCH ((int) INF_USER / B)
 
 #endif

@@ -103,7 +103,7 @@ typedef struct network_t {
 
     double replicas_response_time[MAX_REPLICAS];
     double global_response_time;
-    double batch_response_time[B];
+    double batch_response_time[K_BATCH];
     double global_mean_population;
 } network;
 
