@@ -201,41 +201,29 @@ void calculate_autocorrelation_for_stats(const char *stat_name, const double *re
   long   j;                       /* lag index                     */
   long   p = 0;                   /* points to the head of 'hold'  */
   double mean;
-  double hold[SIZE];              /* K + 1 most recent data points */
-  double cosum[SIZE] = {0.0};     /* cosum[j] sums x[i] * x[i+j]   */
+  double hold[K_BATCH];              /* K + 1 most recent data points */
+  double cosum[K_BATCH] = {0.0};     /* cosum[j] sums x[i] * x[i+j]   */
     int k = 0;
 
-//   while (i < SIZE) {              /* initialize the hold array with */
-//     sum     += response_time[k];
-//     hold[i]  = response_time[k];
-//     i++;
-//     k++;
-//   }
-
-  for(k = 0; k < K_BATCH; k++){
-
-    for (j = 0; j < SIZE; j++)
-      cosum[j] += hold[p] * hold[(p + j) % SIZE];
-      
-    sum    += response_time[k];
-    hold[p] = response_time[k];
-    p       = (p + 1) % SIZE;
+  while (i < K_BATCH) {              /* initialize the hold array with */
+    sum     += response_time[k];
+    hold[i]  = response_time[k];
     i++;
-  
+    k++;
   }
 
   n = i;
 
-  while (i < n + SIZE) {         /* empty the circular array */
-    for (j = 0; j < SIZE; j++)
-      cosum[j] += hold[p] * hold[(p + j) % SIZE];
+  while (i < n + K_BATCH) {         /* empty the circular array */
+    for (j = 0; j < K_BATCH; j++)
+      cosum[j] += hold[p] * hold[(p + j) % K_BATCH];
     hold[p] = 0.0;
-    p       = (p + 1) % SIZE;
+    p       = (p + 1) % K_BATCH;
     i++;
   } 
 
   mean = sum / n;
-  for (j = 0; j <= K; j++)
+  for (j = 0; j <= K_BATCH-1; j++)
     cosum[j] = (cosum[j] / (n - j)) - (mean * mean);
 
   printf("\n============== Ensemble %s =============\n", stat_name);
@@ -243,6 +231,6 @@ void calculate_autocorrelation_for_stats(const char *stat_name, const double *re
   printf("the mean is ... %8.2f\n", mean);
   printf("the stdev is .. %8.2f\n\n", sqrt(cosum[0]));
   printf("  j (lag)   r[j] (autocorrelation)\n");
-  for (j = 1; j < SIZE; j++)
+  for (j = 1; j < K_BATCH; j++)
     printf("%3ld  %11.3f\n", j, cosum[j] / cosum[0]);
 }

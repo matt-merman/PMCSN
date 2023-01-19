@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define K 1                            /* K is the maximum lag */
+#define K 29                            /* K is the maximum lag */
 #define SIZE (K + 1)
 
   int main(void)
@@ -45,17 +45,21 @@
     sum     += x;
     hold[i]  = x;
     i++;
+    printf("%f\n", x);
   }
 
   while (!feof(stdin)) {
-    for (j = 0; j < SIZE; j++)
+    for (j = 0; j < SIZE; j++){
       cosum[j] += hold[p] * hold[(p + j) % SIZE];
-      
+          printf("Pluto\n");
+    }
     scanf("%lf\n", &x);
     sum    += x;
     hold[p] = x;
     p       = (p + 1) % SIZE;
     i++;
+    printf("Pippo\n");
+
   }
   n = i;
 

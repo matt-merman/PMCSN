@@ -70,8 +70,4 @@
 #define B 500
 #define K_BATCH ((int) INF_USER / B)
 
-// Constants used in analytic.c, in particular to calculate_autocorrelation_for_stats() procedure 
-#define K    1                              /* K is the maximum lag */
-#define SIZE (K + 1)
-
 #endif

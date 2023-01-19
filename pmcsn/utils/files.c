@@ -34,10 +34,10 @@ void	write_result(FILE *file, double value, int index)
     char	time_str[100];
 
     sprintf(value_str, "%f", value);
-    sprintf(time_str, "%d", index);
+    //sprintf(time_str, "%d", index);
 
-    strcat(value_str, ",");
-    strcat(value_str, time_str);
+    // strcat(value_str, ",");
+    // strcat(value_str, time_str);
     strcat(value_str, "\n");
 
     fprintf(file, "%s", value_str);

@@ -40,4 +40,4 @@ estimate: compile_estimate
 	./estimate < ./result/grt_infinite.csv
 
 acs: compile_acs
-	./acs < ./result/grt_infinite.csv
+	./acs < ./result/infinite/grt.csv
