@@ -1,8 +1,8 @@
 #include "helpers.h"
 
-int get_seed(){
+long get_seed(){
 
-    return rand() % 900000000 + 111111111;
+    return Equilikely(0L, 900000000L);
 
 }
 
@@ -126,14 +126,13 @@ void show_stats(network *canteen, long int period) {
 
         total_cost += (long double) stats.daily_cost;
         printf("\n\t\tDaily Configuration Cost for '%s': %Lg \u20AC \n\n", canteen->blocks[i]->name, stats.daily_cost);
+        clear_stats(&stats);
 
     }
     canteen->global_response_time = network_response_time;
     canteen->global_mean_population = network_mean_population;
     printf("\t----------------------------------------------------------\n");
     printf("\n\t\tTotal Daily Configuration Cost: %Lg \u20AC \n\n", total_cost);
-    free(stats.multiserver_utilization);
-    free(stats.multiserver_service_time);
 }
 
 void validate_stats(network *canteen, long int period) {
@@ -178,6 +177,7 @@ void update_ensemble(network *canteen, int index, long int period) {
 void clear_stats(statistics *stats) {
     free(stats->multiserver_utilization);
     free(stats->multiserver_service_time);
+    free(stats->routing_probability);
 }
 
 void debug(event *event, network *canteen) {

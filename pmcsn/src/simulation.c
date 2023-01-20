@@ -39,49 +39,47 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type, lo
     time_t begin, end;
     time(&begin);
 #endif
-    while (TRUE)
-	{
-        perc = (int) ((long) canteen->system_clock->current / (period / 100));
-        if ( (int) perc > prev_perc || perc == 100){
-            printf("%d%%\r", perc);
-            fflush(stdout);
-            prev_perc = perc;
-        }
-		if(termination_conditions(type, canteen, jobs, arrived_jobs, period))
+	while (TRUE) {
+		perc = (int) ((long) canteen->system_clock->current / (period / 100));
+		if ((int) perc > prev_perc || perc == 100) {
+			printf("%d%%\r", perc);
+			fflush(stdout);
+			prev_perc = perc;
+		}
+		if (termination_conditions(type, canteen, jobs, arrived_jobs, period))
 			break;
 
 		current_event = get_next_event();
 
-		if (current_event->event_type == ARRIVAL){
+		if (current_event->event_type == ARRIVAL) {
 			// we update the last arrival time
 			canteen->system_clock->last_arrival = current_event->time;
 			if (arrived_jobs != NULL)
 				(*arrived_jobs)++;
 		}
 
-        	update_area_stats(current_event, canteen);
+		update_area_stats(current_event, canteen);
 		canteen->system_clock->current = current_event->time;
 		btype = current_event->block_type;
-		switch (current_event->event_type)
-		{
-		case ARRIVAL:
-			// schedule its completion (if a server is idle) or add to queue and generate a new outside arrival
-			process_arrival(current_event, canteen->system_clock, canteen->blocks[btype], type, period);
-			break ;
-		case IMMEDIATE_ARRIVAL:
-			// schedule its completion or add to queue
-			process_immediate_arrival(current_event, canteen->system_clock,canteen->blocks[btype], period);
-			break ;
-		case COMPLETION:
-			// schedule the next completion and generate an immediate arrival
-			process_completion(current_event, canteen->system_clock, canteen->blocks[btype], period);
-			break ;
-		default:
-			break ;
+		switch (current_event->event_type) {
+			case ARRIVAL:
+				// schedule its completion (if a server is idle) or add to queue and generate a new outside arrival
+				process_arrival(current_event, canteen->system_clock, canteen->blocks[btype], type, period);
+				break;
+			case IMMEDIATE_ARRIVAL:
+				// schedule its completion or add to queue
+				process_immediate_arrival(current_event, canteen->system_clock, canteen->blocks[btype], period);
+				break;
+			case COMPLETION:
+				// schedule the next completion and generate an immediate arrival
+				process_completion(current_event, canteen->system_clock, canteen->blocks[btype], period);
+				break;
+			default:
+				break;
 		}
 		// the current_event is processed and now it can be freed
 		sort_list();
-        debug(current_event, canteen);
+		debug(current_event, canteen);
 		free(current_event);
 	}
 #if DEBUG == TRUE
@@ -95,7 +93,6 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type, lo
     long elapsed_time_minutes = (elapsed_time % 3600L) / 60L;
     long elapsed_time_seconds = elapsed_time % 60L;
     printf("Simulation time hh:mm:ss - %02li:%02li:%02li\n", elapsed_time_hours, elapsed_time_minutes, elapsed_time_seconds);
-
 #endif
 }
 

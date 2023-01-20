@@ -139,7 +139,7 @@ double erlang_b_loss_probability(int m, double lambda, double mhu) {
     return pi_m;
 }
 
-double get_response_time(block_type type, int m) {
+double get_theoretical_response_time(block_type type, int m) {
 
     double service_time = get_theoretical_service(type);
     if (type == CONSUMAZIONE) {
@@ -152,10 +152,10 @@ double get_response_time(block_type type, int m) {
     return erlang_c_response_time(queue_time, service_time);
 }
 
-double global_respones_time(int *network_servers) {
+double get_theoretical_global_response_time(int *network_servers) {
     double global_wait = 0.0;
     for (int i = 0; i<BLOCKS; i++){
-        global_wait += get_response_time(i, network_servers[i]) * get_theoretical_visits(i, network_servers[i]);
+        global_wait += get_theoretical_response_time(i, network_servers[i]) * get_theoretical_visits(i, network_servers[i]);
     }
     return global_wait;
 }

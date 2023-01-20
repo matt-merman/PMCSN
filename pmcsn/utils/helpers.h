@@ -40,7 +40,7 @@ void show_stats(network *canteen, long int period);
 void validate_stats(network *canteen, long int period);
 void update_ensemble(network *canteen, int index, long int period);
 
-int get_seed();
+long get_seed();
 
 #endif
 

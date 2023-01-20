@@ -215,7 +215,7 @@ int erlang_b_loss_probability_test(test_count *t) {
 int global_response_time_test(test_count *t) {
 
     int net_servers[] = {3, 3, 2, 1, 4, 139};
-    double response_time = global_respones_time(net_servers);
+    double response_time = get_theoretical_global_response_time(net_servers);
 
     ASSERT_DOUBLE_EQUAL(response_time, 649.78441, "global_response_time");
 

@@ -26,8 +26,8 @@ double  erlang_c_response_time(double queue_time, double service_time);
 double  erlang_b_loss_probability(int m, double lambda, double mhu);
 // void calculate_interval_estimate_for_stat(stat_type stat, const char *stat_name, replica_stats *replica_stats_ensemble, const char *block_name);
 void calculate_interval_estimate_for_stat(const char *stat_name, const double *global_response_time, int num_replicas);
-double get_response_time(block_type type, int m);
-double global_respones_time(int *network_servers);
+double get_theoretical_response_time(block_type type, int m);
+double get_theoretical_global_response_time(int *network_servers);
 void calculate_autocorrelation_for_stats(const char *stat_name, const double *response_time);
 
 

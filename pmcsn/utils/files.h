@@ -9,6 +9,6 @@
 #include <stdlib.h>
 
 FILE *open_file(char *p, const char *name);
-void	write_result(FILE *file, double value, int index);
+void	write_result(FILE *file, double value, long index);
 
 #endif

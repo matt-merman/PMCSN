@@ -167,7 +167,7 @@ void validate_global_population(block **blocks) {
  * @param network_servers
  */
 void validate_global_response_time(double response_time, int *network_servers) {
-    double global_wait_theoretical = global_respones_time(network_servers);
+    double global_wait_theoretical = get_theoretical_global_response_time(network_servers);
     printf("\tThe computed global response time (%f) doesn't match with the theoretical global response time (%f)\n",
            response_time, global_wait_theoretical);
 }
@@ -179,6 +179,7 @@ double global_simulation_response_time(network *canteen, long int period) {
     for (int i = 0; i<BLOCKS; i++){
         get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
         global_wait += stats.wait * get_theoretical_visits(i, canteen->blocks[i]->num_servers);
+        clear_stats(&stats);
     }
     return global_wait;
 }

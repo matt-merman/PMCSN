@@ -28,13 +28,13 @@ FILE	*open_file(char *p, const char *name)
     return (file);
 }
 
-void	write_result(FILE *file, double value, int index)
+void	write_result(FILE *file, double value, long index)
 {
     char	value_str[100];
     char	time_str[100];
 
     sprintf(value_str, "%f", value);
-    sprintf(time_str, "%d", index);
+    sprintf(time_str, "%ld", index);
     strcat(value_str, ",");
     strcat(value_str, time_str);
     strcat(value_str, "\n");
