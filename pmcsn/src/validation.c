@@ -172,12 +172,12 @@ void validate_global_response_time(double response_time, int *network_servers) {
            response_time, global_wait_theoretical);
 }
 
-double global_simulation_response_time(network *canteen) {
+double global_simulation_response_time(network *canteen, long int period) {
     double global_wait = 0.0;
     statistics stats;
 
     for (int i = 0; i<BLOCKS; i++){
-        get_stats(canteen->blocks[i], canteen->system_clock, &stats);
+        get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
         global_wait += stats.wait * get_theoretical_visits(i, canteen->blocks[i]->num_servers);
     }
     return global_wait;

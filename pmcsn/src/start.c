@@ -26,7 +26,7 @@ int	main(int argc, __attribute__((unused)) char **argv)
             return 0;
     }
 
-	// initializing multi-stream lehmer generator
+    // initializing multi-stream lehmer generator
 	PlantSeeds(123456789);
 
     if (strcmp(parameter, "finite") == 0){
@@ -40,7 +40,7 @@ int	main(int argc, __attribute__((unused)) char **argv)
 
             file = open_file("w", file_name);
             fprintf(file, "%s", "grt,replica\n");
-            
+
             start_finite_horizon_simulation(NETWORK_CONFIGURATION, file, i);
 
             fclose(file);
@@ -54,7 +54,7 @@ int	main(int argc, __attribute__((unused)) char **argv)
         file = open_file("w", file_name);
         fprintf(file, "%s", "grt,batch_index\n");
             
-        start_infinite_horizon_simulation(NETWORK_CONFIGURATION, file);
+        start_infinite_horizon_simulation(NETWORK_CONFIGURATION, file, PERIOD);
 
         fclose(file);
     }else
@@ -64,15 +64,50 @@ int	main(int argc, __attribute__((unused)) char **argv)
 }
 
 int start_standard_simulation(int config) {
-    network * canteen = create_network(BLOCK_NAMES, config);
+    char file_name[100];
+    char num_to_str[100];
+    FILE *file;
+    int seed; 
+    double grt;
+    long int period;
 
-    simulation(canteen, 0, NULL, STANDARD);
+    seed = 123456789;
+    for(int i = 0; i < NUM_SEED; i++){
+    
+        PlantSeeds(seed);
+    
+        strcpy(file_name, "");
+        strcat(file_name, "./result/standard/grt_");
 
-    // if you run one replica, we'll have a standard execution
-    show_stats(canteen);
-    validate_stats(canteen);
-	clear_network(canteen);
+        sprintf(num_to_str, "%d", seed);
+        strcat(file_name, num_to_str);
 
+        file = open_file("w", file_name);
+        fprintf(file, "%s", "grt,period\n");
+
+        for(int j = PERIOD_INTERVALS; j > 0; j--){
+            network * canteen = create_network(BLOCK_NAMES, config);
+
+            period = PERIOD/j;
+
+            simulation(canteen, 0, NULL, STANDARD, period);
+            
+            grt = global_simulation_response_time(canteen, period);
+            write_result(file, grt, period);
+
+            if (NUM_SEED == 1 && j == 1){
+                show_stats(canteen, period);
+                validate_stats(canteen, period);
+            }
+
+            clear_network(canteen); 
+    
+        }
+
+        fclose(file);
+   
+        seed = get_seed();
+    }
     return (0);
 }
 
@@ -87,7 +122,6 @@ int start_finite_horizon_simulation(int config, FILE *file, int num_replicas)
 {
     network *canteen;
     int replica;
-    double grt;
 
     canteen = malloc(sizeof(network));
     if (canteen == NULL){
@@ -117,11 +151,9 @@ int start_finite_horizon_simulation(int config, FILE *file, int num_replicas)
             restart_blocks(canteen);
         }
 
-        simulation(canteen, 0, NULL, FINITE);
-        canteen->global_response_time = global_simulation_response_time(canteen);
-
-        grt = global_simulation_response_time(canteen);
-        write_result(file, grt, num_replicas);
+        simulation(canteen, 0, NULL, FINITE, PERIOD);
+        canteen->global_response_time = global_simulation_response_time(canteen, PERIOD);
+        write_result(file, canteen->global_response_time, num_replicas);
 
         free(canteen->system_clock);
     }
@@ -135,7 +167,7 @@ int start_finite_horizon_simulation(int config, FILE *file, int num_replicas)
 /**
     TODO: verifica che la media di tutta la simulazione lunga sia uguale alla media delle medie dei batch.
  */
-int start_infinite_horizon_simulation(int config, FILE *file)
+int start_infinite_horizon_simulation(int config, FILE *file, long int period)
 {
 
     network *canteen;
@@ -173,10 +205,10 @@ int start_infinite_horizon_simulation(int config, FILE *file)
     *arrived_jobs = 0;
     for (batch_index = 1; batch_index <= K_BATCH; batch_index++)
     {
-        simulation(canteen, batch_index*B, arrived_jobs, INFINITE);
-        update_ensemble(canteen, batch_index-1);
+        simulation(canteen, batch_index*B, arrived_jobs, INFINITE, PERIOD);
+        update_ensemble(canteen, batch_index-1, period);
             
-        grt = global_simulation_response_time(canteen);
+        grt = global_simulation_response_time(canteen, period);
         write_result(file, grt, batch_index);
     }
 

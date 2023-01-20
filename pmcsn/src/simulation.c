@@ -28,7 +28,7 @@ void update_area_stats(event *event, network *canteen)
  * @param arrived_jobs to count the number of arriving job in batch means simulation
  * @param canteen the network of service nodes that represents a canteen
  */
-void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type)
+void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type, long int period)
 {
 	event		*current_event;
 	block_type	btype;
@@ -41,13 +41,13 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type)
 #endif
     while (TRUE)
 	{
-        perc = (int) ((long) canteen->system_clock->current / (PERIOD / 100));
+        perc = (int) ((long) canteen->system_clock->current / (period / 100));
         if ( (int) perc > prev_perc || perc == 100){
             printf("%d%%\r", perc);
             fflush(stdout);
             prev_perc = perc;
         }
-		if(termination_conditions(type, canteen, jobs, arrived_jobs))
+		if(termination_conditions(type, canteen, jobs, arrived_jobs, period))
 			break;
 
 		current_event = get_next_event();
@@ -66,15 +66,15 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type)
 		{
 		case ARRIVAL:
 			// schedule its completion (if a server is idle) or add to queue and generate a new outside arrival
-			process_arrival(current_event, canteen->system_clock, canteen->blocks[btype], type);
+			process_arrival(current_event, canteen->system_clock, canteen->blocks[btype], type, period);
 			break ;
 		case IMMEDIATE_ARRIVAL:
 			// schedule its completion or add to queue
-			process_immediate_arrival(current_event, canteen->system_clock,canteen->blocks[btype]);
+			process_immediate_arrival(current_event, canteen->system_clock,canteen->blocks[btype], period);
 			break ;
 		case COMPLETION:
 			// schedule the next completion and generate an immediate arrival
-			process_completion(current_event, canteen->system_clock, canteen->blocks[btype]);
+			process_completion(current_event, canteen->system_clock, canteen->blocks[btype], period);
 			break ;
 		default:
 			break ;
@@ -99,13 +99,13 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type)
 #endif
 }
 
-int termination_conditions(sim_type type, network *canteen, int jobs, const int * arrived_jobs){
+int termination_conditions(sim_type type, network *canteen, int jobs, const int * arrived_jobs, long int period){
 	switch(type){
 		case STANDARD:
 		/* FINITE SIMULATION: breaks if the times is finished,
           	all events are processed and all servers are idle */
 		case FINITE:
-			return (canteen->system_clock->last_arrival >= PERIOD && !are_there_more_events());
+			return (canteen->system_clock->last_arrival >= period && !are_there_more_events());
 		/* BATCH MEANS SIMULATION: breaks if all jobs in the batch are arrived. */
 		case INFINITE:
 			return (jobs == (*arrived_jobs));
@@ -119,11 +119,11 @@ int termination_conditions(sim_type type, network *canteen, int jobs, const int 
  * @param c
  * @param block
  */
-void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_type)
+void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_type, long int period)
 {
 	double	p;
 	event	*new_event;
-	process_immediate_arrival(current_event, c, block);
+	process_immediate_arrival(current_event, c, block, period);
 	p = Random();
     if (p < P_PRIMO_FUORI) {
 		new_event = create_event(PRIMO, -1, ARRIVAL, c->current, current_event);
@@ -132,7 +132,7 @@ void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_
     }
     // if we have a new outside arrival but in a time after the observation period,
 	//we skip it.
-	if (sim_type != INFINITE && try_terminate_clock(c, new_event->time))
+	if (sim_type != INFINITE && try_terminate_clock(c, new_event->time, period))
 	{
 		free(new_event);
 		return;
@@ -149,7 +149,7 @@ void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_
  * @param c the time of the current arrival event
  * @param block the service node to which the job is arrived
  */
-void	process_immediate_arrival(event *arrival_event, timer *c, block *block)
+void	process_immediate_arrival(event *arrival_event, timer *c, block *block, long int period)
 {
 	int		s_index;
 	server	*s;
@@ -161,7 +161,7 @@ void	process_immediate_arrival(event *arrival_event, timer *c, block *block)
 	if (s_index != -1)
 	{
 		s = block->servers[s_index];
-		next_completion_event = create_insert_event(block->type, s_index,COMPLETION, c, arrival_event);
+		next_completion_event = create_insert_event(block->type, s_index,COMPLETION, c, arrival_event, period);
 		if (next_completion_event != NULL)
 		{
 			next_completion_time = (next_completion_event->time - c->current);
@@ -186,7 +186,7 @@ void	process_immediate_arrival(event *arrival_event, timer *c, block *block)
  * @param c
  * @param block
  */
-void	process_completion(event *completion_event, timer *c, block *block)
+void	process_completion(event *completion_event, timer *c, block *block, long int period)
 {
 	event	*next_completion_event;
 	double	next_completion_time;
@@ -211,7 +211,7 @@ void	process_completion(event *completion_event, timer *c, block *block)
 		{
 			s = block->servers[completion_event->target_server];
 			next_completion_event = create_insert_event(block->type, serv_id,
-					COMPLETION, c, completion_event);
+					COMPLETION, c, completion_event, period);
 			if (next_completion_event != NULL)
 			{
 				next_completion_time = (next_completion_event->time - c->current);
@@ -222,7 +222,7 @@ void	process_completion(event *completion_event, timer *c, block *block)
 			}
 		}
 	}
-	schedule_immediate_arrival(block, c, completion_event);
+	schedule_immediate_arrival(block, c, completion_event, period);
 }
 
 /**
@@ -231,7 +231,7 @@ void	process_completion(event *completion_event, timer *c, block *block)
  * @param c
  * @param triggering_event
  */
-void	schedule_immediate_arrival(block* block, timer *c, event *triggering_event)
+void	schedule_immediate_arrival(block* block, timer *c, event *triggering_event, long int period)
 {
 	double	p;
 	int		next_type;
@@ -269,6 +269,6 @@ void	schedule_immediate_arrival(block* block, timer *c, event *triggering_event)
 	}
 
 	block->count_to_next[next_type]++;
-	create_insert_event(next_type, -1, IMMEDIATE_ARRIVAL, c, triggering_event);
+	create_insert_event(next_type, -1, IMMEDIATE_ARRIVAL, c, triggering_event, period);
 
 }

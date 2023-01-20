@@ -31,14 +31,16 @@
 
 double	get_next_arrival(double current, double lambda);
 double	get_next_service(block_type type, int stream);
-void    get_stats(block *b, timer *clock, statistics *stats);
+void    get_stats(block *b, timer *clock, statistics *stats, long int period);
 
 void clear_stats(statistics *stats);
 void debug(event *event, network *canteen);
 
-void show_stats(network *canteen);
-void validate_stats(network *canteen);
-void update_ensemble(network *canteen, int index);
+void show_stats(network *canteen, long int period);
+void validate_stats(network *canteen, long int period);
+void update_ensemble(network *canteen, int index, long int period);
+
+int get_seed();
 
 #endif
 

@@ -10,6 +10,5 @@
 
 FILE *open_file(char *p, const char *name);
 void	write_result(FILE *file, double value, int index);
-void	close_files(FILE **files);
 
 #endif

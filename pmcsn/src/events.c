@@ -72,9 +72,9 @@ event *create_event(block_type target, int server_id, event_type type, double cu
 
 // if time of event is greater than termination period,
 //we stop the arrival flow.
-int	try_terminate_clock(timer *c, double time)
+int	try_terminate_clock(timer *c, double time, long int period)
 {	
-	if (time > PERIOD)
+	if (time > period)
 	{
 		c->last = c->current;
 		c->last_arrival = INF; // the next arrival will arrive at infinity
@@ -91,14 +91,14 @@ int	is_clock_terminated(void)
 }
 // creates an event and return its time (the time at which the event will occurr)
 // the clock contains the time of this event
-event * create_insert_event(block_type target, int server_id, event_type eventType, timer *c, event *linked_event)
+event * create_insert_event(block_type target, int server_id, event_type eventType, timer *c, event *linked_event, long int period)
 {
 	event	*e;
 
 	e = create_event(target, server_id, eventType, c->current, linked_event);
 	// if we have a new outside arrival but in a time after the observation period,
 	//we skip it.
-	if (eventType == ARRIVAL && try_terminate_clock(c, e->time))
+	if (eventType == ARRIVAL && try_terminate_clock(c, e->time, period))
 	{
 		free(e);
 		return NULL;

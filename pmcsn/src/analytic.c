@@ -231,5 +231,5 @@ void calculate_autocorrelation_for_stats(const char *stat_name, const double *re
   printf("the mean is ... %8.2f\n", mean);
   printf("the stdev is .. %8.2f\n\n", sqrt(cosum[0]));
   printf("  j (lag)   r[j] (autocorrelation)\n");
-  printf("%3ld  %11.3f\n", 1, cosum[1] / cosum[0]);
+  printf("1  %11.3f\n", cosum[1] / cosum[0]);
 }

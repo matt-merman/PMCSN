@@ -1,5 +1,11 @@
 #include "helpers.h"
 
+int get_seed(){
+
+    return rand() % 900000000 + 111111111;
+
+}
+
 double get_next_arrival(double current, double lambda) {
     double arrival;
     arrival = current;
@@ -20,7 +26,7 @@ double get_next_service(block_type type, int stream) {
 }
 
 // reduced number of parameters
-void get_stats(block *b, timer *clock, statistics *stats) {
+void get_stats(block *b, timer *clock, statistics *stats, long int period) {
     double completed_jobs = (double) b->completed_jobs;
     area *area = b->block_area;
     stats->completed_jobs = b->completed_jobs;
@@ -30,9 +36,9 @@ void get_stats(block *b, timer *clock, statistics *stats) {
     stats->delay = (double) (area->queue / (long double) completed_jobs);
     stats->service_time = (double) (area->service / (long double) completed_jobs);
 
-    stats->node_pop = (double) ( area->node / (long double) PERIOD);
-    stats->queue_pop = (double) ( area->queue / (long double) PERIOD) ;
-    stats->utilization = (double) ( area->service / ((long double) PERIOD * (long double) b->num_servers));
+    stats->node_pop = (double) ( area->node / (long double) period);
+    stats->queue_pop = (double) ( area->queue / (long double) period) ;
+    stats->utilization = (double) ( area->service / ((long double) period * (long double) b->num_servers));
     stats->loss_probability = 0.0;
     if (b->type == CONSUMAZIONE) {
         stats->loss_probability = (double) b->rejected_jobs / (double) (b->completed_jobs + b->rejected_jobs);
@@ -42,7 +48,7 @@ void get_stats(block *b, timer *clock, statistics *stats) {
     stats->multiserver_utilization = malloc(sizeof(double) * b->num_servers);
     stats->multiserver_service_time = malloc(sizeof(double) * b->num_servers);
     for (int s = 0; s < b->num_servers; s++) {
-        stats->multiserver_utilization[s] = (double) (b->servers[s]->sum->service / PERIOD);
+        stats->multiserver_utilization[s] = (double) (b->servers[s]->sum->service / period);
         stats->multiserver_service_time[s] = (double) (b->servers[s]->sum->service / b->servers[s]->sum->served);
     }
 
@@ -53,7 +59,7 @@ void get_stats(block *b, timer *clock, statistics *stats) {
     }
 }
 
-void show_stats(network *canteen) {
+void show_stats(network *canteen, long int period) {
     long double total_cost = 0.0;
     statistics stats;
 //    double queue_time_sum = 0.0;
@@ -62,7 +68,7 @@ void show_stats(network *canteen) {
     double network_mean_population = 0.0;
     for (int i = 0; i < BLOCKS; i++) {
         // at each iteration we overwrite the statistics struct
-        get_stats(canteen->blocks[i], canteen->system_clock, &stats);
+        get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
 //        queue_time_sum += stats.delay;
 //        queue_population_sum += stats.queue_pop;
         // bisogna tenere conto delle visite medie a ogni centro!!!
@@ -130,13 +136,13 @@ void show_stats(network *canteen) {
     free(stats.multiserver_service_time);
 }
 
-void validate_stats(network *canteen) {
+void validate_stats(network *canteen, long int period) {
 
     statistics stats;
     int i;
 
     for (i = 0; i < BLOCKS; i++) {
-        get_stats(canteen->blocks[i], canteen->system_clock, &stats);
+        get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
         validate_block(canteen->blocks[i], &stats);
         clear_stats(&stats);
     }
@@ -152,7 +158,7 @@ void validate_stats(network *canteen) {
  * @param canteen the network
  * @param replica index of replica in 0...REPLICAS-1
  */
-void update_ensemble(network *canteen, int index) {
+void update_ensemble(network *canteen, int index, long int period) {
     // for (int i = 0; i < BLOCKS; i++) {
     //     replica_stats *replica = &canteen->blocks[i]->ensemble_stats[replica_index];
     //     statistics stats;
@@ -166,7 +172,7 @@ void update_ensemble(network *canteen, int index) {
     //     replica->utilization = stats.utilization;
     // }
 
-    canteen->batch_response_time[index] = global_simulation_response_time(canteen);
+    canteen->batch_response_time[index] = global_simulation_response_time(canteen, period);
 }
 
 void clear_stats(statistics *stats) {

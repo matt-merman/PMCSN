@@ -17,7 +17,7 @@
 
 int start_standard_simulation(int config);
 int start_finite_horizon_simulation(int config, FILE* file, int num_replicas);
-int start_infinite_horizon_simulation(int config, FILE *file);
+int start_infinite_horizon_simulation(int config, FILE *file, long int period);
 void calculate_all_interval_estimate(network *canteen, int num_replicas);
 
 #endif //PROGETTOPMCSN_START_H

@@ -34,26 +34,10 @@ void	write_result(FILE *file, double value, int index)
     char	time_str[100];
 
     sprintf(value_str, "%f", value);
-    //sprintf(time_str, "%d", index);
-
-    // strcat(value_str, ",");
-    // strcat(value_str, time_str);
+    sprintf(time_str, "%d", index);
+    strcat(value_str, ",");
+    strcat(value_str, time_str);
     strcat(value_str, "\n");
 
     fprintf(file, "%s", value_str);
-}
-
-void	close_files(FILE **files)
-{
-    int i;
-
-    for (i = 0; i < BLOCKS; i++)
-    {
-        if (files[i] != NULL)
-        {
-            fclose(files[i]);
-        }
-    }
-
-    free(files);
 }

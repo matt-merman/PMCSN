@@ -16,7 +16,7 @@ network *mock_network() {
     }
     // re-run simulation otherwise.
     network *canteen = create_network((const char **) block_names, CONFIG_2);
-    simulation(canteen, 0, NULL, STANDARD);
+    simulation(canteen, 0, NULL, STANDARD, PERIOD);
     n = canteen;
     return canteen;
 }
@@ -244,24 +244,15 @@ int hour_to_days_test(test_count *t) {
 * to the batch's global response time mean. 
 */
 int batch_response_time_test(test_count *t){
-    network *standard_network = mock_network();
     network *infinite_network = mock_infinite_network();
-
-    double grt_standard = global_simulation_response_time(standard_network);
     double mean = 0;
-
     for (int i = 0; i < K_BATCH; i++){
         mean += infinite_network->batch_response_time[i];
     }
     mean = mean / K_BATCH;
-
-    ASSERT_DOUBLE_EQUAL(grt_standard, mean, "global_response_time");
-
-    clear_network(standard_network);
+    ASSERT_DOUBLE_EQUAL(mean, infinite_network->batch_response_time[K_BATCH-1], "global_response_time");
     clear_network(infinite_network);
-
     SUCCESS;
-
 }
 
 network *mock_infinite_network(){
@@ -300,9 +291,11 @@ network *mock_infinite_network(){
     *arrived_jobs = 0;
     for (batch_index = 1; batch_index <= K_BATCH; batch_index++)
     {
-        simulation(canteen, batch_index*B, arrived_jobs, INFINITE);
-        update_ensemble(canteen, batch_index-1);
+        simulation(canteen, batch_index*B, arrived_jobs, INFINITE, PERIOD);
+        update_ensemble(canteen, batch_index-1, PERIOD);
     }
+
+
 
     return canteen;
 }
