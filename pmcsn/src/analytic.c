@@ -188,7 +188,7 @@ void calculate_interval_estimate_for_stat(const char *stat_name, const double *g
         printf("\nbased upon %ld data points", n);
         printf(" and with %d%% confidence\n", (int) (100.0 * LOC + 0.5));
         printf("the expected value is in the interval");
-        printf("%10.2f +/- %10.6f\n", mean, w);
+        printf("%10.6f +/- %10.6f\n", mean, w);
     } else
         printf("ERROR - insufficient data\n");
 }
