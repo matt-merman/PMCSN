@@ -9,28 +9,27 @@
 network *n = NULL;
 
 const char *block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE"};
-    
+
 network *mock_network() {
     if (n != NULL) {
         return n; // return the cache if i hits
     }
     // re-run simulation otherwise.
     network *canteen = create_network((const char **) block_names, CONFIG_2);
-    simulation(canteen, 0, NULL, STANDARD, PERIOD);
+    simulation(canteen, 0, NULL, STANDARD, PERIOD, 0, 1);
     n = canteen;
     return canteen;
 }
 
 int simulation_visits_test(test_count *t) {
-    network *n = mock_network();
-    double visits1 = get_simulation_visit(n, PRIMO);
-    double visits2 = get_simulation_visit(n, SECONDO);
-    double visits3 = get_simulation_visit(n, DESSERT);
-    double visits4 = get_simulation_visit(n, CASSA_FAST);
-    double visits5 = get_simulation_visit(n, CASSA_STD);
-    double visits6 = get_simulation_visit(n, CONSUMAZIONE);
+    network *canteen = mock_network();
 
-    // don't clear the network here!! we need it for the next test.
+    double visits1 = get_simulation_visit(canteen, PRIMO);
+    double visits2 = get_simulation_visit(canteen, SECONDO);
+    double visits3 = get_simulation_visit(canteen, DESSERT);
+    double visits4 = get_simulation_visit(canteen, CASSA_FAST);
+    double visits5 = get_simulation_visit(canteen, CASSA_STD);
+    double visits6 = get_simulation_visit(canteen, CONSUMAZIONE);
 
     ASSERT_DOUBLE_APPROX_EQUAL(visits1, 0.75, "visits1");
     ASSERT_DOUBLE_APPROX_EQUAL(visits2, 0.6625, "visits2");
@@ -41,12 +40,12 @@ int simulation_visits_test(test_count *t) {
 
     PRINTF("%f\n%f\n%f\n%f\n%f\n%f\n", visits1, visits2, visits3, visits4, visits5, visits6);
 
-    clear_network(n);
-    
+    // !!!!!!!!!!!! don't clear the network here!! we need it for the next test !!!!!!!!!!!!!!!!!
+
     SUCCESS;
 }
 
-int simulation_routing_probabilities_test(test_count *t){
+int simulation_routing_probabilities_test(test_count *t) {
     // la formula dovrebbe essere. se i = sorgente, j = destinazione, 0 = esterno.
 
     // p_ij = routing probability from block i to block j
@@ -90,7 +89,7 @@ int simulation_routing_probabilities_test(test_count *t){
     PRINTF("p_S0 = %f\n", p_S0);
 
     // we clear the mock_network.
-    clear_network(n);
+    clear_network(n, TRUE);
     SUCCESS;
 }
 
@@ -243,59 +242,33 @@ int hour_to_days_test(test_count *t) {
 * To check if the global response with a single simulation is equal
 * to the batch's global response time mean. 
 */
-int batch_response_time_test(test_count *t){
+int batch_response_time_test(test_count *t) {
     network *infinite_network = mock_infinite_network();
     double mean = 0;
-    for (int i = 0; i < K_BATCH; i++){
+    for (int i = 0; i < K_BATCH; i++) {
         mean += infinite_network->batch_response_time[i];
     }
-    mean = mean / K_BATCH;
-    ASSERT_DOUBLE_EQUAL(mean, infinite_network->batch_response_time[K_BATCH-1], "global_response_time");
-    clear_network(infinite_network);
+    mean = mean / (double) K_BATCH;
+    double actual_mean = infinite_network->batch_response_time[K_BATCH - 1];
+
+    clear_network(infinite_network, TRUE);
+
+    ASSERT_DOUBLE_EQUAL(mean, actual_mean, "batch_global_response_time");
     SUCCESS;
 }
 
-network *mock_infinite_network(){
-    
+network *mock_infinite_network() {
+
     network *canteen;
     int batch_index;
 
-    canteen = malloc(sizeof(network));
-    if (canteen == NULL){
-        perror("Error in allocation of canteen queue network (finite-horizon)");
-        return -1;
+    canteen = create_network(block_names, CONFIG_2);
+
+    long arrived_jobs = 0;
+    for (batch_index = 1; batch_index <= K_BATCH; batch_index++) {
+        simulation(canteen, batch_index * B, &arrived_jobs, INFINITE, PERIOD, batch_index, K_BATCH);
+        update_ensemble(canteen, batch_index - 1, PERIOD);
     }
-
-    canteen->network_servers = init_network(CONFIG_2);
-    canteen->system_clock = init_clock();
-    if (canteen->system_clock == NULL)
-    {
-        perror("Error on system clock\n");
-        return (-1);
-    }
-
-    init_event_list(canteen->system_clock->type);
-
-    canteen->blocks = init_blocks(canteen->network_servers, block_names);
-    if (canteen->blocks == NULL)
-    {
-        perror("Error on blocks\n");
-        return (-1);
-    }
-
-    int *arrived_jobs = (int *)malloc(sizeof(int));
-    if (arrived_jobs == NULL){
-        printf("Error on arrived_jobs\n");
-        return (-1);
-    }
-    *arrived_jobs = 0;
-    for (batch_index = 1; batch_index <= K_BATCH; batch_index++)
-    {
-        simulation(canteen, batch_index*B, arrived_jobs, INFINITE, PERIOD);
-        update_ensemble(canteen, batch_index-1, PERIOD);
-    }
-
-
 
     return canteen;
 }

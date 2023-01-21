@@ -100,11 +100,15 @@ typedef struct network_t {
     block **blocks;
     int *network_servers;
     timer *system_clock;
-
-    double replicas_response_time[MAX_REPLICAS];
+    // standard simulation
     double global_response_time;
+    double loss_probability;
+    // replicated simulation (finite horizon)
+    double replicas_response_time[MAX_REPLICAS];
+    double replicas_loss_probability[MAX_REPLICAS];
+    // batch means simulation (infinite horizon)
     double batch_response_time[K_BATCH];
-    double global_mean_population;
+    double batch_loss_probability[K_BATCH];
 } network;
 
 typedef enum sim_type_t {

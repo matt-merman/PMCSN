@@ -103,7 +103,7 @@ event * create_insert_event(block_type target, int server_id, event_type eventTy
 		free(e);
 		return NULL;
 	}
-	insert_event_first(e);
+	insert_event_ordered(e);
 	return e;
 }
 

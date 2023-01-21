@@ -28,16 +28,56 @@ int delete_test(test_count *t){
 
     while(!is_empty()) {
         int prev_size = event_list_length();
-        pop_first();
+        event *e = pop_first();
         int curr_size = event_list_length();
+        free(e);
         ASSERT_INT_EQUAL(curr_size, prev_size - 1, "delete test");
     }
 
     SUCCESS;
 }
 
+int insert_ordered_test(test_count *t){
+
+    double time;
+
+    event *e1 = new_event(test_next_event_id++, PRIMO, 2., ARRIVAL, 0,0,NULL);
+    insert_event_ordered(e1);
+    event *e2 = new_event(test_next_event_id++, PRIMO, 4., ARRIVAL, 0,0,NULL);
+    insert_event_ordered(e2);
+    event *e3 = new_event(test_next_event_id++, PRIMO, 1., ARRIVAL, 0,0,NULL);
+    insert_event_ordered(e3);
+    event *e4 = new_event(test_next_event_id++, PRIMO, 3., ARRIVAL, 0,0,NULL);
+    insert_event_ordered(e4);
+
+    event *e = pop_first();
+    time = e->time;
+    free(e);
+    ASSERT_DOUBLE_EQUAL(time, 1.0, "first is not 1");
+
+    e = pop_first();
+    time = e->time;
+    free(e);
+    ASSERT_DOUBLE_EQUAL(time, 2.0, "second is not 2");
+
+    e = pop_first();
+    time = e->time;
+    free(e);
+    ASSERT_DOUBLE_EQUAL(time, 3.0, "last is not 3");
+
+    e = pop_first();
+    time = e->time;
+    free(e);
+    ASSERT_DOUBLE_EQUAL(time, 4.0, "last is not 4");
+
+
+    SUCCESS;
+}
+
 // insert three events unsorted and sorts them. Finally, removes everything and checks ordering
 int sort_test(test_count *t) {
+    double time;
+
     insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.5);
     insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.2);
     insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.7);
@@ -45,13 +85,19 @@ int sort_test(test_count *t) {
     sort_by_time();
 
     event *e = pop_first();
-    ASSERT_DOUBLE_EQUAL(e->time, 0.2, "first is not 0.2");
+    time = e->time;
+    free(e);
+    ASSERT_DOUBLE_EQUAL(time, 0.2, "first is not 0.2");
 
     e = pop_first();
-    ASSERT_DOUBLE_EQUAL(e->time, 0.5, "second is not 0.5");
+    time = e->time;
+    free(e);
+    ASSERT_DOUBLE_EQUAL(time, 0.5, "second is not 0.5");
 
     e = pop_first();
-    ASSERT_DOUBLE_EQUAL(e->time, 0.7, "last is not 0.7");
+    time = e->time;
+    free(e);
+    ASSERT_DOUBLE_EQUAL(time, 0.7, "last is not 0.7");
 
     SUCCESS;
 }

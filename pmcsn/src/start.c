@@ -9,9 +9,11 @@ const char *BLOCK_NAMES[BLOCKS] = {"Primi", "Secondi e Contorni", "Frutta e Dess
 int main(int argc, __attribute__((unused)) char **argv) {
     int c, j, i;
     char *parameter;
-    char file_name[100];
+    char file_name_resptime[100];
+    char file_name_ploss[100];
     char index_to_str[100];
-    FILE *file;
+    FILE *file_resp_time;
+    FILE *file_ploss;
 
     parameter = NULL;
     c = getopt(argc, argv, "s:");
@@ -32,29 +34,40 @@ int main(int argc, __attribute__((unused)) char **argv) {
     if (strcmp(parameter, "finite") == 0) {
         j = i = 1;
         while (i <= MAX_REPLICAS) {
-            strcpy(file_name, "");
-            strcat(file_name, "./result/finite/grt_");
+            strcpy(file_name_resptime, "");
+            strcat(file_name_resptime, "./result/finite/grt_");
             sprintf(index_to_str, "%d", i);
-            strcat(file_name, index_to_str);
+            strcat(file_name_resptime, index_to_str);
 
-            file = open_file("w", file_name);
-            fprintf(file, "%s", "grt,replica\n");
+            file_resp_time = open_file("w", file_name_resptime);
+            fprintf(file_resp_time, "%s", "grt,replica\n");
 
-            start_finite_horizon_simulation(NETWORK_CONFIGURATION, file, i);
 
-            fclose(file);
+            strcpy(file_name_ploss, "");
+            strcat(file_name_ploss, "./result/finite/ploss_");
+            sprintf(index_to_str, "%d", i);
+            strcat(file_name_ploss, index_to_str);
+            file_ploss = open_file("w", file_name_ploss);
+
+            start_finite_horizon_simulation(NETWORK_CONFIGURATION, file_resp_time, file_ploss, i);
+
+            fclose(file_resp_time);
+            fclose(file_ploss);
 
             i = REPLICAS_STEP * j;
             j++;
         }
     } else if (strcmp(parameter, "infinite") == 0) {
-        strncpy(file_name, "./result/infinite/grt", strlen("./result/infinite/grt") + 1);
-        file = open_file("w", file_name);
-        fprintf(file, "%s", "grt,batch_index\n");
+        strncpy(file_name_resptime, "./result/infinite/grt", strlen("./result/infinite/grt") + 1);
+        file_resp_time = open_file("w", file_name_resptime);
+        strncpy(file_name_ploss, "./result/infinite/ploss", strlen("./result/infinite/ploss") + 1);
+        file_ploss = open_file("w", file_name_ploss);
+        fprintf(file_resp_time, "%s", "grt,batch_index\n");
 
-        start_infinite_horizon_simulation(NETWORK_CONFIGURATION, file, PERIOD);
+        start_infinite_horizon_simulation(NETWORK_CONFIGURATION, file_resp_time, file_ploss, PERIOD);
 
-        fclose(file);
+        fclose(file_resp_time);
+        fclose(file_ploss);
     } else
         printf("Usage: ./start -s [finite/infinite]\n");
 
@@ -88,9 +101,9 @@ int start_standard_simulation(int config) {
 
             period = PERIOD / remaining_periods;
 
-            simulation(canteen, 0, NULL, STANDARD, period);
+            simulation(canteen, 0, NULL, STANDARD, period, PERIOD_INTERVALS - remaining_periods - 1, PERIOD_INTERVALS);
 
-            grt = global_simulation_response_time(canteen, period);
+            grt = probe_global_simulation_response_time(canteen, period);
             write_result(file, grt, period);
 
             if (NUM_SEED == 1 && remaining_periods == 1) {
@@ -98,8 +111,7 @@ int start_standard_simulation(int config) {
                 validate_stats(canteen, period);
             }
 
-            free(canteen->system_clock);
-            clear_network(canteen);
+            clear_network(canteen, TRUE);
         }
 
         fclose(file);
@@ -116,10 +128,10 @@ int start_standard_simulation(int config) {
  * @param num_replicas number of replicas for this finite horizon simulation
  * @return
  */
-int start_finite_horizon_simulation(int config, FILE *file, int num_replicas) {
+int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, int num_replicas) {
     network *canteen;
     int replica;
-
+    printf("Simulation with %d replicas\n", num_replicas);
     canteen = malloc(sizeof(network));
     if (canteen == NULL) {
         perror("Error in allocation of canteen queue network (finite-horizon)");
@@ -144,44 +156,56 @@ int start_finite_horizon_simulation(int config, FILE *file, int num_replicas) {
         } else {
             restart_blocks(canteen);
         }
-
-        simulation(canteen, 0, NULL, FINITE, PERIOD);
-        canteen->global_response_time = global_simulation_response_time(canteen, PERIOD);
+        // the simulation will wait for all jobs to exit the network
+        simulation(canteen, 0, NULL, FINITE, PERIOD, replica, num_replicas);
+        canteen->replicas_response_time[replica] = probe_global_simulation_response_time(canteen, PERIOD);
+        canteen->replicas_loss_probability[replica] = probe_global_simulation_loss_probability(canteen, PERIOD);
         write_result(file, canteen->global_response_time, num_replicas);
+        write_result(file_ploss, canteen->loss_probability, num_replicas);
 
         free(canteen->system_clock);
     }
-    if (num_replicas > 1)
+    if (num_replicas > 1) {
         calculate_interval_estimate_for_stat("Global Response Time", canteen->replicas_response_time, num_replicas);
+        calculate_interval_estimate_for_stat("Loss Probability", canteen->replicas_loss_probability, num_replicas);
+    }
 
-    clear_network(canteen);
+    // timer is freed inside the loop
+    clear_network(canteen, FALSE);
     return (0);
 }
 
 /**
  *  TODO: verifica che la media di tutta la simulazione lunga sia uguale alla media delle medie dei batch.
  */
-int start_infinite_horizon_simulation(int config, FILE *file, long int period) {
+int start_infinite_horizon_simulation(int config, FILE *file_resptime, FILE *file_ploss, long int period) {
 
     network *canteen;
     int batch_index;
     double grt;
+    double ploss;
 
     canteen = create_network(BLOCK_NAMES, config);
 
-    int arrived_jobs = 0;
+    long arrived_jobs = 0;
+    // for each batch we run a simulation
     for (batch_index = 1; batch_index <= K_BATCH; batch_index++) {
-        simulation(canteen, batch_index * B, &arrived_jobs, INFINITE, PERIOD);
+        // the simulation will not wait for jobs to exit the canteen, instead the next batch will continue from where the last ended
+        simulation(canteen, batch_index * B, &arrived_jobs, INFINITE, (long) ((double) (K_BATCH * B) / LAMBDA),
+                   batch_index, K_BATCH);
         update_ensemble(canteen, batch_index - 1, period);
 
-        grt = global_simulation_response_time(canteen, period);
-        write_result(file, grt, batch_index);
+        grt = probe_global_simulation_response_time(canteen, period);
+        ploss = probe_global_simulation_loss_probability(canteen, period);
+        write_result(file_resptime, grt, batch_index);
+        write_result(file_ploss, ploss, batch_index);
     }
 
     calculate_autocorrelation_for_stats("Global Response Time", canteen->batch_response_time);
     calculate_interval_estimate_for_stat("Global Response Time", canteen->batch_response_time, K_BATCH);
+    calculate_autocorrelation_for_stats("Loss Probability", canteen->batch_loss_probability);
+    calculate_interval_estimate_for_stat("Loss Probability", canteen->batch_loss_probability, K_BATCH);
 
-    free(canteen->system_clock);
-    clear_network(canteen);
+    clear_network(canteen, TRUE);
     return (0);
 }

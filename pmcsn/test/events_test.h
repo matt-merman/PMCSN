@@ -11,6 +11,7 @@
 
 int insert_test(test_count *t);
 int delete_test(test_count *t);
+int insert_ordered_test(test_count *t);
 int sort_test(test_count *t);
 
 #endif //PROGETTOPMCSN_EVENTS_TEST_H

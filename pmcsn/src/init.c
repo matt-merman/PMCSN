@@ -22,7 +22,7 @@ network *create_network(const char** block_names, int config) {
 	return canteen;
 }
 
-void clear_network(network * n){
+void clear_network(network *n, int clear_timer) {
     for (int block = 0; block < BLOCKS; block++){
         free(n->blocks[block]->block_area);
         for (int server = 0; server < n->blocks[block]->num_servers; server++){
@@ -33,6 +33,8 @@ void clear_network(network * n){
         free(n->blocks[block]);
     }
     free(n->blocks);
+	if (clear_timer)
+		free(n->system_clock);
     free(n);
 }
 

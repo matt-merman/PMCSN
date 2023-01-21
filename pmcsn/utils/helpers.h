@@ -31,6 +31,7 @@
 
 double	get_next_arrival(double current, double lambda);
 double	get_next_service(block_type type, int stream);
+int progress(sim_type simulation_type, network *canteen, long period, int prev_perc, int index, int total);
 void    get_stats(block *b, timer *clock, statistics *stats, long int period);
 
 void clear_stats(statistics *stats);
@@ -38,7 +39,7 @@ void debug(event *event, network *canteen);
 
 void show_stats(network *canteen, long int period);
 void validate_stats(network *canteen, long int period);
-void update_ensemble(network *canteen, int index, long int period);
+void update_ensemble(network *canteen, long index, long int period);
 
 long get_seed();
 

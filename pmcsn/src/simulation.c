@@ -25,14 +25,18 @@ void update_area_stats(event *event, network *canteen)
 }
 
 /**
- * @param arrived_jobs to count the number of arriving job in batch means simulation
  * @param canteen the network of service nodes that represents a canteen
+ * @param starting_jobs index of first job
+ * @param arrived_jobs counter of the number of arriving job in batch means simulation
+ * @param type
+ * @param period
+ * @param index the replica or batch index. For standard simulation use 0.
+ * @param total the total number of replicas or batches. For standard simulation use 1 or more.
  */
-void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type, long int period)
-{
+void
+simulation(network *canteen, long starting_jobs, long *arrived_jobs, sim_type type, long int period, int index,int total) {
 	event		*current_event;
 	block_type	btype;
-    int perc;
     int prev_perc = 0;
 #if DEBUG == TRUE
     long elapsed_time;
@@ -40,13 +44,11 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type, lo
     time(&begin);
 #endif
 	while (TRUE) {
-		perc = (int) ((long) canteen->system_clock->current / (period / 100));
-		if ((int) perc > prev_perc || perc == 100) {
-			printf("%d%%\r", perc);
-			fflush(stdout);
-			prev_perc = perc;
-		}
-		if (termination_conditions(type, canteen, jobs, arrived_jobs, period))
+        // for standard, period = PERIOD and we wait for remaining jobs.
+        // for finite simulation, period = PERIOD, but we also wait for remaining jobs.
+        // for infinite simulation, period is computed as B*K/LAMBDA
+		prev_perc = progress(type, canteen, period, prev_perc, index, total);
+		if (termination_conditions(type, canteen, starting_jobs, arrived_jobs, period))
 			break;
 
 		current_event = get_next_event();
@@ -77,14 +79,14 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type, lo
 			default:
 				break;
 		}
-		// the current_event is processed and now it can be freed
+		// the current_event is processed, and now it can be freed
 		sort_list();
 		debug(current_event, canteen);
 		free(current_event);
 	}
 #if DEBUG == TRUE
 	if (arrived_jobs != NULL)
-		printf("BATCH MEANS INFO: %d batch dimension - %d counted arrivals\n", jobs, *arrived_jobs);
+		printf("BATCH MEANS INFO: %d batch dimension - %d counted arrivals\n", starting_jobs, *arrived_jobs);
 
     time(&end);
     // compute and print the elapsed time in millisec
@@ -96,18 +98,19 @@ void simulation(network *canteen, int jobs, int *arrived_jobs, sim_type type, lo
 #endif
 }
 
-int termination_conditions(sim_type type, network *canteen, int jobs, const int * arrived_jobs, long int period){
+int termination_conditions(sim_type type, network *canteen, long jobs, const long *arrived_jobs, long int period){
 	switch(type){
 		case STANDARD:
 		/* FINITE SIMULATION: breaks if the times is finished,
           	all events are processed and all servers are idle */
 		case FINITE:
-			return (canteen->system_clock->last_arrival >= period && !are_there_more_events());
+			return (canteen->system_clock->last_arrival >= (double) period && !are_there_more_events());
 		/* BATCH MEANS SIMULATION: breaks if all jobs in the batch are arrived. */
 		case INFINITE:
 			return (jobs == (*arrived_jobs));
+        default:
+            return FALSE;
 	}
-	return FALSE;
 }
 
 /**

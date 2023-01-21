@@ -30,6 +30,6 @@ void validate_global_population(block **blocks);
 void validate_global_queue_time(double queue_time, double queue_pop);
 void validate_global_response_time(double response_time, int *network_servers);
 
-double global_simulation_response_time(network *canteen, long int period);
-
+double probe_global_simulation_response_time(network *canteen, long int period);
+double probe_global_simulation_loss_probability(network *canteen, long int period);
 #endif //PROGETTOPMCSN_VALIDATION_H

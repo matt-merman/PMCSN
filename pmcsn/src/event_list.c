@@ -24,6 +24,20 @@ void print_event(event *e){
     printf("E%ld(%d,%d,%d,%f) ",e->event_id, e->block_type, e->target_server, e->event_type, e->time);
 }
 
+event * new_event(long id, block_type b, double time, event_type t, int target_serv, long linked_event, event *next){
+    event* e = malloc(sizeof(event));
+
+    e->event_id = id;
+    e->block_type = b;
+    e->time = time;
+    e->event_type = t;
+    e->target_server = target_serv;
+    e->linked_event_id = linked_event;
+    e->next = next;
+
+    return e;
+}
+
 // insert event at the first location. The head goes in 2nd position.
 void insert_first(long event_id, block_type block_type, event_type event_type, int target_server, double time) {
     // create a link
@@ -56,6 +70,47 @@ void insert_event_first(event *elem){
     elem->next = head;
     head = elem;
     size++;
+}
+
+void insert_event_ordered(event *elem){
+    if (is_empty()){
+        // adding as first element
+        head = elem;
+        size++;
+        return;
+    }
+    event *current = head;
+    int len = event_list_length();
+    event *prev_node = NULL;
+    for (int i = 0; i < len; i++) {
+        if (i == 0 && elem->time <= current->time){
+            // adding as first element
+            prev_node = head;
+            head = elem;
+            elem->next = prev_node;
+            size++;
+            return;
+        }
+
+        if (current->next == NULL){
+            // adding as last element
+            current->next = elem;
+            size++;
+            return;
+        }
+
+        if (elem->time > current->time && elem->time <= current->next->time){
+            // adding in the middle
+            prev_node = current;
+            elem->next = prev_node->next;
+            prev_node->next = elem;
+            size++;
+            return;
+        }
+
+
+        current = current->next;
+    }
 }
 
 // delete first item and returns it to the caller.
@@ -101,19 +156,16 @@ void sort_by_time() {
 }
 
 void swap_events(event *event1, event *event2) {
-    int tempTargetServer;
-    long tempEventId;
-    double tempTime;
 
-    tempTargetServer = event1->target_server;
+    int tempTargetServer = event1->target_server;
     event1->target_server = event2->target_server;
     event2->target_server = tempTargetServer;
 
-    tempEventId = event1->event_id;
+    long tempEventId = event1->event_id;
     event1->event_id = event2->event_id;
     event2->event_id = tempEventId;
 
-    tempTime = event1->time;
+    double tempTime = event1->time;
     event1->time = event2->time;
     event2->time = tempTime;
 

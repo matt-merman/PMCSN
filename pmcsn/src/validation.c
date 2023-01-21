@@ -172,7 +172,13 @@ void validate_global_response_time(double response_time, int *network_servers) {
            response_time, global_wait_theoretical);
 }
 
-double global_simulation_response_time(network *canteen, long int period) {
+/**
+ * Used to get partial global simulation response time up until a period
+ * @param canteen partial or end state of the network
+ * @param period period until get simulation time
+ * @return partial global response time
+ */
+double probe_global_simulation_response_time(network *canteen, long int period) {
     double global_wait = 0.0;
     statistics stats;
 
@@ -182,4 +188,18 @@ double global_simulation_response_time(network *canteen, long int period) {
         clear_stats(&stats);
     }
     return global_wait;
+}
+
+/**
+ * Used to get partial simulation loss probability up until a period
+ * @param canteen
+ * @param period
+ * @return
+ */
+double probe_global_simulation_loss_probability(network *canteen, long int period) {
+    statistics stats;
+    get_stats(canteen->blocks[CONSUMAZIONE], canteen->system_clock, &stats, period);
+    double partial_loss_probability = stats.loss_probability;
+    clear_stats(&stats);
+    return partial_loss_probability;
 }
