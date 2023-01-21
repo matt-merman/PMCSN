@@ -58,8 +58,8 @@
 #define CONFIG_2 2 // extended
 
 // Finite-Horizon
-#define MAX_REPLICAS 10
-#define REPLICAS_STEP 10
+#define MAX_REPLICAS 500
+#define REPLICAS_STEP 50
 
 #define LOC 0.95                       /* level of confidence, for estimate intervals */
 
@@ -69,8 +69,7 @@
 #define B 106L
 #define K_BATCH ((int) INF_USER / B)
 
-#define NUM_SEED 1
+#define NUM_SEED 5
 #define PERIOD_INTERVALS 12
-
 
 #endif

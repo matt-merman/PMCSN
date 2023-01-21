@@ -34,35 +34,44 @@ int main(int argc, __attribute__((unused)) char **argv) {
     if (strcmp(parameter, "finite") == 0) {
         j = i = 1;
         while (i <= MAX_REPLICAS) {
-            strcpy(file_name_resptime, "");
-            strcat(file_name_resptime, "./result/finite/grt_");
             sprintf(index_to_str, "%d", i);
-            strcat(file_name_resptime, index_to_str);
 
-            file_resp_time = open_file("w", file_name_resptime);
-            fprintf(file_resp_time, "%s", "grt,replica\n");
+            printf("here\n");
 
+            // strcpy(file_name_resptime, "");
+            // strcat(file_name_resptime, "./result/finite/grt_");
+            // strcat(file_name_resptime, index_to_str);
+
+            // file_resp_time = open_file("w", file_name_resptime);
+            // fprintf(file_resp_time, "%s", "grt,replica\n");
+
+            file_resp_time = NULL;
 
             strcpy(file_name_ploss, "");
             strcat(file_name_ploss, "./result/finite/ploss_");
-            sprintf(index_to_str, "%d", i);
             strcat(file_name_ploss, index_to_str);
+
             file_ploss = open_file("w", file_name_ploss);
+            fprintf(file_ploss, "%s", "ploss,replica\n");
 
             start_finite_horizon_simulation(NETWORK_CONFIGURATION, file_resp_time, file_ploss, i);
 
-            fclose(file_resp_time);
+            // fclose(file_resp_time);
             fclose(file_ploss);
 
             i = REPLICAS_STEP * j;
             j++;
         }
     } else if (strcmp(parameter, "infinite") == 0) {
+        
         strncpy(file_name_resptime, "./result/infinite/grt", strlen("./result/infinite/grt") + 1);
         file_resp_time = open_file("w", file_name_resptime);
+        
         strncpy(file_name_ploss, "./result/infinite/ploss", strlen("./result/infinite/ploss") + 1);
         file_ploss = open_file("w", file_name_ploss);
+        
         fprintf(file_resp_time, "%s", "grt,batch_index\n");
+        fprintf(file_ploss, "%s", "ploss,batch_index\n");
 
         start_infinite_horizon_simulation(NETWORK_CONFIGURATION, file_resp_time, file_ploss, PERIOD);
 
@@ -75,26 +84,36 @@ int main(int argc, __attribute__((unused)) char **argv) {
 }
 
 int start_standard_simulation(int config) {
-    char file_name[100];
+    char file_name_grt[100];
     char num_to_str[100];
-    FILE *file;
+    FILE *file_grt;
     long seed;
-    double grt;
+    double grt, ploss;
     long int period;
+    char file_name_ploss[100];
+    FILE *file_ploss;
 
     seed = 123456789L;
     for (int seed_index = 0; seed_index < NUM_SEED; seed_index++) {
 
         PlantSeeds(seed);
-
-        strcpy(file_name, "");
-        strcat(file_name, "./result/standard/grt_");
-
         sprintf(num_to_str, "%ld", seed);
-        strcat(file_name, num_to_str);
 
-        file = open_file("w", file_name);
-        fprintf(file, "%s", "grt,period\n");
+        strcpy(file_name_grt, "");
+        strcat(file_name_grt, "./result/standard/grt_");
+
+        strcat(file_name_grt, num_to_str);
+
+        file_grt = open_file("w", file_name_grt);
+        fprintf(file_grt, "%s", "grt,period\n");
+
+        strcpy(file_name_ploss, "");
+        strcat(file_name_ploss, "./result/standard/ploss_");
+
+        strcat(file_name_ploss, num_to_str);
+
+        file_ploss = open_file("w", file_name_ploss);
+        fprintf(file_ploss, "%s", "ploss,period\n");
 
         for (int remaining_periods = PERIOD_INTERVALS; remaining_periods > 0; remaining_periods--) {
             network *canteen = create_network(BLOCK_NAMES, config);
@@ -104,7 +123,10 @@ int start_standard_simulation(int config) {
             simulation(canteen, 0, NULL, STANDARD, period, PERIOD_INTERVALS - remaining_periods - 1, PERIOD_INTERVALS);
 
             grt = probe_global_simulation_response_time(canteen, period);
-            write_result(file, grt, period);
+            write_result(file_grt, grt, period);
+
+            ploss = probe_global_simulation_loss_probability(canteen, period);
+            write_result(file_ploss, ploss, period);
 
             if (NUM_SEED == 1 && remaining_periods == 1) {
                 show_stats(canteen, period);
@@ -114,8 +136,8 @@ int start_standard_simulation(int config) {
             clear_network(canteen, TRUE);
         }
 
-        fclose(file);
-
+        fclose(file_grt);
+        fclose(file_ploss);
         seed = get_seed();
     }
     return (0);
@@ -158,10 +180,12 @@ int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, in
         }
         // the simulation will wait for all jobs to exit the network
         simulation(canteen, 0, NULL, FINITE, PERIOD, replica, num_replicas);
+        
         canteen->replicas_response_time[replica] = probe_global_simulation_response_time(canteen, PERIOD);
         canteen->replicas_loss_probability[replica] = probe_global_simulation_loss_probability(canteen, PERIOD);
-        write_result(file, canteen->global_response_time, num_replicas);
-        write_result(file_ploss, canteen->loss_probability, num_replicas);
+        
+        // write_result(file, canteen->canteen->replicas_response_time[replica], num_replicas);
+        write_result(file_ploss, canteen->replicas_loss_probability[replica], num_replicas);
 
         free(canteen->system_clock);
     }
@@ -175,9 +199,6 @@ int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, in
     return (0);
 }
 
-/**
- *  TODO: verifica che la media di tutta la simulazione lunga sia uguale alla media delle medie dei batch.
- */
 int start_infinite_horizon_simulation(int config, FILE *file_resptime, FILE *file_ploss, long int period) {
 
     network *canteen;
