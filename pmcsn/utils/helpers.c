@@ -118,10 +118,10 @@ void get_stats(block *b, timer *clock, statistics *stats, long int period) {
 void show_stats(network *canteen, long int period) {
     statistics stats;
     double network_response_time = 0.0;
+    double loss_probability = 0.0;
     for (int i = 0; i < BLOCKS; i++) {
         // at each iteration we overwrite the statistics struct
         get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
-        // bisogna tenere conto delle visite medie a ogni centro!!!
         double visits = get_theoretical_visits(canteen->blocks[i]->type, canteen->blocks[i]->num_servers);
         network_response_time += stats.wait * visits;
         printf("\t----------------------------------------------------------\n");
@@ -129,11 +129,12 @@ void show_stats(network *canteen, long int period) {
         printf("\t\tpeople in the block ..... = % 10ld\tpeople\n", stats.completed_jobs);
 
         if (canteen->blocks[i]->type == CONSUMAZIONE) {
+            loss_probability = (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs /
+                               ((double) canteen->blocks[CONSUMAZIONE]->completed_jobs +
+                                (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs);
             printf("\t\trejected people ......... = % 10ld\tpeople\n", canteen->blocks[CONSUMAZIONE]->rejected_jobs);
             printf("\t\tloss probability ....... = % 10g\tpeople\n",
-                   (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs /
-                   ((double) canteen->blocks[CONSUMAZIONE]->completed_jobs +
-                    (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs));
+                   loss_probability);
         }
 
         printf("\n\tjob averaged statistics:\n");
@@ -175,6 +176,7 @@ void show_stats(network *canteen, long int period) {
         clear_stats(&stats);
     }
     canteen->global_response_time = network_response_time;
+    canteen->loss_probability = loss_probability;
     printf("\t----------------------------------------------------------\n");
 }
 
@@ -193,9 +195,7 @@ void validate_stats(network *canteen, long int period) {
     validate_global_population(canteen->blocks);
     // validate_global_queue_time(queue_time_sum, 0);
     validate_global_response_time(canteen->global_response_time, canteen->network_servers);
-
-    double loss_prob = probe_global_simulation_loss_probability(canteen, period);
-    validate_ploss(loss_prob, canteen->blocks[CONSUMAZIONE]->num_servers);
+    validate_ploss(canteen->loss_probability, canteen->blocks[CONSUMAZIONE]->num_servers);
 }
 
 /**

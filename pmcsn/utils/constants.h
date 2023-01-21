@@ -69,7 +69,7 @@
 #define B 106L
 #define K_BATCH ((int) INF_USER / B)
 
-#define NUM_SEED 5
+#define NUM_SEED 1
 #define PERIOD_INTERVALS 12
 
 #endif
