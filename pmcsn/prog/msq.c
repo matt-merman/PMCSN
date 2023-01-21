@@ -206,7 +206,7 @@ int main(void) {
     // stream service: 1, 2, 3 (dessert), 4 (casse fast), 5 (casse standard), 6 (consumazione)
 
     // primi
-    run(seed, stop, 3, 1.0 / get_theoretical_lambda_raw(PRIMO), get_theoretical_service(PRIMO), stream_arrival, 1);
+    // run(seed, stop, 3, 1.0 / get_theoretical_lambda_raw(PRIMO), get_theoretical_service(PRIMO), stream_arrival, 1);
     // Attenzione qui il processo degli arrivi non segue lo stream 0!!!
     // secondi
     // run(seed, stop, 3, 1.0 / get_theoretical_lambda_raw(SECONDO), get_theoretical_service(SECONDO), stream_arrival, 2);
@@ -217,5 +217,5 @@ int main(void) {
     // casse standard
     // run(seed, stop, 4, 1.0 / get_theoretical_lambda_raw(CASSA_STD), get_theoretical_service(CASSA_STD), stream_arrival, 5);
     // consumazione
-    // run(seed, stop, 139, 1.0 / get_theoretical_lambda_raw(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE), stream_arrival, 6);
+    run(seed, stop, 139, 1.0 / get_theoretical_lambda_raw(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE), stream_arrival, 6);
 }

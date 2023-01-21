@@ -101,6 +101,7 @@ simulation(network *canteen, long starting_jobs, long *arrived_jobs, sim_type ty
 int termination_conditions(sim_type type, network *canteen, long jobs, const long *arrived_jobs, long int period){
 	switch(type){
 		case STANDARD:
+            return (canteen->system_clock->last_arrival >= (double) period && !are_there_more_events());
 		/* FINITE SIMULATION: breaks if the times is finished,
           	all events are processed and all servers are idle */
 		case FINITE:

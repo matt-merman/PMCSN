@@ -24,6 +24,9 @@ compile_estimate:
 compile_acs:
 	$(CC) $(CFLAGS) libs/rngs.c libs/rvgs.c libs/rvms.c prog/acs.c -o acs -lm
 
+run: compile
+	./start -s
+
 finite_simulation: compile
 	./start -s finite
 
