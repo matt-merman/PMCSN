@@ -4,7 +4,7 @@
 const char *BLOCK_NAMES[BLOCKS] = {"Primi", "Secondi e Contorni", "Frutta e Dessert",
                                    "Casse Fast", "Casse standard", "Locale Mensa"};
 
-#define NETWORK_CONFIGURATION CONFIG_2
+#define NETWORK_CONFIGURATION CONFIG_1
 
 int main(int argc, __attribute__((unused)) char **argv) {
     int c, j, i;

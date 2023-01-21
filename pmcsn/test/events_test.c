@@ -73,31 +73,3 @@ int insert_ordered_test(test_count *t){
 
     SUCCESS;
 }
-
-// insert three events unsorted and sorts them. Finally, removes everything and checks ordering
-int sort_test(test_count *t) {
-    double time;
-
-    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.5);
-    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.2);
-    insert_first(test_next_event_id++, PRIMO, ARRIVAL, 0, 0.7);
-
-    sort_by_time();
-
-    event *e = pop_first();
-    time = e->time;
-    free(e);
-    ASSERT_DOUBLE_EQUAL(time, 0.2, "first is not 0.2");
-
-    e = pop_first();
-    time = e->time;
-    free(e);
-    ASSERT_DOUBLE_EQUAL(time, 0.5, "second is not 0.5");
-
-    e = pop_first();
-    time = e->time;
-    free(e);
-    ASSERT_DOUBLE_EQUAL(time, 0.7, "last is not 0.7");
-
-    SUCCESS;
-}

@@ -70,17 +70,17 @@ simulation(network *canteen, long starting_jobs, long *arrived_jobs, sim_type ty
 				break;
 			case IMMEDIATE_ARRIVAL:
 				// schedule its completion or add to queue
-				process_immediate_arrival(current_event, canteen->system_clock, canteen->blocks[btype], period);
+                process_immediate_arrival(current_event, canteen->system_clock, canteen->blocks[btype]);
 				break;
 			case COMPLETION:
 				// schedule the next completion and generate an immediate arrival
-				process_completion(current_event, canteen->system_clock, canteen->blocks[btype], period);
+                process_completion(current_event, canteen->system_clock, canteen->blocks[btype]);
 				break;
 			default:
 				break;
 		}
 		// the current_event is processed, and now it can be freed
-		sort_list();
+		//sort_list();
 		debug(current_event, canteen);
 		free(current_event);
 	}
@@ -124,7 +124,7 @@ void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_
 {
 	double	p;
 	event	*new_event;
-	process_immediate_arrival(current_event, c, block, period);
+    process_immediate_arrival(current_event, c, block);
 	p = Random();
     if (p < P_PRIMO_FUORI) {
 		new_event = create_event(PRIMO, -1, ARRIVAL, c->current, current_event);
@@ -138,8 +138,8 @@ void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_
 		free(new_event);
 		return;
 	}
-	insert_event_first(new_event);
-      block->count_to_next[ESTERNO]++;
+	insert_event_ordered(new_event);
+    block->count_to_next[ESTERNO]++;
 }
 
 /**
@@ -150,7 +150,7 @@ void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_
  * @param c the time of the current arrival event
  * @param block the service node to which the job is arrived
  */
-void	process_immediate_arrival(event *arrival_event, timer *c, block *block, long int period)
+void process_immediate_arrival(event *arrival_event, timer *c, block *block)
 {
 	int		s_index;
 	server	*s;
@@ -162,7 +162,7 @@ void	process_immediate_arrival(event *arrival_event, timer *c, block *block, lon
 	if (s_index != -1)
 	{
 		s = block->servers[s_index];
-		next_completion_event = create_insert_event(block->type, s_index,COMPLETION, c, arrival_event, period);
+		next_completion_event = create_insert_event(block->type, s_index, COMPLETION, c, arrival_event);
 		if (next_completion_event != NULL)
 		{
 			next_completion_time = (next_completion_event->time - c->current);
@@ -187,7 +187,7 @@ void	process_immediate_arrival(event *arrival_event, timer *c, block *block, lon
  * @param c
  * @param block
  */
-void	process_completion(event *completion_event, timer *c, block *block, long int period)
+void process_completion(event *completion_event, timer *c, block *block)
 {
 	event	*next_completion_event;
 	double	next_completion_time;
@@ -212,7 +212,7 @@ void	process_completion(event *completion_event, timer *c, block *block, long in
 		{
 			s = block->servers[completion_event->target_server];
 			next_completion_event = create_insert_event(block->type, serv_id,
-					COMPLETION, c, completion_event, period);
+                                                        COMPLETION, c, completion_event);
 			if (next_completion_event != NULL)
 			{
 				next_completion_time = (next_completion_event->time - c->current);
@@ -223,7 +223,7 @@ void	process_completion(event *completion_event, timer *c, block *block, long in
 			}
 		}
 	}
-	schedule_immediate_arrival(block, c, completion_event, period);
+    schedule_immediate_arrival(block, c, completion_event);
 }
 
 /**
@@ -232,7 +232,7 @@ void	process_completion(event *completion_event, timer *c, block *block, long in
  * @param c
  * @param triggering_event
  */
-void	schedule_immediate_arrival(block* block, timer *c, event *triggering_event, long int period)
+void schedule_immediate_arrival(block *block, timer *c, event *triggering_event)
 {
 	double	p;
 	int		next_type;
@@ -270,6 +270,6 @@ void	schedule_immediate_arrival(block* block, timer *c, event *triggering_event,
 	}
 
 	block->count_to_next[next_type]++;
-	create_insert_event(next_type, -1, IMMEDIATE_ARRIVAL, c, triggering_event, period);
+    create_insert_event(next_type, -1, IMMEDIATE_ARRIVAL, c, triggering_event);
 
 }

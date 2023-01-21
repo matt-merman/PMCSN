@@ -130,7 +130,7 @@ void show_stats(network *canteen, long int period) {
 
         if (canteen->blocks[i]->type == CONSUMAZIONE) {
             printf("\t\trejected people ......... = % 10ld\tpeople\n", canteen->blocks[CONSUMAZIONE]->rejected_jobs);
-            printf("\t\tblock probability ....... = % 10g\tpeople\n",
+            printf("\t\tloss probability ....... = % 10g\tpeople\n",
                    (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs /
                    ((double) canteen->blocks[CONSUMAZIONE]->completed_jobs +
                     (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs));
@@ -193,6 +193,9 @@ void validate_stats(network *canteen, long int period) {
     validate_global_population(canteen->blocks);
     // validate_global_queue_time(queue_time_sum, 0);
     validate_global_response_time(canteen->global_response_time, canteen->network_servers);
+
+    double loss_prob = probe_global_simulation_loss_probability(canteen, period);
+    validate_ploss(loss_prob, canteen->blocks[CONSUMAZIONE]->num_servers);
 }
 
 /**

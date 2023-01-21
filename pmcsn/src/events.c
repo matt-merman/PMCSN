@@ -91,18 +91,11 @@ int	is_clock_terminated(void)
 }
 // creates an event and return its time (the time at which the event will occurr)
 // the clock contains the time of this event
-event * create_insert_event(block_type target, int server_id, event_type eventType, timer *c, event *linked_event, long int period)
+event *create_insert_event(block_type target, int server_id, event_type eventType, timer *c, event *linked_event)
 {
 	event	*e;
 
 	e = create_event(target, server_id, eventType, c->current, linked_event);
-	// if we have a new outside arrival but in a time after the observation period,
-	//we skip it.
-	if (eventType == ARRIVAL && try_terminate_clock(c, e->time, period))
-	{
-		free(e);
-		return NULL;
-	}
 	insert_event_ordered(e);
 	return e;
 }
@@ -118,11 +111,6 @@ int	are_there_more_events()
     // if list is empty, we do not have more events
     // otherwise we have more events
     return !is_empty();
-}
-
-void	sort_list()
-{
-	sort_by_time();
 }
 
  char	*to_str_event(event_type etype)

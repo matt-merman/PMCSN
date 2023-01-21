@@ -87,12 +87,12 @@ double get_theoretical_lambda_raw(block_type type) {
     }
 }
 
-double get_theoretical_lambda(block_type type, int num_servers){
+double get_theoretical_lambda(block_type type, int num_servers) {
     double lambda_raw = get_theoretical_lambda_raw(type);
     if (type != CONSUMAZIONE) {
         return lambda_raw;
     }
-    return lambda_raw * (1-erlang_b_loss_probability(num_servers, lambda_raw, get_theoretical_mhu(type)));
+    return lambda_raw * (1 - (double) erlang_b_loss_probability(num_servers, lambda_raw, get_theoretical_mhu(type)));
 }
 
 double get_theoretical_visits(block_type type, int num_servers) {
@@ -122,18 +122,19 @@ double erlang_c_response_time(double queue_time, double service_time) {
     return queue_time + service_time;
 }
 
-double erlang_b_loss_probability(int m, double lambda, double mhu) {
-    double pi_0 = 0.0, rho, pi_m;
+long double erlang_b_loss_probability(int m, double lambda, double mhu) {
+    long double pi_0 = 0.0, pi_m;
+    double rho;
     int i;
 
     for (i = 0; i <= m; i++) {
         rho = lambda / mhu;
-        pi_0 += pow(rho, i) / factorial(i);
+        pi_0 += powl(rho, i) / factorial(i);
     }
-    pi_0 = pow(pi_0, -1);
+    pi_0 = powl(pi_0, -1);
 
     rho = lambda / mhu;
-    pi_m = pow(rho, m) / factorial(m);
+    pi_m = powl(rho, m) / factorial(m);
     pi_m = pi_m * pi_0;
 
     return pi_m;
@@ -154,8 +155,9 @@ double get_theoretical_response_time(block_type type, int m) {
 
 double get_theoretical_global_response_time(int *network_servers) {
     double global_wait = 0.0;
-    for (int i = 0; i<BLOCKS; i++){
-        global_wait += get_theoretical_response_time(i, network_servers[i]) * get_theoretical_visits(i, network_servers[i]);
+    for (int i = 0; i < BLOCKS; i++) {
+        global_wait +=
+                get_theoretical_response_time(i, network_servers[i]) * get_theoretical_visits(i, network_servers[i]);
     }
     return global_wait;
 }
@@ -174,7 +176,7 @@ void calculate_interval_estimate_for_stat(const char *stat_name, const double *g
     for (int rep = 0; rep < num_replicas; rep++) {
         n++;
         diff = global_response_time[rep] - mean;
-        sum += diff * diff * ((double)n - 1.0) / (double) n;
+        sum += diff * diff * ((double) n - 1.0) / (double) n;
         mean += diff / (double) n;
     }
 
@@ -193,43 +195,42 @@ void calculate_interval_estimate_for_stat(const char *stat_name, const double *g
         printf("ERROR - insufficient data\n");
 }
 
-void calculate_autocorrelation_for_stats(const char *stat_name, const double *response_time)
-{
-  long   i = 0;                   /* data point index              */
-  double sum = 0.0;               /* sums x[i]                     */
-  long   n;                       /* number of data points         */
-  long   j;                       /* lag index                     */
-  long   p = 0;                   /* points to the head of 'hold'  */
-  double mean;
-  double hold[K_BATCH];              /* K + 1 most recent data points */
-  double cosum[K_BATCH] = {0.0};     /* cosum[j] sums x[i] * x[i+j]   */
+void calculate_autocorrelation_for_stats(const char *stat_name, const double *response_time) {
+    long i = 0;                   /* data point index              */
+    double sum = 0.0;               /* sums x[i]                     */
+    long n;                       /* number of data points         */
+    long j;                       /* lag index                     */
+    long p = 0;                   /* points to the head of 'hold'  */
+    double mean;
+    double hold[K_BATCH];              /* K + 1 most recent data points */
+    double cosum[K_BATCH] = {0.0};     /* cosum[j] sums x[i] * x[i+j]   */
     int k = 0;
 
-  while (i < K_BATCH) {              /* initialize the hold array with */
-    sum     += response_time[k];
-    hold[i]  = response_time[k];
-    i++;
-    k++;
-  }
+    while (i < K_BATCH) {              /* initialize the hold array with */
+        sum += response_time[k];
+        hold[i] = response_time[k];
+        i++;
+        k++;
+    }
 
-  n = i;
+    n = i;
 
-  while (i < n + K_BATCH) {         /* empty the circular array */
-    for (j = 0; j < K_BATCH; j++)
-      cosum[j] += hold[p] * hold[(p + j) % K_BATCH];
-    hold[p] = 0.0;
-    p       = (p + 1) % K_BATCH;
-    i++;
-  } 
+    while (i < n + K_BATCH) {         /* empty the circular array */
+        for (j = 0; j < K_BATCH; j++)
+            cosum[j] += hold[p] * hold[(p + j) % K_BATCH];
+        hold[p] = 0.0;
+        p = (p + 1) % K_BATCH;
+        i++;
+    }
 
-  mean = sum / n;
-  for (j = 0; j <= K_BATCH-1; j++)
-    cosum[j] = (cosum[j] / (n - j)) - (mean * mean);
+    mean = sum / n;
+    for (j = 0; j <= K_BATCH - 1; j++)
+        cosum[j] = (cosum[j] / (n - j)) - (mean * mean);
 
-  printf("\n============== Ensemble %s =============\n", stat_name);
-  printf("for %ld data points\n", n);
-  printf("the mean is ... %8.2f\n", mean);
-  printf("the stdev is .. %8.2f\n\n", sqrt(cosum[0]));
-  printf("  j (lag)   r[j] (autocorrelation)\n");
-  printf("1  %11.3f\n", cosum[1] / cosum[0]);
+    printf("\n============== Ensemble %s =============\n", stat_name);
+    printf("for %ld data points\n", n);
+    printf("the mean is ... %8.2f\n", mean);
+    printf("the stdev is .. %8.2f\n\n", sqrt(cosum[0]));
+    printf("  j (lag)   r[j] (autocorrelation)\n");
+    printf("1  %11.3f\n", cosum[1] / cosum[0]);
 }

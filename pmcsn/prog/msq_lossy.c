@@ -113,6 +113,7 @@ int run(long seed, int stop, int servers, double expo_arrival, double expo_servi
     int s;                      /* server index                       */
     long index = 0;             /* used to count processed jobs       */
     double area = 0.0;           /* time integrated number in the node */
+    long rejected = 0;
     struct {                           /* accumulated sums of                */
         double service;                  /*   service times                    */
         long served;                   /*   number served                    */
@@ -146,18 +147,14 @@ int run(long seed, int stop, int servers, double expo_arrival, double expo_servi
                 sum[s].served++;
                 event[s].t = t.current + service;
                 event[s].x = 1; // busy
+            } else {
+                number--;
+                rejected++;
             }
         } else {                                         /* process a departure */
             index++;                                     /* from server s       */
             number--;
-            s = e;
-            if (number >= servers) {
-                double service = GetService(expo_service, stream_service);
-                sum[s].service += service;
-                sum[s].served++;
-                event[s].t = t.current + service;
-            } else
-                event[s].x = 0; // idle il servente
+            event[e].x = 0; // idle il servente
         }
     }
 
@@ -182,10 +179,6 @@ int run(long seed, int stop, int servers, double expo_arrival, double expo_servi
     double delay = queue_area / index;
     double queue_population = queue_area / t.current;
 
-    printf("  area queue %f\n", queue_area);
-    printf("  avg delay .......... = %6.2f\n", delay);
-    printf("  avg # in queue ..... = %6.2f\n", queue_population);
-
     printf("  area service %f\n", area_service);
     printf("  avg service ........ = %6.2f\n", wait - delay);
     printf("  avg # in service ... = %6.2f\n", node_population - queue_population);
@@ -198,6 +191,9 @@ int run(long seed, int stop, int servers, double expo_arrival, double expo_servi
         printf("%8d %14.3f %15.2f %15.3f\n", s, sum[s].service / t.current,
                sum[s].service / sum[s].served,
                (double) sum[s].served / index);
+
+    printf("  rejected jobs ...... = %ld\n", rejected);
+    printf("  loss probability ... = %f\n", (double) rejected / (double) index);
     printf("\n");
 
     return (0);
@@ -221,5 +217,5 @@ int main(void) {
     // casse standard
     // run(seed, stop, 4, 1.0 / get_theoretical_lambda_raw(CASSA_STD), get_theoretical_service(CASSA_STD), stream_arrival, 5);
     // consumazione
-    run(seed, stop, 139, 1.0 / get_theoretical_lambda_raw(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE), stream_arrival, 6);
+    run(seed, stop, 1, 1.0 / get_theoretical_lambda_raw(CONSUMAZIONE), get_theoretical_service(CONSUMAZIONE), stream_arrival, 6);
 }

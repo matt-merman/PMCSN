@@ -15,7 +15,7 @@ network *mock_network() {
         return n; // return the cache if i hits
     }
     // re-run simulation otherwise.
-    network *canteen = create_network((const char **) block_names, CONFIG_2);
+    network *canteen = create_network((const char **) block_names, CONFIG_1);
     simulation(canteen, 0, NULL, STANDARD, PERIOD, 0, 1);
     n = canteen;
     return canteen;
@@ -262,7 +262,7 @@ network *mock_infinite_network() {
     network *canteen;
     int batch_index;
 
-    canteen = create_network(block_names, CONFIG_2);
+    canteen = create_network(block_names, CONFIG_1);
 
     long arrived_jobs = 0;
     for (batch_index = 1; batch_index <= K_BATCH; batch_index++) {

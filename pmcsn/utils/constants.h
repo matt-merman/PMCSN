@@ -54,9 +54,8 @@
 #define BUSY 1
 
 // service node configurations id.
-#define CONFIG_1 1 // all single servers
-#define CONFIG_2 2 // multiserver on first course and canteen
-#define CONFIG_3 3 // mix
+#define CONFIG_1 1 // base
+#define CONFIG_2 2 // extended
 
 // Finite-Horizon
 #define MAX_REPLICAS 10

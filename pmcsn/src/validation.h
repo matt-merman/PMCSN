@@ -27,9 +27,9 @@ void validate_theoretical_utilizazion(block *block, statistics *stats);
 void is_wait_delay_plus_service(block *block, statistics *stats);
 void is_node_population_queue_pop_plus_service_pop(block *block, statistics *stats);
 void validate_global_population(block **blocks);
-void validate_global_queue_time(double queue_time, double queue_pop);
 void validate_global_response_time(double response_time, int *network_servers);
+void validate_ploss(double ploss, int m);
 
-double probe_global_simulation_response_time(network *canteen, long int period);
+        double probe_global_simulation_response_time(network *canteen, long int period);
 double probe_global_simulation_loss_probability(network *canteen, long int period);
 #endif //PROGETTOPMCSN_VALIDATION_H

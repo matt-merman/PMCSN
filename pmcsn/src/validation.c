@@ -111,7 +111,7 @@ void is_node_population_queue_pop_plus_service_pop(block *block, statistics *sta
 // checks that rho < 1
 void is_ergodic(block *block) {
     if (block->num_servers == 1) {
-        double lambda = get_theoretical_lambda_raw(block->type);
+        double lambda = get_theoretical_lambda(block->type, block->num_servers);
         double mhu = get_theoretical_mhu(block->type);
         if (lambda > mhu) {
             printf("\tWATCH OUT! Block %s is NOT ergodic. Lambda: %g > Mhu: %g\n", block->name, lambda, mhu);
@@ -168,8 +168,24 @@ void validate_global_population(block **blocks) {
  */
 void validate_global_response_time(double response_time, int *network_servers) {
     double global_wait_theoretical = get_theoretical_global_response_time(network_servers);
-    printf("\tThe computed global response time (%f) doesn't match with the theoretical global response time (%f)\n",
-           response_time, global_wait_theoretical);
+    if (IS_NOT_EQUAL(global_wait_theoretical, response_time)){
+        printf("\tThe computed global response time (%f) doesn't match with the theoretical global response time (%f)\n",
+               response_time, global_wait_theoretical);
+    }
+}
+
+/**
+ *
+ * @param response_time
+ * @param network_servers
+ */
+void validate_ploss(double ploss, int m) {
+    long double ploss_theoretical = erlang_b_loss_probability(m, get_theoretical_lambda(CONSUMAZIONE, m),
+                                                         get_theoretical_mhu(CONSUMAZIONE));
+    if (IS_NOT_EQUAL(ploss_theoretical, ploss)){
+        printf("\tThe computed loss probability (%Lf) doesn't match with the theoretical loss probability (%Lf)\n",
+               (long double) ploss, ploss_theoretical);
+    }
 }
 
 /**

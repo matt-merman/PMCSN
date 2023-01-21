@@ -13,16 +13,6 @@ typedef enum block_types_t {
     ESTERNO,
 } block_type;
 
-typedef enum stat_types_t {
-    INTERARRIVAL,
-    WAIT,
-    DELAY,
-    SERVICE,
-    NODE_POP,
-    QUEUE_POP,
-    UTILIZATION
-} stat_type;
-
 typedef enum event_type_t {
     ARRIVAL,
     COMPLETION,

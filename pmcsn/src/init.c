@@ -153,20 +153,16 @@ int	network_status[] = {0, 0, 0, 0, 0, 0};
 // Initializes the network configuration
 int *	init_network(int config)
 {
-	int	status_one[] = {1, 1, 1, 1, 1, 50};
-	int	ergodic[] = {3, 3, 2, 1, 4, 139}; // TODO: ATTENZIONE non cambiare il 139!!!!
-	int	status_three[] = {2, 1, 1, 1, 2, 50};
+	int	base[] = {3, 3, 2, 1, 4, 150};
+	int	extended[] = {2, 1, 1, 1, 2, 50};
 
 	switch (config)
 	{
 	case CONFIG_1:
-		memcpy(network_status, status_one, sizeof(network_status));
+		memcpy(network_status, base, sizeof(network_status));
 		break ;
 	case CONFIG_2:
-		memcpy(network_status, ergodic, sizeof(network_status));
-		break ;
-	case CONFIG_3:
-		memcpy(network_status, status_three, sizeof(network_status));
+		memcpy(network_status, extended, sizeof(network_status));
 		break ;
 	default:
 		break ;
