@@ -189,8 +189,7 @@ void calculate_interval_estimate_for_stat(const char *stat_name, const double *g
         printf("\n============== Ensemble %s =============", stat_name);
         printf("\nbased upon %ld data points", n);
         printf(" and with %d%% confidence\n", (int) (100.0 * LOC + 0.5));
-        printf("the expected value is in the interval");
-        printf("%10.6f +/- %10.6f\n", mean, w);
+        printf("the expected value is in the interval %10.6f +/- %10.6f\n", mean, w);
     } else
         printf("ERROR - insufficient data\n");
 }
@@ -232,5 +231,5 @@ void calculate_autocorrelation_for_stats(const char *stat_name, const double *re
     printf("the mean is ... %8.2f\n", mean);
     printf("the stdev is .. %8.2f\n\n", sqrt(cosum[0]));
     printf("  j (lag)   r[j] (autocorrelation)\n");
-    printf("1  %11.3f\n", cosum[1] / cosum[0]);
+    printf("  1  %11.3f\n", cosum[1] / cosum[0]);
 }

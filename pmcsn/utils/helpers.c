@@ -201,11 +201,17 @@ void validate_stats(network *canteen, long int period) {
 /**
  * Adds the statistics to a replica
  * @param canteen the network
- * @param replica index of replica in 0...REPLICAS-1
+ * @param batch batch of batch in 0...K_BATCH-1
+ * @param period duration of batch
  */
-void update_ensemble(network *canteen, long index, long int period) {
-    canteen->batch_response_time[index] = probe_global_simulation_response_time(canteen, period);
-    canteen->batch_loss_probability[index] = probe_global_simulation_loss_probability(canteen, period);
+void compute_batch_statistics(network *canteen, long batch, long int period) {
+    canteen->batch_response_time[batch] = probe_global_simulation_response_time(canteen, period);
+    canteen->batch_loss_probability[batch] = probe_global_simulation_loss_probability(canteen, period);
+}
+
+void compute_replica_statistics(network *canteen, long replica, long int period) {
+    canteen->replicas_response_time[replica] = probe_global_simulation_response_time(canteen, period);
+    canteen->replicas_loss_probability[replica] = probe_global_simulation_loss_probability(canteen, period);
 }
 
 void clear_stats(statistics *stats) {

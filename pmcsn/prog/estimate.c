@@ -46,8 +46,7 @@ int main(void)
         w = t * stdev / sqrt(n - 1);              /* interval half width */
         printf("\nbased upon %ld data points", n);
         printf(" and with %d%% confidence\n", (int) (100.0 * LOC + 0.5));
-        printf("the expected value is in the interval");
-        printf("%10.2f +/- %6.2f\n", mean, w);
+        printf("the expected value is in the interval %10.2f +/- %6.2f\n", mean, w);
     }
     else
         printf("ERROR - insufficient data %d\n", useless);

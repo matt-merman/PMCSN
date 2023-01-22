@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Finite-Horizon  Simulation" type="CLionNativeAppRunConfigurationType" PROGRAM_PARAMS="-s finite" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="ProgettoPMCSN" TARGET_NAME="compile" CONFIG_NAME="compile" version="1" RUN_PATH="$PROJECT_DIR$/pmcsn/start">
+    <method v="2">
+      <option name="CLION.COMPOUND.BUILD" enabled="true" />
+    </method>
+  </configuration>
+</component>

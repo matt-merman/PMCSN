@@ -59,8 +59,10 @@ simulation(network *canteen, long starting_jobs, long *arrived_jobs, sim_type ty
 			if (arrived_jobs != NULL)
 				(*arrived_jobs)++;
 		}
-
 		update_area_stats(current_event, canteen);
+        // for standard and finite-horizon, we can update the stats normally. For each replica the stats are set to 0.
+        // but for infinite-horizon, in addition we need to maintain the area stats inside another variable, so that each batch starts with area 0.
+
 		canteen->system_clock->current = current_event->time;
 		btype = current_event->block_type;
 		switch (current_event->event_type) {
@@ -79,10 +81,9 @@ simulation(network *canteen, long starting_jobs, long *arrived_jobs, sim_type ty
 			default:
 				break;
 		}
-		// the current_event is processed, and now it can be freed
-		//sort_list();
 		debug(current_event, canteen);
-		free(current_event);
+        // the current_event is processed, and now it can be freed
+        free(current_event);
 	}
 #if DEBUG == TRUE
 	if (arrived_jobs != NULL)

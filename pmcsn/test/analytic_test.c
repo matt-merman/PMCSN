@@ -267,7 +267,7 @@ network *mock_infinite_network() {
     long arrived_jobs = 0;
     for (batch_index = 1; batch_index <= K_BATCH; batch_index++) {
         simulation(canteen, batch_index * B, &arrived_jobs, INFINITE, PERIOD, batch_index, K_BATCH);
-        update_ensemble(canteen, batch_index - 1, PERIOD);
+        compute_batch_statistics(canteen, batch_index - 1, PERIOD);
     }
 
     return canteen;

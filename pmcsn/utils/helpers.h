@@ -39,7 +39,8 @@ void debug(event *event, network *canteen);
 
 void show_stats(network *canteen, long int period);
 void validate_stats(network *canteen, long int period);
-void update_ensemble(network *canteen, long index, long int period);
+void compute_replica_statistics(network *canteen, long replica, long int period);
+void compute_batch_statistics(network *canteen, long batch, long int period);
 
 long get_seed();
 

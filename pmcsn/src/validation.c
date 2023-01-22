@@ -219,3 +219,40 @@ double probe_global_simulation_loss_probability(network *canteen, long int perio
     clear_stats(&stats);
     return partial_loss_probability;
 }
+
+void validate_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], int network_servers[BLOCKS], const double batch_response_times[K_BATCH]) {
+    double total_response_time = 0.0;
+    // Calculate response time from the entire simulation
+    for (int i = 0; i < BLOCKS; i++){
+        double visits = get_theoretical_visits(i, network_servers[i]);
+        double block_resp_time = (double) (area[i].node / (long double) completed_jobs[i]);
+        total_response_time += block_resp_time * visits;
+    }
+    // Calculate response time from the batch means
+    double batch_means_response_time = 0.0;
+    for (int i = 0; i < K_BATCH; i++){
+        batch_means_response_time += batch_response_times[i] / K_BATCH;
+    }
+    // they must be equal
+    if (IS_NOT_EQUAL(total_response_time, batch_means_response_time)){
+        printf("\tInfinite-Horizon: The TOTAL global response time (%f) doesn't match with the BATCH MEANS response time (%f)\n",
+               total_response_time, batch_means_response_time);
+    }
+}
+
+void validate_batch_means_loss_probability(long long int rejected_jobs, long long int total_jobs, const double batch_loss_probabilities[K_BATCH]) {
+
+    double total_ploss = (double)((long double) rejected_jobs / (long double) total_jobs);
+
+    double batch_means_ploss = 0.0;
+    for (int i = 0; i < K_BATCH; i++){
+        batch_means_ploss += batch_loss_probabilities[i] / (double) K_BATCH;
+    }
+
+    if (IS_NOT_EQUAL(total_ploss, batch_means_ploss)){
+        printf("\tInfinite-Horizon: The TOTAL loss probability (%f) IT IS NOT EQUAL TO mean of batch loss probabilities (%f)\n",
+               total_ploss, batch_means_ploss);
+    } else {
+        printf("\tTotal vs batch_means: %f ?= %f\n", total_ploss, batch_means_ploss);
+    }
+}
