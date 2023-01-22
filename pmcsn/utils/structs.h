@@ -22,6 +22,9 @@ typedef enum block_types_t {
     CASSA_FAST,
     CASSA_STD,
     CONSUMAZIONE,
+#ifdef EXTENDED
+    CONSUMAZIONE_2,
+#endif
     ESTERNO,
 } block_type;
 
@@ -67,7 +70,6 @@ typedef struct statistics_t {
     //float trafficIntensity;               // can be greater than 1
     double utilization;                     // same as trafficIntensity for sufficiently long observation periods
     double loss_probability;               // used for M/M/k/k
-    long double daily_cost;
     double *multiserver_utilization;
     double *multiserver_service_time;
     long double *routing_probability;
@@ -104,7 +106,7 @@ typedef struct network_t {
     timer *system_clock;
     // standard simulation
     double global_response_time;
-    double loss_probability;
+    double global_loss_probability;
     // replicated simulation (finite horizon)
     double replicas_response_time[MAX_REPLICAS];
     double replicas_loss_probability[MAX_REPLICAS];

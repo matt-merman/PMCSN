@@ -172,7 +172,7 @@ void process_immediate_arrival(event *arrival_event, timer *c, block *block)
             block->block_area->service += next_completion_time;
 		}
 	}
-	else if (block->type == CONSUMAZIONE)
+	else if (IS_CONSUMAZIONE(block->type))
 	{
 		block->jobs--;
 		block->rejected_jobs++;
@@ -203,7 +203,8 @@ void process_completion(event *completion_event, timer *c, block *block)
 		exit(-1);
 	}
 	free_busy_server(block, completion_event->target_server);
-	if (block->type == CONSUMAZIONE)
+
+    if (IS_CONSUMAZIONE(block->type))
 		return ;
 	if (block->queue_jobs > 0)
 	{
@@ -263,7 +264,15 @@ void schedule_immediate_arrival(block *block, timer *c, event *triggering_event)
 		break ;
 	case CASSA_STD:
 	case CASSA_FAST:
-		next_type = CONSUMAZIONE;
+#ifndef EXTENDED
+        next_type = CONSUMAZIONE;
+#else
+        if (p < P_SCELTA_MENSA) {
+            next_type = CONSUMAZIONE;
+        } else {
+            next_type = CONSUMAZIONE_2;
+        }
+#endif
 		break ;
 	default:
 		return ;

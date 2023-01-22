@@ -11,11 +11,19 @@
 #include "start.h"
 
 const char *BLOCK_NAMES[BLOCKS] = {"Primi", "Secondi e Contorni", "Frutta e Dessert",
-                                   "Casse Fast", "Casse standard", "Locale Mensa"};
+                                   "Casse Fast", "Casse standard", "Locale Mensa"
+#ifdef EXTENDED
+        , "Locale Mensa 2"
+#endif
+};
 
-const long int SEEDS[NUM_SEED] = {123456789, 196747722, 315255074, 987654321, 484067034};
+const long int SEEDS[MAX_SEED] = {123456789, 196747722, 315255074, 987654321, 484067034};
 
+#ifndef EXTENDED
 #define NETWORK_CONFIGURATION CONFIG_1
+#else
+#define NETWORK_CONFIGURATION CONFIG_2
+#endif
 
 int main(int argc, __attribute__((unused)) char **argv) {
     int c, j, i;
@@ -66,7 +74,7 @@ int main(int argc, __attribute__((unused)) char **argv) {
         file_resp_time = open_file("w", file_name_grt);
 
         strncpy(file_name_ploss, "./result/infinite/ploss", strlen("./result/infinite/ploss") + 1);
-        
+
         file_ploss = open_file("w", file_name_ploss);
 
         fprintf(file_resp_time, "%s", "grt,batch_index\n");
@@ -95,7 +103,7 @@ int start_standard_simulation(int config) {
 
         seed = SEEDS[seed_index];
         PlantSeeds(seed);
-        
+
         create_file_name("./result/standard/grt_", seed, file_name_grt);
         create_file_name("./result/standard/ploss_", seed, file_name_ploss);
 
@@ -115,7 +123,7 @@ int start_standard_simulation(int config) {
             grt = probe_global_simulation_response_time(canteen, period);
             write_result(file_grt, grt, period);
 
-            ploss = probe_global_simulation_loss_probability(canteen, period);
+            ploss = probe_global_simulation_loss_probability(canteen);
             write_result(file_ploss, ploss, period);
 
             if (NUM_SEED == 1 && remaining_periods == 1) {
@@ -142,9 +150,9 @@ int start_standard_simulation(int config) {
 int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, int num_replicas) {
     network *canteen;
     int replica;
-    
+
     PRINTF("Simulation with %d replicas\n", num_replicas);
-    
+
     canteen = malloc(sizeof(network));
     if (canteen == NULL) {
         perror("Error in allocation of canteen queue network (finite-horizon)");
@@ -169,7 +177,7 @@ int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, in
             }
         } else
             restart_blocks(canteen);
-    
+
         // the simulation will wait for all jobs to exit the network
         simulation(canteen, 0, NULL, FINITE, PERIOD, replica, num_replicas);
 
@@ -225,7 +233,7 @@ int start_infinite_horizon_simulation(int config, FILE *file_resptime, FILE *fil
             canteen->blocks[i]->block_area->service = 0.0L;
             for (c = 0; c < BLOCKS + 1; c++)
                 canteen->blocks[i]->count_to_next[c] = 0L;
-            
+
             num_servers = canteen->blocks[i]->num_servers;
             for (s = 0; s < num_servers; s++) {
                 canteen->blocks[i]->servers[s]->sum->service = 0.0L;
@@ -245,9 +253,14 @@ int start_infinite_horizon_simulation(int config, FILE *file_resptime, FILE *fil
             whole_simulation_area_stats[i].service += canteen->blocks[i]->block_area->service;
             completed_jobs[i] += canteen->blocks[i]->completed_jobs;
         }
+#ifndef EXTENDED
         rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs;
         total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs;
-
+#else
+        rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->rejected_jobs;
+        total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs +
+                      canteen->blocks[CONSUMAZIONE_2]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->completed_jobs;
+#endif
         // here we compute batch response time and loss probability
         compute_batch_statistics(canteen, batch_number - 1, period); // period is not used
 

@@ -87,6 +87,10 @@ char *to_str_block(block_type btype) {
             return ("CASSA_STD");
         case CONSUMAZIONE:
             return ("CONSUMAZIONE");
+#ifdef EXTENDED
+        case CONSUMAZIONE_2:
+            return ("CONSUMAZIONE_2");
+#endif
         default:
             return ("");
     }

@@ -2,7 +2,13 @@
 #define PMCSN_CONSTANTS_H
 
 #define NAME_SIZE 32                                // Size of block name string
+// #define EXTENDED
+
+#ifndef EXTENDED
 #define BLOCKS 6
+#else
+#define BLOCKS 7
+#endif
 
 #define START 0
 
@@ -28,6 +34,18 @@
 
 // After buying dessert, the user always go to the cashier
 #define P_CASSA_STD_DESSERT 1.0
+
+#ifdef EXTENDED
+#define P_SCELTA_MENSA 0.5
+#else
+#define P_SCELTA_MENSA 1.0
+#endif
+
+#ifdef EXTENDED
+#define IS_CONSUMAZIONE(block_type) (block_type == CONSUMAZIONE || block_type == CONSUMAZIONE_2)
+#else
+#define IS_CONSUMAZIONE(block_type) (block_type == CONSUMAZIONE)
+#endif
 
 // Probability of not eating in the dining room
 #define P_ALTROVE 0.05
@@ -68,6 +86,7 @@
 #define K_BATCH (long) (INF_USER / B)
 
 #define NUM_SEED 1
+#define MAX_SEED 5
 #define PERIOD_INTERVALS 1
 
 #endif

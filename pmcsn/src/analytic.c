@@ -48,6 +48,9 @@ double get_theoretical_service(block_type type) {
         case CASSA_STD:
             return S_CASSA_STD;
         case CONSUMAZIONE:
+#ifdef EXTENDED
+        case CONSUMAZIONE_2:
+#endif
             return S_CONSUMAZIONE;
         default:
             return 0.0;
@@ -60,7 +63,7 @@ double get_theoretical_lambda_raw(block_type type) {
     double lambda3 = lambda1 * P_DESSERT_PRIMO + lambda2 * P_DESSERT_SECONDO;
     double lambdaC = lambda2 * P_CASSA_STD_SECONDO + lambda3 * P_CASSA_STD_DESSERT;
     double lambdaF = lambda1 * P_CASSA_FAST_PRIMO + lambda2 * P_CASSA_FAST_SECONDO;
-    double lambdaS = lambdaC + lambdaF;
+    double lambdaS = (lambdaC + lambdaF) * P_SCELTA_MENSA;
     switch (type) {
         case PRIMO: //you can take PRIMO only from outside
             return lambda1; // checked
@@ -74,6 +77,10 @@ double get_theoretical_lambda_raw(block_type type) {
             return lambdaC;
         case CONSUMAZIONE: // the entire arrival flow will come to CONSUMAZIONE
             return lambdaS;
+#ifdef EXTENDED
+        case CONSUMAZIONE_2:
+            return lambdaS;
+#endif
         default:
             return (0.0);
     }
@@ -81,7 +88,7 @@ double get_theoretical_lambda_raw(block_type type) {
 
 double get_theoretical_lambda(block_type type, int num_servers) {
     double lambda_raw = get_theoretical_lambda_raw(type);
-    if (type != CONSUMAZIONE) {
+    if (!IS_CONSUMAZIONE(type)) {
         return lambda_raw;
     }
     return lambda_raw * (1 - (double) erlang_b_loss_probability(num_servers, lambda_raw, get_theoretical_mhu(type)));
@@ -135,7 +142,11 @@ long double erlang_b_loss_probability(int m, double lambda, double mhu) {
 double get_theoretical_response_time(block_type type, int m) {
 
     double service_time = get_theoretical_service(type);
+#ifndef EXTENDED
     if (type == CONSUMAZIONE) {
+#else
+    if(type == CONSUMAZIONE || type == CONSUMAZIONE_2) {
+#endif
         return service_time;
     }
     double rho = get_theoretical_rho(type, m);

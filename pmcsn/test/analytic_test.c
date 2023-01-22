@@ -1,16 +1,23 @@
+// Verification phase: to check if all implemented formulas are equal
+// to the theoretical formulas.
 #include "analytic_test.h"
 
 // used to cache the simulation results
 network *n = NULL;
-
+#ifndef EXTENDED
 const char *block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE"};
+#define TEST_CONFIGURATION CONFIG_1
+#else
+const char *block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE", "CONSUMAZIONE_2"};
+#define TEST_CONFIGURATION CONFIG_2
+#endif
 
 network *mock_network() {
     if (n != NULL) {
         return n; // return the cache if i hits
     }
     // re-run simulation otherwise.
-    network *canteen = create_network((const char **) block_names, CONFIG_1);
+    network *canteen = create_network((const char **) block_names, TEST_CONFIGURATION);
     simulation(canteen, 0, NULL, STANDARD, PERIOD, 0, 1);
     n = canteen;
     return canteen;
@@ -25,16 +32,27 @@ int simulation_visits_test(test_count *t) {
     double visits4 = get_simulation_visit(canteen, CASSA_FAST);
     double visits5 = get_simulation_visit(canteen, CASSA_STD);
     double visits6 = get_simulation_visit(canteen, CONSUMAZIONE);
+#ifdef EXTENDED
+    double visits7 = get_simulation_visit(canteen, CONSUMAZIONE_2);
+#endif
 
     ASSERT_DOUBLE_APPROX_EQUAL(visits1, 0.75, "visits1");
     ASSERT_DOUBLE_APPROX_EQUAL(visits2, 0.6625, "visits2");
     ASSERT_DOUBLE_APPROX_EQUAL(visits3, 0.485625, "visits3");
     ASSERT_DOUBLE_APPROX_EQUAL(visits4, 0.24109375, "visitsF");
     ASSERT_DOUBLE_APPROX_EQUAL(visits5, 0.75890625, "visitsC");
+#ifndef EXTENDED
     ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.935746984, "visitsS");
+#else
+    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.935746984, "visitsS"); //TODO: ricalcolare per il modello esteso
+    ASSERT_DOUBLE_APPROX_EQUAL(visits7, 0.935746984, "visitsS");
+#endif
 
+#ifndef EXTENDED
     PRINTF("%f\n%f\n%f\n%f\n%f\n%f\n", visits1, visits2, visits3, visits4, visits5, visits6);
-
+#else
+    PRINTF("%f\n%f\n%f\n%f\n%f\n%f\n%f\n", visits1, visits2, visits3, visits4, visits5, visits6, visits7);
+#endif
     // !!!!!!!!!!!! don't clear the network here!! we need it for the next test !!!!!!!!!!!!!!!!!
 
     SUCCESS;
@@ -56,6 +74,11 @@ int simulation_routing_probabilities_test(test_count *t) {
     double p_FS = get_simulation_routing_prob(n, CASSA_FAST, CONSUMAZIONE);
     double p_CS = get_simulation_routing_prob(n, CASSA_STD, CONSUMAZIONE);
     double p_S0 = get_simulation_routing_prob(n, CONSUMAZIONE, ESTERNO);
+#ifdef EXTENDED
+    double p_FS2 = get_simulation_routing_prob(n, CASSA_FAST, CONSUMAZIONE_2);
+    double p_CS2 = get_simulation_routing_prob(n, CASSA_STD, CONSUMAZIONE_2);
+    double p_S02 = get_simulation_routing_prob(n, CONSUMAZIONE_2, ESTERNO);
+#endif
 
     ASSERT_DOUBLE_APPROX_EQUAL(p_01, 0.75, "p_01");
     ASSERT_DOUBLE_APPROX_EQUAL(p_02, 0.25, "p_02");
@@ -66,9 +89,18 @@ int simulation_routing_probabilities_test(test_count *t) {
     ASSERT_DOUBLE_APPROX_EQUAL(p_2F, 0.1375, "p_2F");
     ASSERT_DOUBLE_APPROX_EQUAL(p_2C, 0.4125, "p_2C");
     ASSERT_DOUBLE_APPROX_EQUAL(p_3C, 1.0, "p_3C");
+#ifndef EXTENDED
     ASSERT_DOUBLE_APPROX_EQUAL(p_FS, 1.0, "p_FS");
     ASSERT_DOUBLE_APPROX_EQUAL(p_CS, 1.0, "p_CS");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_S0, 1.0, "p_CS");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_S0, 1.0, "p_S0");
+#else
+    ASSERT_DOUBLE_APPROX_EQUAL(p_FS, 0.5, "p_FS");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_CS, 0.5, "p_CS");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_S0, 1.0, "p_S0");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_FS2, 0.5, "p_FS2");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_CS2, 0.5, "p_CS2");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_S02, 1.0, "p_S02");
+#endif
 
     PRINTF("p_01 = %f\n", p_01);
     PRINTF("p_02 = %f\n", p_02);
@@ -82,7 +114,11 @@ int simulation_routing_probabilities_test(test_count *t) {
     PRINTF("p_FS = %f\n", p_FS);
     PRINTF("p_CS = %f\n", p_CS);
     PRINTF("p_S0 = %f\n", p_S0);
-
+#ifdef EXTENDED
+    PRINTF("p_FS2 = %f\n", p_FS2);
+    PRINTF("p_CS2 = %f\n", p_CS2);
+    PRINTF("p_S02 = %f\n", p_S02);
+#endif
     // we clear the mock_network.
     clear_network(n, TRUE);
     SUCCESS;
@@ -96,15 +132,21 @@ int lambda_test(test_count *t) {
     double lambdaF = get_theoretical_lambda_raw(CASSA_FAST);
     double lambdaC = get_theoretical_lambda_raw(CASSA_STD);
     double lambdaS = get_theoretical_lambda_raw(CONSUMAZIONE);
-
+#ifdef EXTENDED
+    double lambdaS2 = get_theoretical_lambda_raw(CONSUMAZIONE_2);
+#endif
     // expected values computed from analytic model
     ASSERT_DOUBLE_EQUAL(lambda1, 0.173611111, "lambda1");
     ASSERT_DOUBLE_EQUAL(lambda2, 0.153356481, "lambda2");
     ASSERT_DOUBLE_EQUAL(lambda3, 0.112413194, "lambda3");
     ASSERT_DOUBLE_EQUAL(lambdaF, 0.055808738, "lambdaF");
     ASSERT_DOUBLE_EQUAL(lambdaC, 0.175672743, "lambdaC");
+#ifndef EXTENDED
     ASSERT_DOUBLE_EQUAL(lambdaS, 0.231481481, "lambdaS");
-
+#else
+    ASSERT_DOUBLE_EQUAL(lambdaS, 0.231481481, "lambdaS"); //TODO: ricalcola
+    ASSERT_DOUBLE_EQUAL(lambdaS2, 0.231481481, "lambdaS2");
+#endif
     SUCCESS;
 }
 
@@ -115,6 +157,9 @@ int mhu_test(test_count *t) {
     double mhuF = get_theoretical_mhu(CASSA_FAST);
     double mhuC = get_theoretical_mhu(CASSA_STD);
     double mhuS = get_theoretical_mhu(CONSUMAZIONE);
+#ifdef EXTENDED
+    double mhuS2 = get_theoretical_mhu(CONSUMAZIONE_2);
+#endif
 
     // expected values computed from analytic model
     ASSERT_DOUBLE_EQUAL(mhu1, 0.06666667, "mhu1");
@@ -122,8 +167,12 @@ int mhu_test(test_count *t) {
     ASSERT_DOUBLE_EQUAL(mhu3, 0.1, "mhu3");
     ASSERT_DOUBLE_EQUAL(mhuF, 0.09090909, "mhuF");
     ASSERT_DOUBLE_EQUAL(mhuC, 0.05555556, "mhuC");
+#ifndef EXTENDED
     ASSERT_DOUBLE_EQUAL(mhuS, 0.001666667, "mhuS");
-
+#else
+    ASSERT_DOUBLE_EQUAL(mhuS, 0.001666667, "mhuS"); //TODO ricalcolare
+    ASSERT_DOUBLE_EQUAL(mhuS2, 0.001666667, "mhuS");
+#endif
     SUCCESS;
 }
 
@@ -133,15 +182,24 @@ int rho_test(test_count *t) {
     double rho3 = get_theoretical_rho(DESSERT, 2);
     double rhoF = get_theoretical_rho(CASSA_FAST, 1);
     double rhoC = get_theoretical_rho(CASSA_STD, 4);
+#ifndef EXTENDED
     double rhoS = get_theoretical_rho(CONSUMAZIONE, 139);
-
+#else
+    double rhoS = get_theoretical_rho(CONSUMAZIONE, 75);
+    double rhoS2 = get_theoretical_rho(CONSUMAZIONE_2, 75);
+#endif
     // expected values computed from analytic model
     ASSERT_DOUBLE_EQUAL(rho1, 0.868055556, "rho1");
     ASSERT_DOUBLE_EQUAL(rho2, 0.766782407, "rho2");
     ASSERT_DOUBLE_EQUAL(rho3, 0.562065972, "rho3");
     ASSERT_DOUBLE_EQUAL(rhoF, 0.613896123, "rhoF");
     ASSERT_DOUBLE_EQUAL(rhoC, 0.790527344, "rhoC");
+#ifndef EXTENDED
     ASSERT_DOUBLE_EQUAL(rhoS, 0.934999, "rhoS");
+#else
+    ASSERT_DOUBLE_EQUAL(rhoS, 0.934999, "rhoS"); // TODO: ricalcola
+    ASSERT_DOUBLE_EQUAL(rhoS2, 0.934999, "rhoS2");
+#endif
 
     SUCCESS;
 }
@@ -152,16 +210,24 @@ int visits_test(test_count *t) {
     double visits3 = get_theoretical_visits(DESSERT, 2);
     double visitsF = get_theoretical_visits(CASSA_FAST, 1);
     double visitsC = get_theoretical_visits(CASSA_STD, 4);
-    double visitsS = get_theoretical_visits(CONSUMAZIONE, 139);
-
+#ifndef EXTENDED
+    double visitsS = get_theoretical_visits(CONSUMAZIONE, 150);
+#else
+    double visitsS = get_theoretical_visits(CONSUMAZIONE, 75);
+    double visitsS2 = get_theoretical_visits(CONSUMAZIONE_2, 75);
+#endif
     // expected values computed from analytic model
     ASSERT_DOUBLE_EQUAL(visits1, 0.75, "visits1");
     ASSERT_DOUBLE_EQUAL(visits2, 0.6625, "visits2");
     ASSERT_DOUBLE_EQUAL(visits3, 0.485625, "visits3");
     ASSERT_DOUBLE_EQUAL(visitsF, 0.24109375, "visitsF");
     ASSERT_DOUBLE_EQUAL(visitsC, 0.75890625, "visitsC");
-    ASSERT_DOUBLE_EQUAL(visitsS, 0.935746984, "visitsS");
-
+#ifndef EXTENDED
+    ASSERT_DOUBLE_EQUAL(visitsS, 0.974803, "visitsS");
+#else
+    ASSERT_DOUBLE_EQUAL(visitsS, 0.935746984, "visitsS"); // TODO: ricalcola
+    ASSERT_DOUBLE_EQUAL(visitsS2, 0.935746984, "visitsS2"); // TODO: ricalcola
+#endif
     SUCCESS;
 }
 
@@ -199,7 +265,7 @@ int erlang_b_loss_probability_test(test_count *t) {
     int m = 139;
     double lambda = 25. / 108.;
     double mhu = 1. / 600.;
-    double erlang_b_loss_prob = erlang_b_loss_probability(m, lambda, mhu);
+    double erlang_b_loss_prob = (double) erlang_b_loss_probability(m, lambda, mhu);
 
     ASSERT_DOUBLE_EQUAL(erlang_b_loss_prob, 0.06425302, "erlang_b_loss_probability");
 
@@ -207,8 +273,11 @@ int erlang_b_loss_probability_test(test_count *t) {
 }
 
 int global_response_time_test(test_count *t) {
-
+#ifndef EXTENDED
     int net_servers[] = {3, 3, 2, 1, 4, 139};
+#else
+    int net_servers[] = {3, 3, 2, 1, 4, 75, 75};
+#endif
     double response_time = get_theoretical_global_response_time(net_servers);
 
     ASSERT_DOUBLE_EQUAL(response_time, 649.78441, "global_response_time");

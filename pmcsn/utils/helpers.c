@@ -90,7 +90,7 @@ void get_stats(block *b, timer *clock, statistics *stats, long int period) {
     stats->queue_pop = (double) (area->queue / (long double) period);
     stats->utilization = (double) (area->service / ((long double) period * (long double) b->num_servers));
     stats->loss_probability = 0.0;
-    if (b->type == CONSUMAZIONE) {
+    if (IS_CONSUMAZIONE(b->type)) {
         stats->loss_probability = (double) b->rejected_jobs / (double) (b->completed_jobs + b->rejected_jobs);
     }
 
@@ -112,7 +112,8 @@ void get_stats(block *b, timer *clock, statistics *stats, long int period) {
 void show_stats(network *canteen, long int period) {
     statistics stats;
     double network_response_time = 0.0;
-    double loss_probability = 0.0;
+    long rejected = 0L;
+    long total = 0L;
     for (int i = 0; i < BLOCKS; i++) {
         // at each iteration we overwrite the statistics struct
         get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
@@ -122,13 +123,17 @@ void show_stats(network *canteen, long int period) {
         printf("\t'%s' block info:\n\n", canteen->blocks[i]->name);
         printf("\t\tpeople in the block ..... = % 10ld\tpeople\n", stats.completed_jobs);
 
-        if (canteen->blocks[i]->type == CONSUMAZIONE) {
-            loss_probability = (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs /
-                               ((double) canteen->blocks[CONSUMAZIONE]->completed_jobs +
-                                (double) canteen->blocks[CONSUMAZIONE]->rejected_jobs);
-            printf("\t\trejected people ......... = % 10ld\tpeople\n", canteen->blocks[CONSUMAZIONE]->rejected_jobs);
-            printf("\t\tloss probability ....... = % 10g\tpeople\n",
-                   loss_probability);
+        if (IS_CONSUMAZIONE(canteen->blocks[i]->type)) {
+            block_type cons_type = canteen->blocks[i]->type;
+            // these two are needed for global loss probability:
+            rejected += canteen->blocks[cons_type]->rejected_jobs;
+            total += canteen->blocks[cons_type]->completed_jobs + canteen->blocks[cons_type]->rejected_jobs;
+            // this is for local loss probability
+            double loss_probability = (double) canteen->blocks[cons_type]->rejected_jobs /
+                               ((double) canteen->blocks[cons_type]->completed_jobs +
+                                (double) canteen->blocks[cons_type]->rejected_jobs);
+            printf("\t\trejected people ......... = % 10ld\tpeople\n", canteen->blocks[cons_type]->rejected_jobs);
+            printf("\t\tloss probability ....... = % 10g\tpeople\n", loss_probability);
         }
 
         printf("\n\tjob averaged statistics:\n");
@@ -141,10 +146,6 @@ void show_stats(network *canteen, long int period) {
         printf("\t\taverage # in the node ... = %6.2f\tpeople\n", stats.node_pop);
         printf("\t\taverage # in the queue .. = %6.2f\tpeople\n", stats.queue_pop);
         printf("\t\tutilization ............. = %6.4f\t-\n", stats.utilization);
-
-        // printf("\t\tarea node %Lf\n", canteen->blocks[i]->block_area->node);
-        // printf("\t\tarea queue %Lf\n", canteen->blocks[i]->block_area->queue);
-        // printf("\t\tarea service %Lf\n", canteen->blocks[i]->block_area->service);
 
         if (canteen->blocks[i]->type == PRIMO) {
             printf("\n\trouting probabilities statistics:\n");
@@ -170,7 +171,7 @@ void show_stats(network *canteen, long int period) {
         clear_stats(&stats);
     }
     canteen->global_response_time = network_response_time;
-    canteen->loss_probability = loss_probability;
+    canteen->global_loss_probability = rejected / total;
     printf("\t----------------------------------------------------------\n");
 }
 
@@ -185,11 +186,14 @@ void validate_stats(network *canteen, long int period) {
         clear_stats(&stats);
     }
 
-    // validates global population, global queue time and response time
+    // validates global population and response time
     validate_global_population(canteen->blocks);
-    // validate_global_queue_time(queue_time_sum, 0);
     validate_global_response_time(canteen->global_response_time, canteen->network_servers);
-    validate_ploss(canteen->loss_probability, canteen->blocks[CONSUMAZIONE]->num_servers);
+#ifndef EXTENDED
+    validate_ploss(canteen->global_loss_probability, canteen->blocks[CONSUMAZIONE]->num_servers);
+#else
+    // TODO: validate_ploss(canteen->global_loss_probability, canteen->blocks[CONSUMAZIONE]->num_servers);
+#endif
 }
 
 /**
@@ -200,12 +204,12 @@ void validate_stats(network *canteen, long int period) {
  */
 void compute_batch_statistics(network *canteen, long batch, long int period) {
     canteen->batch_response_time[batch] = probe_global_simulation_response_time(canteen, period);
-    canteen->batch_loss_probability[batch] = probe_global_simulation_loss_probability(canteen, period);
+    canteen->batch_loss_probability[batch] = probe_global_simulation_loss_probability(canteen);
 }
 
 void compute_replica_statistics(network *canteen, long replica, long int period) {
     canteen->replicas_response_time[replica] = probe_global_simulation_response_time(canteen, period);
-    canteen->replicas_loss_probability[replica] = probe_global_simulation_loss_probability(canteen, period);
+    canteen->replicas_loss_probability[replica] = probe_global_simulation_loss_probability(canteen);
 }
 
 void clear_stats(statistics *stats) {
@@ -215,7 +219,11 @@ void clear_stats(statistics *stats) {
 }
 
 void debug(event *event, network *canteen) {
+#ifndef EXTENDED
     PRINTF("Event %ld(linked event id %ld): Time: %lf - %-18s Target Block: %-12s in server: %d jobs in blocks [%s, %s, %s, %s, %s, %s] events: %d\n",
+#else
+    PRINTF("Event %ld(linked event id %ld): Time: %lf - %-18s Target Block: %-12s in server: %d jobs in blocks [%s, %s, %s, %s, %s, %s, %s] events: %d\n",
+#endif
            event->event_id,
            event->linked_event_id,
            canteen->system_clock->current,
@@ -228,6 +236,9 @@ void debug(event *event, network *canteen) {
            get_server_contents(canteen->blocks[CASSA_FAST]),
            get_server_contents(canteen->blocks[CASSA_STD]),
            get_server_contents(canteen->blocks[CONSUMAZIONE]),
+#ifdef EXTENDED
+           get_server_contents(canteen->blocks[CONSUMAZIONE_2]),
+#endif
            event_list_length());
 }
 

@@ -85,7 +85,7 @@ void restart_blocks(network *canteen){
         block->completed_jobs = 0;
         block->rejected_jobs = 0;
         block->jobs = 0;
-	   memset(block->count_to_next, 0, 7*sizeof(long));
+	    memset(block->count_to_next, 0, (BLOCKS + 1)*sizeof(long));
         for(int j = 0 ; j < block->num_servers; j++){
             block->servers[j]->sum->service = (long double) 0;
             block->servers[j]->sum->served = 0L;
@@ -137,13 +137,16 @@ timer * 	init_clock(void)
     }
 	return c;
 }
-
+#ifndef EXTENDED
 int	network_status[] = {0, 0, 0, 0, 0, 0};
+#else
+int	network_status[] = {0, 0, 0, 0, 0, 0, 0};
+#endif
 
 int *	init_network(int config)
 {
 	int	base[] = {3, 3, 2, 1, 4, 150};
-	int	extended[] = {2, 1, 1, 1, 2, 50};
+	int	extended[] = {3, 3, 2, 1, 4, 75, 75};
 
 	switch (config)
 	{

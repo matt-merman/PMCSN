@@ -23,7 +23,7 @@ void validate_global_population(block **blocks);
 void validate_global_response_time(double response_time, int *network_servers);
 void validate_ploss(double ploss, int m);
 double probe_global_simulation_response_time(network *canteen, long int period);
-double probe_global_simulation_loss_probability(network *canteen, long int period);
+double probe_global_simulation_loss_probability(network *canteen);
 // infinite-horizon
 void validate_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], int network_servers[BLOCKS], const double batch_response_times[K_BATCH]);
 void validate_batch_means_loss_probability(long long int rejected_jobs, long long int total_jobs, const double batch_loss_probabilities[K_BATCH]);
