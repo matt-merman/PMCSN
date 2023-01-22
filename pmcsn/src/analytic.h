@@ -1,12 +1,6 @@
-//
-// Created by giaco on 17/12/22.
-//
+#ifndef _ANALYTIC_H
+#define _ANALYTIC_H
 
-#ifndef PROGETTOPMCSN_ANALYTIC_H
-#define PROGETTOPMCSN_ANALYTIC_H
-
-#include <math.h>
-#include "../utils/constants.h"
 #include "../utils/structs.h"
 
 
@@ -31,4 +25,4 @@ double get_theoretical_global_response_time(int *network_servers);
 void calculate_autocorrelation_for_stats(const char *stat_name, const double *response_time);
 
 
-#endif //PROGETTOPMCSN_ANALYTIC_H
+#endif

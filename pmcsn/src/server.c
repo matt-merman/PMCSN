@@ -1,5 +1,4 @@
 #include "./server.h"
-#include "../libs/rvgs.h"
 
 int busy_servers[BLOCKS] = {0,0,0,0,0,0};
 

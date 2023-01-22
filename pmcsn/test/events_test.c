@@ -1,7 +1,3 @@
-//
-// Created by giaco on 24/12/22.
-//
-
 #include "events_test.h"
 
 // these tests are run one after another

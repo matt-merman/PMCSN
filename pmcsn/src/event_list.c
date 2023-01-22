@@ -1,17 +1,12 @@
-//
-// Created by giaco on 24/12/22.
-//
 #include "event_list.h"
 
 event *head = NULL;
 int size = 0;
 
-//display the list
 void print_list() {
     event *e = head;
     printf("\n[ ");
 
-    //start from the beginning
     while(e != NULL) {
         print_event(e);
         e = e->next;
@@ -38,9 +33,7 @@ event * new_event(long id, block_type b, double time, event_type t, int target_s
     return e;
 }
 
-// insert event at the first location. The head goes in 2nd position.
 void insert_first(long event_id, block_type block_type, event_type event_type, int target_server, double time) {
-    // create a link
     event *link = (event*) malloc(sizeof(event));
 
     link->event_id = event_id;
@@ -51,22 +44,18 @@ void insert_first(long event_id, block_type block_type, event_type event_type, i
 
     // point it to old first node
     link->next = head;
-
     // point first to new first node
     head = link;
-
     // increment size
     size++;
 }
 
-// inserts an event in the 1st position
 void insert_event_first(event *elem){
     if (is_empty()) {
         head = elem;
         size++;
         return;
     }
-
     elem->next = head;
     head = elem;
     size++;
@@ -107,8 +96,6 @@ void insert_event_ordered(event *elem){
             size++;
             return;
         }
-
-
         current = current->next;
     }
 }

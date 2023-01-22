@@ -61,7 +61,6 @@ block **init_blocks(int *config, const char **block_names)
 
 		memset(b[i], 0, sizeof(block));
 		b[i]->block_area = malloc(sizeof(area));
-		// b[i]->count_to_next = malloc(sizeof(long int) * BLOCKS);
 		b[i]->type = i;
 		b[i]->num_servers = config[i];	
 
@@ -86,13 +85,7 @@ void restart_blocks(network *canteen){
         block->completed_jobs = 0;
         block->rejected_jobs = 0;
         block->jobs = 0;
-        block->count_to_next[0] = 0;
-        block->count_to_next[1] = 0;
-        block->count_to_next[2] = 0;
-        block->count_to_next[3] = 0;
-        block->count_to_next[4] = 0;
-        block->count_to_next[5] = 0;
-        block->count_to_next[6] = 0;
+	   memset(block->count_to_next, 0, 7*sizeof(long));
         for(int j = 0 ; j < block->num_servers; j++){
             block->servers[j]->sum->service = (long double) 0;
             block->servers[j]->sum->served = 0L;
@@ -101,7 +94,6 @@ void restart_blocks(network *canteen){
     }
 }
 
-// Initializes the servers inside a block
 void	init_servers(block *block, int num)
 {
     block->servers = (server **) malloc(num * sizeof(server *));
@@ -113,8 +105,6 @@ void	init_servers(block *block, int num)
     memset(block->servers, 0x0, num * sizeof(server *));
 	for (int s = 0; s < num; s++)
 	{
-        // Nel debugger CLION puoi vedere gli elementi block->servers con il watch: (server *[2]) *blocks->servers
-        //  sostituisci il 2 con il valore di num
         block->servers[s] = (server *) malloc(sizeof(server));
         memset(block->servers[s], 0x0, sizeof(server));
         block->servers[s]->sum = (sum *) malloc(sizeof(sum));
@@ -128,7 +118,7 @@ void	init_servers(block *block, int num)
 	}
 }
 
-// Initializes the clock, and generates the first arrival
+// Initializes the clock and generates the first arrival
 timer * 	init_clock(void)
 {
 	double p = Random();
@@ -150,7 +140,6 @@ timer * 	init_clock(void)
 
 int	network_status[] = {0, 0, 0, 0, 0, 0};
 
-// Initializes the network configuration
 int *	init_network(int config)
 {
 	int	base[] = {3, 3, 2, 1, 4, 150};

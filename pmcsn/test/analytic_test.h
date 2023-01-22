@@ -1,13 +1,7 @@
-//
-// Created by giaco on 22/10/22.
-//
+#ifndef _ANALYTIC_TESTS_H_
+#define _ANALYTIC_TESTS_H_
 
-#ifndef PROGETTOPMCSN_TESTS_H
-#define PROGETTOPMCSN_TESTS_H
-#include <stdio.h>
-#include "../src/analytic.h"
-#include "../src/simulation.h"
-#include "test.h"
+#include "../utils/structs.h"
 
 int simulation_visits_test(test_count *t);
 int simulation_routing_probabilities_test(test_count *t);
@@ -24,4 +18,4 @@ int hour_to_days_test(test_count *t);
 network *mock_infinite_network();
 int batch_response_time_test(test_count *t);
 
-#endif //PROGETTOPMCSN_TESTS_H
+#endif

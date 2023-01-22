@@ -2,8 +2,6 @@
 #define SIMULATION_H
 
 #include "../utils/structs.h"
-#include "../src/events.h"
-
 
 void
 simulation(network *canteen, long starting_jobs, long *arrived_jobs, sim_type type, long int period, int index,

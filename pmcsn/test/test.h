@@ -1,9 +1,5 @@
-//
-// Created by giaco on 23/12/22.
-//
-
-#ifndef PROGETTOPMCSN_TEST_H
-#define PROGETTOPMCSN_TEST_H
+#ifndef _TEST_H_
+#define _TEST_H_
 
 typedef struct test_count_t {
     int failures;
@@ -38,7 +34,6 @@ typedef struct test_count_t {
             } \
         } while (0)
 
-#include "analytic_test.h"
-#include "events_test.h"
+#include "../utils/structs.h"
 
-#endif //PROGETTOPMCSN_TEST_H
+#endif

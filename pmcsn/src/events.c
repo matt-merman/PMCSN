@@ -2,7 +2,6 @@
 
 // true if Clock is terminated
 int		terminated = FALSE;
-// event	*event_list;
 // used to track events
 long next_event_id = 0L;
 
@@ -74,22 +73,21 @@ event *create_event(block_type target, int server_id, event_type type, double cu
 //we stop the arrival flow.
 int	try_terminate_clock(timer *c, double time, long int period)
 {	
-	if (time > period)
-	{
-		c->last = c->current;
-		c->last_arrival = INF; // the next arrival will arrive at infinity
-		terminated = TRUE;
-		return (TRUE);
-	}
-	return (FALSE);
+	if (time <= period)
+		return (FALSE);
+
+	c->last = c->current;
+	c->last_arrival = INF; // the next arrival will arrive at infinity
+	terminated = TRUE;
+	return (TRUE);
 }
 
-// check if clock is terminated
 int	is_clock_terminated(void)
 {
 	return terminated;
 }
-// creates an event and return its time (the time at which the event will occurr)
+
+// creates an event and return its time (the time at which the event will occur)
 // the clock contains the time of this event
 event *create_insert_event(block_type target, int server_id, event_type eventType, timer *c, event *linked_event)
 {

@@ -1,8 +1,3 @@
-// Verification phase: to check if all implemented formulas are equal 
-// to the theoretical formulas.     
-// Created by giaco on 22/10/22.
-//
-
 #include "analytic_test.h"
 
 // used to cache the simulation results

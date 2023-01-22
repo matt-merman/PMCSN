@@ -1,12 +1,4 @@
-//
-// Created by giaco on 17/12/22.
-//
-
-#include <stdio.h>
-#include <string.h>
 #include "analytic.h"
-#include "../libs/rvms.h"
-
 
 /**
  * Uses the gamma function to efficiently calculate factorial, knowing that Gamma(n) = (n-1)!

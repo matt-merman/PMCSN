@@ -5,7 +5,6 @@
 #define BLOCKS 6
 
 #define START 0
-// #define N (BLOCKS * 100)
 
 #define USER 2500L                                   // mean number of user in the observation period
 #define HOUR (60L*60L)
@@ -13,9 +12,8 @@
 #define PERIOD (N_HOURS*HOUR)                       // observation period in seconds
 #define INF (100L * PERIOD)                         // max int is 2147483647
 #define LAMBDA 0.2314814815                         // Computed from USER / 3h (in seconds)
-//#define LAMBDA ((double) USER/(double) PERIOD)    // Mean outside arrivals: 0.2314814815 Mean inter-arrival time 4.32
 
-//notazione probabilità di routing: P_[dest]_[source]
+// Nomenclature: P_[dest]_[source]
 #define P_PRIMO_FUORI 0.75      // Probability that a user buys first course from outside
 #define P_SECONDO_FUORI 0.25    // Probability that a user buys second course from outside, skipping first course
 
@@ -70,6 +68,6 @@
 #define K_BATCH (long) (INF_USER / B)
 
 #define NUM_SEED 1
-#define PERIOD_INTERVALS 12
+#define PERIOD_INTERVALS 1
 
 #endif

@@ -1,11 +1,5 @@
 #include "helpers.h"
 
-long get_seed() {
-
-    return Equilikely(0L, 900000000L);
-
-}
-
 double get_next_arrival(double current, double lambda) {
     double arrival;
     arrival = current;

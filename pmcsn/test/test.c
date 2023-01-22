@@ -1,12 +1,4 @@
-//
-// Created by giaco on 23/12/22.
-//
-// Test for VERIFICATION step: to verify that our computational model is coherent with analytic model
-// that is to see if we implemented the program well
-//
-
 #include "test.h"
-
 
 void analytic_testsuite(test_count *t){
     insert_ordered_test(t);

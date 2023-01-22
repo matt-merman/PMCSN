@@ -1,14 +1,6 @@
-//
-// Created by giaco on 24/12/22.
-//
+#ifndef _EVENT_LIST_H_
+#define _EVENT_LIST_H_
 
-#ifndef PROGETTOPMCSN_EVENT_LIST_H
-#define PROGETTOPMCSN_EVENT_LIST_H
-
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include "../utils/structs.h"
 
 void    print_list();
@@ -21,4 +13,4 @@ event*  pop_first();
 bool    is_empty();
 int     event_list_length();
 
-#endif //PROGETTOPMCSN_EVENT_LIST_H
+#endif

@@ -1,22 +1,7 @@
 #ifndef _HELP_H_
 #define _HELP_H_
 
-#include "../libs/rngs.h"
-#include "../libs/rvgs.h"
-#include "./constants.h"
 #include "./structs.h"
-#include "../src/events.h"
-#include "../src/server.h"
-#include "../src/validation.h"
-#include "../src/analytic.h"
-#include "../src/event_list.h"
-#include "constants.h"
-#include "files.h"
-
-#include <stdio.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 #define EPSILON 0.001 // With 0.01 it gives the WARNING
@@ -41,8 +26,6 @@ void show_stats(network *canteen, long int period);
 void validate_stats(network *canteen, long int period);
 void compute_replica_statistics(network *canteen, long replica, long int period);
 void compute_batch_statistics(network *canteen, long batch, long int period);
-
-long get_seed();
 
 #endif
 

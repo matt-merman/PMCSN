@@ -3,6 +3,18 @@
 
 #include "constants.h"
 
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <time.h>
+#include <unistd.h>
+
+#include "../libs/rvms.h"
+#include "../libs/rngs.h"
+#include "../libs/rvgs.h"
+
 typedef enum block_types_t {
     PRIMO,
     SECONDO,
@@ -106,5 +118,57 @@ typedef enum sim_type_t {
     FINITE,
     INFINITE
 } sim_type;
+
+#ifndef _FILES_H_
+#include "files.h"
+#endif
+
+#ifndef _EVENT_H_
+#include "../src/events.h"
+#endif
+
+#ifndef _SERVER_H_
+#include "../src/server.h"
+#endif
+
+#ifndef _HELP_H_
+#include "helpers.h"
+#endif
+
+#ifndef _ANALYTIC_H
+#include "../src/analytic.h"
+#endif
+
+#ifndef _EVENT_LIST_H_
+#include "../src/event_list.h"
+#endif
+
+#ifndef _INIT_H_
+#include "../src/init.h"
+#endif
+
+#ifndef SIMULATION_H
+#include "../src/simulation.h"
+#endif
+
+#ifndef _START_H_
+#include "../src/start.h"
+#endif
+
+#ifndef _VALIDATION_H_
+#include "../src/validation.h"
+#endif
+
+#ifndef _TEST_H_
+#include "../test/test.h"
+#endif
+
+#ifndef _ANALYTIC_TESTS_H_
+#include "../test/analytic_test.h"
+#endif
+
+#ifndef _EVENTS_TEST_H_
+#include "../test/events_test.h"
+#endif
 
 #endif

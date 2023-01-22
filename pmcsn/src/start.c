@@ -1,19 +1,27 @@
+/*
+ * The aim of this project is to model and evaluate a network,
+ * based on a generic company canteen with 2500 employees and 
+ * the observation period equal to 3 hour.
+ * Link to GitHub: https://github.com/matt-merman/PMCSN
+ * Authors: 
+ * - Di Battista Mattia
+ * - Rossi Giacomo Lorenzo      
+ */
+
 #include "start.h"
-#include <time.h>
 
 const char *BLOCK_NAMES[BLOCKS] = {"Primi", "Secondi e Contorni", "Frutta e Dessert",
                                    "Casse Fast", "Casse standard", "Locale Mensa"};
+
+const long int SEEDS[NUM_SEED] = {123456789, 196747722, 315255074, 987654321, 484067034};
 
 #define NETWORK_CONFIGURATION CONFIG_1
 
 int main(int argc, __attribute__((unused)) char **argv) {
     int c, j, i;
     char *parameter;
-    char file_name_resptime[100];
-    char file_name_ploss[100];
-    char index_to_str[100];
-    FILE *file_resp_time;
-    FILE *file_ploss;
+    char file_name_grt[100], file_name_ploss[100];
+    FILE *file_resp_time, *file_ploss;
 
     parameter = NULL;
     c = getopt(argc, argv, "s:");
@@ -29,23 +37,17 @@ int main(int argc, __attribute__((unused)) char **argv) {
     }
 
     // initializing multi-stream lehmer generator
-    PlantSeeds(123456789);
+    PlantSeeds(SEEDS[0]);
 
     if (strcmp(parameter, "finite") == 0) {
         j = i = 1;
         while (i <= MAX_REPLICAS) {
-            sprintf(index_to_str, "%d", i);
 
-            strcpy(file_name_resptime, "");
-            strcat(file_name_resptime, "./result/finite/grt_");
-            strcat(file_name_resptime, index_to_str);
+            create_file_name("./result/finite/grt_", i, file_name_grt);
+            create_file_name("./result/finite/ploss_", i, file_name_ploss);
 
-            file_resp_time = open_file("w", file_name_resptime);
+            file_resp_time = open_file("w", file_name_grt);
             fprintf(file_resp_time, "%s", "grt,replica\n");
-
-            strcpy(file_name_ploss, "");
-            strcat(file_name_ploss, "./result/finite/ploss_");
-            strcat(file_name_ploss, index_to_str);
 
             file_ploss = open_file("w", file_name_ploss);
             fprintf(file_ploss, "%s", "ploss,replica\n");
@@ -60,10 +62,11 @@ int main(int argc, __attribute__((unused)) char **argv) {
         }
     } else if (strcmp(parameter, "infinite") == 0) {
 
-        strncpy(file_name_resptime, "./result/infinite/grt", strlen("./result/infinite/grt") + 1);
-        file_resp_time = open_file("w", file_name_resptime);
+        strncpy(file_name_grt, "./result/infinite/grt", strlen("./result/infinite/grt") + 1);
+        file_resp_time = open_file("w", file_name_grt);
 
         strncpy(file_name_ploss, "./result/infinite/ploss", strlen("./result/infinite/ploss") + 1);
+        
         file_ploss = open_file("w", file_name_ploss);
 
         fprintf(file_resp_time, "%s", "grt,batch_index\n");
@@ -80,39 +83,30 @@ int main(int argc, __attribute__((unused)) char **argv) {
 }
 
 int start_standard_simulation(int config) {
-    char file_name_grt[100];
-    char num_to_str[100];
-    FILE *file_grt;
+    char file_name_grt[100], file_name_ploss[100];
+    FILE *file_grt, *file_ploss;
     long seed;
     double grt, ploss;
     long int period;
-    char file_name_ploss[100];
-    FILE *file_ploss;
+    int seed_index, remaining_periods;
+    network *canteen;
 
-    seed = 123456789L;
-    for (int seed_index = 0; seed_index < NUM_SEED; seed_index++) {
+    for (seed_index = 0; seed_index < NUM_SEED; seed_index++) {
 
+        seed = SEEDS[seed_index];
         PlantSeeds(seed);
-        sprintf(num_to_str, "%ld", seed);
-
-        strcpy(file_name_grt, "");
-        strcat(file_name_grt, "./result/standard/grt_");
-
-        strcat(file_name_grt, num_to_str);
+        
+        create_file_name("./result/standard/grt_", seed, file_name_grt);
+        create_file_name("./result/standard/ploss_", seed, file_name_ploss);
 
         file_grt = open_file("w", file_name_grt);
         fprintf(file_grt, "%s", "grt,period\n");
 
-        strcpy(file_name_ploss, "");
-        strcat(file_name_ploss, "./result/standard/ploss_");
-
-        strcat(file_name_ploss, num_to_str);
-
         file_ploss = open_file("w", file_name_ploss);
         fprintf(file_ploss, "%s", "ploss,period\n");
 
-        for (int remaining_periods = PERIOD_INTERVALS; remaining_periods > 0; remaining_periods--) {
-            network *canteen = create_network(BLOCK_NAMES, config);
+        for (remaining_periods = PERIOD_INTERVALS; remaining_periods > 0; remaining_periods--) {
+            canteen = create_network(BLOCK_NAMES, config);
 
             period = PERIOD / remaining_periods;
 
@@ -134,7 +128,6 @@ int start_standard_simulation(int config) {
 
         fclose(file_grt);
         fclose(file_ploss);
-        seed = get_seed();
     }
     return (0);
 }
@@ -149,7 +142,9 @@ int start_standard_simulation(int config) {
 int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, int num_replicas) {
     network *canteen;
     int replica;
-    printf("Simulation with %d replicas\n", num_replicas);
+    
+    PRINTF("Simulation with %d replicas\n", num_replicas);
+    
     canteen = malloc(sizeof(network));
     if (canteen == NULL) {
         perror("Error in allocation of canteen queue network (finite-horizon)");
@@ -172,9 +167,9 @@ int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, in
                 perror("Error on blocks");
                 return (-1);
             }
-        } else {
+        } else
             restart_blocks(canteen);
-        }
+    
         // the simulation will wait for all jobs to exit the network
         simulation(canteen, 0, NULL, FINITE, PERIOD, replica, num_replicas);
 
@@ -198,41 +193,41 @@ int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, in
 int start_infinite_horizon_simulation(int config, FILE *file_resptime, FILE *file_ploss, long int period) {
 
     network *canteen;
-    int batch_number;
-    double grt[K_BATCH];
-    double ploss[K_BATCH];
+    int batch_number, i, c, s, num_servers;
+    double grt[K_BATCH], ploss[K_BATCH];
+    long arrived_jobs, completed_jobs[BLOCKS];
+    long long rejected_jobs, total_jobs;
+
+    rejected_jobs = total_jobs = 0LL;
 
     canteen = create_network(BLOCK_NAMES, config);
-
-    long arrived_jobs = 0;
+    arrived_jobs = 0;
 
     // these are the global area stats
     area whole_simulation_area_stats[BLOCKS];
-    for (int i = 0; i < BLOCKS; i++) {
+    for (i = 0; i < BLOCKS; i++) {
         whole_simulation_area_stats[i].node = 0.0L;
         whole_simulation_area_stats[i].queue = 0.0L;
         whole_simulation_area_stats[i].service = 0.0L;
     }
-    long long rejected_jobs = 0LL;
-    long long total_jobs = 0LL;
-    long completed_jobs[BLOCKS];
+
     memset(completed_jobs, 0, sizeof(long) * BLOCKS);
 
     // for each batch we run a simulation
     for (batch_number = 1; batch_number <= K_BATCH; batch_number++) {
 
         // first we reset all the stats except the state (how many jobs in each block)
-        for (int i = 0; i < BLOCKS; i++) {
+        for (i = 0; i < BLOCKS; i++) {
             canteen->blocks[i]->rejected_jobs = 0;
             canteen->blocks[i]->completed_jobs = 0;
             canteen->blocks[i]->block_area->node = 0.0L;
             canteen->blocks[i]->block_area->queue = 0.0L;
             canteen->blocks[i]->block_area->service = 0.0L;
-            for (int c = 0; c < BLOCKS + 1; c++) {
+            for (c = 0; c < BLOCKS + 1; c++)
                 canteen->blocks[i]->count_to_next[c] = 0L;
-            }
-            int num_servers = canteen->blocks[i]->num_servers;
-            for (int s = 0; s < num_servers; s++) {
+            
+            num_servers = canteen->blocks[i]->num_servers;
+            for (s = 0; s < num_servers; s++) {
                 canteen->blocks[i]->servers[s]->sum->service = 0.0L;
                 canteen->blocks[i]->servers[s]->sum->served = 0L;
             }
@@ -244,7 +239,7 @@ int start_infinite_horizon_simulation(int config, FILE *file_resptime, FILE *fil
                    (long) ((double) (K_BATCH * B) / LAMBDA), batch_number, K_BATCH);
 
         // then, we increment the global simulation stats, from the result of the batch.
-        for (int i = 0; i < BLOCKS; i++) {
+        for (i = 0; i < BLOCKS; i++) {
             whole_simulation_area_stats[i].node += canteen->blocks[i]->block_area->node;
             whole_simulation_area_stats[i].queue += canteen->blocks[i]->block_area->queue;
             whole_simulation_area_stats[i].service += canteen->blocks[i]->block_area->service;

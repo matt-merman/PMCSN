@@ -1,5 +1,4 @@
 #include "simulation.h"
-#include <time.h>
 
 /**
  * Updates time-averaged integrals for node and queue populations
@@ -228,20 +227,22 @@ void process_completion(event *completion_event, timer *c, block *block)
 }
 
 /**
- *
- * @param type
- * @param c
- * @param triggering_event
+ * The function creates an arrival to the next block based on the random probability. 
+ * Moreover, the arrival is 'immediate' meaning that no time delay is considered.
+ * @param block the block from which the event is completed    
+ * @param c the pointer to system clock 
+ * @param triggering_event 
  */
 void schedule_immediate_arrival(block *block, timer *c, event *triggering_event)
 {
 	double	p;
 	int		next_type;
 
+	p = Random();
+
 	switch (block->type)
 	{
 	case PRIMO:
-		p = Random();
 		if (p < P_SECONDO_PRIMO)
 			next_type = SECONDO;
 		else if (p < P_SECONDO_PRIMO + P_DESSERT_PRIMO)
@@ -250,8 +251,6 @@ void schedule_immediate_arrival(block *block, timer *c, event *triggering_event)
 			next_type = CASSA_FAST;
 		break ;
 	case SECONDO:
-        // TODO: se abbiamo tempo, invece di andare a random alle casse, bisogna scegliere a seconda del percorso preso dall'utente.
-		p = Random();
 		if (p < P_DESSERT_SECONDO)
 			next_type = DESSERT;
 		else if (p < P_DESSERT_SECONDO + P_CASSA_STD_SECONDO)

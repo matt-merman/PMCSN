@@ -1,8 +1,3 @@
-//
-// Created by giaco on 17/12/22.
-// Consistency checks for validating that our simulation is compliant with the real system
-//
-
 #include "validation.h"
 
 double get_simulation_visit(network *canteen, block_type block_type) {

@@ -1,5 +1,4 @@
 #include "files.h"
-#include <unistd.h>
 
 /**
  * Opens file to read computed replica means
@@ -40,4 +39,15 @@ void	write_result(FILE *file, double value, long index)
     strcat(value_str, "\n");
 
     fprintf(file, "%s", value_str);
+}
+
+void create_file_name(char *init_file_name, long int num, char file_name[100]){
+
+    char num_to_str[100];
+
+    sprintf(num_to_str, "%ld", num);
+    strcpy(file_name, "");
+    strcat(file_name, init_file_name);
+    strcat(file_name, num_to_str);
+
 }

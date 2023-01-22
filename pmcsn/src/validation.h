@@ -1,14 +1,7 @@
-//
-// Created by giaco on 17/12/22.
-//
-
-#ifndef PROGETTOPMCSN_VALIDATION_H
-#define PROGETTOPMCSN_VALIDATION_H
+#ifndef _VALIDATION_H_
+#define _VALIDATION_H_
 
 #include "../utils/structs.h"
-#include "../utils/constants.h"
-#include "../utils/helpers.h"
-#include "../src/analytic.h"
 
 #define CHECK_DOUBLE_EQUAL(x,y,block_name,prec,msg) do {if (((MAX((x),(y)) - MIN((x),(y)) <= (prec)) ? 0 : 1)) { \
             printf("\tBlock %s: %s %g doesn't match with computed %s %g\n", \
@@ -34,4 +27,5 @@ double probe_global_simulation_loss_probability(network *canteen, long int perio
 // infinite-horizon
 void validate_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], int network_servers[BLOCKS], const double batch_response_times[K_BATCH]);
 void validate_batch_means_loss_probability(long long int rejected_jobs, long long int total_jobs, const double batch_loss_probabilities[K_BATCH]);
-#endif //PROGETTOPMCSN_VALIDATION_H
+
+#endif

@@ -1,8 +1,7 @@
-#ifndef PROGETTOPMCSN_EVENT_H
-#define PROGETTOPMCSN_EVENT_H
+#ifndef _EVENT_H_
+#define _EVENT_H_
 
-#include "../utils/helpers.h"
-#include "event_list.h"
+#include "../utils/structs.h"
 
 void init_event_list(block_type type);
 

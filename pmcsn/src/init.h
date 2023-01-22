@@ -1,6 +1,7 @@
-#include "../utils/constants.h"
+#ifndef _INIT_H_
+#define _INIT_H_
+
 #include "../utils/structs.h"
-#include "../utils/helpers.h"
 
 network *create_network(const char** block_names, int config);
 void clear_network(network *n, int clear_timer);
@@ -10,3 +11,4 @@ void	init_servers(block *block, int num);
 timer * 	init_clock(void);
 int *	init_network(int config);
 
+#endif
