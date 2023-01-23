@@ -198,90 +198,119 @@ int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, in
     return (0);
 }
 
-int start_infinite_horizon_simulation(int config, FILE *file_resptime, FILE *file_ploss, long int period) {
+int start_infinite_horizon_simulation(int config, FILE *file_grt, FILE *file_ploss, long int period) {
 
     network *canteen;
     int batch_number, i, c, s, num_servers;
-    double grt[K_BATCH], ploss[K_BATCH];
-    long arrived_jobs, completed_jobs[BLOCKS];
+    double grt[K_BATCH], ploss[K_BATCH], grt_value, ploss_value;
+    long arrived_jobs, completed_jobs[BLOCKS], seed;
     long long rejected_jobs, total_jobs;
+    char file_name_grt[100], file_name_ploss[100];
+    FILE *file_g, *file_p;
 
-    rejected_jobs = total_jobs = 0LL;
+    for (int seed_index = 0; seed_index < NUM_SEED; seed_index++){
 
-    canteen = create_network(BLOCK_NAMES, config);
-    arrived_jobs = 0;
+        seed = SEEDS[seed_index];
+        PlantSeeds(seed);
 
-    // these are the global area stats
-    area whole_simulation_area_stats[BLOCKS];
-    for (i = 0; i < BLOCKS; i++) {
-        whole_simulation_area_stats[i].node = 0.0L;
-        whole_simulation_area_stats[i].queue = 0.0L;
-        whole_simulation_area_stats[i].service = 0.0L;
-    }
+        create_file_name("./result/infinite/grt_", seed, file_name_grt);
+        create_file_name("./result/infinite/ploss_", seed, file_name_ploss);
 
-    memset(completed_jobs, 0, sizeof(long) * BLOCKS);
+        file_g = open_file("w", file_name_grt);
+        fprintf(file_g, "%s", "grt,batch\n");
 
-    // for each batch we run a simulation
-    for (batch_number = 1; batch_number <= K_BATCH; batch_number++) {
+        file_p = open_file("w", file_name_ploss);
+        fprintf(file_p, "%s", "ploss,batch\n");
 
-        // first we reset all the stats except the state (how many jobs in each block)
+        rejected_jobs = total_jobs = 0LL;
+
+        canteen = create_network(BLOCK_NAMES, config);
+        arrived_jobs = 0;
+
+        // those are the global area stats
+        area whole_simulation_area_stats[BLOCKS];
         for (i = 0; i < BLOCKS; i++) {
-            canteen->blocks[i]->rejected_jobs = 0;
-            canteen->blocks[i]->completed_jobs = 0;
-            canteen->blocks[i]->block_area->node = 0.0L;
-            canteen->blocks[i]->block_area->queue = 0.0L;
-            canteen->blocks[i]->block_area->service = 0.0L;
-            for (c = 0; c < BLOCKS + 1; c++)
-                canteen->blocks[i]->count_to_next[c] = 0L;
+            whole_simulation_area_stats[i].node = 0.0L;
+            whole_simulation_area_stats[i].queue = 0.0L;
+            whole_simulation_area_stats[i].service = 0.0L;
+        }
 
-            num_servers = canteen->blocks[i]->num_servers;
-            for (s = 0; s < num_servers; s++) {
-                canteen->blocks[i]->servers[s]->sum->service = 0.0L;
-                canteen->blocks[i]->servers[s]->sum->served = 0L;
+        memset(completed_jobs, 0, sizeof(long) * BLOCKS);
+        
+        // for each batch we run a simulation
+        for (batch_number = 1; batch_number <= K_BATCH; batch_number++) {
+
+            // first we reset all the stats except the state (how many jobs in each block)
+            for (i = 0; i < BLOCKS; i++) {
+                canteen->blocks[i]->rejected_jobs = 0;
+                canteen->blocks[i]->completed_jobs = 0;
+                canteen->blocks[i]->block_area->node = 0.0L;
+                canteen->blocks[i]->block_area->queue = 0.0L;
+                canteen->blocks[i]->block_area->service = 0.0L;
+                for (c = 0; c < BLOCKS + 1; c++)
+                    canteen->blocks[i]->count_to_next[c] = 0L;
+
+                num_servers = canteen->blocks[i]->num_servers;
+                for (s = 0; s < num_servers; s++) {
+                    canteen->blocks[i]->servers[s]->sum->service = 0.0L;
+                    canteen->blocks[i]->servers[s]->sum->served = 0L;
+                }
             }
+
+            // the simulation will not wait for jobs to exit the canteen, instead the next batch will continue
+            // with the STATE of the previous (but output statistics are all set to 0).
+            simulation(canteen, batch_number * B, &arrived_jobs, INFINITE,
+                    (long) ((double) (K_BATCH * B) / LAMBDA), batch_number, K_BATCH);
+
+            // then, we increment the global simulation stats, from the result of the batch.
+            for (i = 0; i < BLOCKS; i++) {
+                whole_simulation_area_stats[i].node += canteen->blocks[i]->block_area->node;
+                whole_simulation_area_stats[i].queue += canteen->blocks[i]->block_area->queue;
+                whole_simulation_area_stats[i].service += canteen->blocks[i]->block_area->service;
+                completed_jobs[i] += canteen->blocks[i]->completed_jobs;
+            }
+    #ifndef EXTENDED
+            rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs;
+            total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs;
+    #else
+            rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->rejected_jobs;
+            total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs +
+                        canteen->blocks[CONSUMAZIONE_2]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->completed_jobs;
+    #endif
+            // here we compute batch response time and loss probability
+            compute_batch_statistics(canteen, batch_number - 1, period); // period is not used
+
+            grt[batch_number - 1] = canteen->batch_response_time[batch_number - 1];
+            ploss[batch_number - 1] = canteen->batch_loss_probability[batch_number - 1];
+
+            if (seed == SEEDS[0]){
+                // we also write the sample point to the respective files
+                write_result(file_grt, grt[batch_number - 1], batch_number);
+                write_result(file_ploss, ploss[batch_number - 1], batch_number);
+            }
+
+            write_result(file_g, grt[batch_number - 1], batch_number);
+            write_result(file_p, ploss[batch_number - 1], batch_number);
         }
 
-        // the simulation will not wait for jobs to exit the canteen, instead the next batch will continue
-        // with the STATE of the previous (but output statistics are all set to 0).
-        simulation(canteen, batch_number * B, &arrived_jobs, INFINITE,
-                   (long) ((double) (K_BATCH * B) / LAMBDA), batch_number, K_BATCH);
+        if (seed == SEEDS[0]){
+            validate_batch_means_response_time(whole_simulation_area_stats, completed_jobs, canteen->network_servers, grt);
+            validate_batch_means_loss_probability(rejected_jobs, total_jobs, ploss);
 
-        // then, we increment the global simulation stats, from the result of the batch.
-        for (i = 0; i < BLOCKS; i++) {
-            whole_simulation_area_stats[i].node += canteen->blocks[i]->block_area->node;
-            whole_simulation_area_stats[i].queue += canteen->blocks[i]->block_area->queue;
-            whole_simulation_area_stats[i].service += canteen->blocks[i]->block_area->service;
-            completed_jobs[i] += canteen->blocks[i]->completed_jobs;
+            // if |auto-correlation for lag 1| < 0.2,
+            // we are safe to compute the interval estimate (i.e. the sample is not auto-correlated)
+            calculate_autocorrelation_for_stats("Global Response Time", canteen->batch_response_time);
+            calculate_interval_estimate_for_stat("Global Response Time", canteen->batch_response_time, K_BATCH);
+            calculate_autocorrelation_for_stats("Loss Probability", canteen->batch_loss_probability);
+            calculate_interval_estimate_for_stat("Loss Probability", canteen->batch_loss_probability, K_BATCH);
         }
-#ifndef EXTENDED
-        rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs;
-        total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs;
-#else
-        rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->rejected_jobs;
-        total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs +
-                      canteen->blocks[CONSUMAZIONE_2]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->completed_jobs;
-#endif
-        // here we compute batch response time and loss probability
-        compute_batch_statistics(canteen, batch_number - 1, period); // period is not used
 
-        grt[batch_number - 1] = canteen->batch_response_time[batch_number - 1];
-        ploss[batch_number - 1] = canteen->batch_loss_probability[batch_number - 1];
+        fclose(file_g);
+        fclose(file_p);
 
-        // we also write the sample point to the respective files
-        write_result(file_resptime, grt[batch_number - 1], batch_number);
-        write_result(file_ploss, ploss[batch_number - 1], batch_number);
+        clear_network(canteen, TRUE);
     }
-    validate_batch_means_response_time(whole_simulation_area_stats, completed_jobs, canteen->network_servers, grt);
-    validate_batch_means_loss_probability(rejected_jobs, total_jobs, ploss);
 
-    // if |auto-correlation for lag 1| < 0.2,
-    // we are safe to compute the interval estimate (i.e. the sample is not auto-correlated)
-    calculate_autocorrelation_for_stats("Global Response Time", canteen->batch_response_time);
-    calculate_interval_estimate_for_stat("Global Response Time", canteen->batch_response_time, K_BATCH);
-    calculate_autocorrelation_for_stats("Loss Probability", canteen->batch_loss_probability);
-    calculate_interval_estimate_for_stat("Loss Probability", canteen->batch_loss_probability, K_BATCH);
-
-    clear_network(canteen, TRUE);
     return (0);
 }
 

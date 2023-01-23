@@ -82,11 +82,11 @@
 // Total jobs number in the infinite simulation.
 #define INF_USER (USER * 1000L)
 // Batches dimension in the infinite simulation.
-#define B 500L
+#define B 2000L
 #define K_BATCH (long) (INF_USER / B)
 
-#define NUM_SEED 1
+#define NUM_SEED 5
 #define MAX_SEED 5
-#define PERIOD_INTERVALS 1
+#define PERIOD_INTERVALS 12
 
 #endif
