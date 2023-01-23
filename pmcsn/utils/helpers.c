@@ -117,7 +117,7 @@ void show_stats(network *canteen, long int period) {
     for (int i = 0; i < BLOCKS; i++) {
         // at each iteration we overwrite the statistics struct
         get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
-        double visits = get_theoretical_visits(canteen->blocks[i]->type, canteen->blocks[i]->num_servers);
+        double visits = get_theoretical_visits(canteen->blocks[i]->type);
         network_response_time += stats.wait * visits;
         printf("\t----------------------------------------------------------\n");
         printf("\t'%s' block info:\n\n", canteen->blocks[i]->name);
@@ -171,7 +171,7 @@ void show_stats(network *canteen, long int period) {
         clear_stats(&stats);
     }
     canteen->global_response_time = network_response_time;
-    canteen->global_loss_probability = rejected / total;
+    canteen->global_loss_probability = (double) rejected / (double) total;
     printf("\t----------------------------------------------------------\n");
 }
 
@@ -190,9 +190,9 @@ void validate_stats(network *canteen, long int period) {
     validate_global_population(canteen->blocks);
     validate_global_response_time(canteen->global_response_time, canteen->network_servers);
 #ifndef EXTENDED
-    validate_ploss(canteen->global_loss_probability, canteen->blocks[CONSUMAZIONE]->num_servers);
+    validate_ploss(canteen);
 #else
-    // TODO: validate_ploss(canteen->global_loss_probability, canteen->blocks[CONSUMAZIONE]->num_servers);
+    validate_ploss(canteen);
 #endif
 }
 

@@ -14,7 +14,7 @@ int erlang_c_queue_time_test(test_count *t);
 int erlang_c_response_time_test(test_count *t);
 int erlang_b_loss_probability_test(test_count *t);
 int global_response_time_test(test_count *t);
-int hour_to_days_test(test_count *t);
+
 network *mock_infinite_network();
 int batch_response_time_test(test_count *t);
 

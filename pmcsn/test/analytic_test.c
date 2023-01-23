@@ -205,16 +205,16 @@ int rho_test(test_count *t) {
 }
 
 int visits_test(test_count *t) {
-    double visits1 = get_theoretical_visits(PRIMO, 3);
-    double visits2 = get_theoretical_visits(SECONDO, 3);
-    double visits3 = get_theoretical_visits(DESSERT, 2);
-    double visitsF = get_theoretical_visits(CASSA_FAST, 1);
-    double visitsC = get_theoretical_visits(CASSA_STD, 4);
+    double visits1 = get_theoretical_visits(PRIMO);
+    double visits2 = get_theoretical_visits(SECONDO);
+    double visits3 = get_theoretical_visits(DESSERT);
+    double visitsF = get_theoretical_visits(CASSA_FAST);
+    double visitsC = get_theoretical_visits(CASSA_STD);
 #ifndef EXTENDED
-    double visitsS = get_theoretical_visits(CONSUMAZIONE, 150);
+    double visitsS = get_theoretical_visits(CONSUMAZIONE);
 #else
-    double visitsS = get_theoretical_visits(CONSUMAZIONE, 75);
-    double visitsS2 = get_theoretical_visits(CONSUMAZIONE_2, 75);
+    double visitsS = get_theoretical_visits(CONSUMAZIONE);
+    double visitsS2 = get_theoretical_visits(CONSUMAZIONE_2);
 #endif
     // expected values computed from analytic model
     ASSERT_DOUBLE_EQUAL(visits1, 0.75, "visits1");
@@ -281,23 +281,6 @@ int global_response_time_test(test_count *t) {
     double response_time = get_theoretical_global_response_time(net_servers);
 
     ASSERT_DOUBLE_EQUAL(response_time, 649.78441, "global_response_time");
-
-    SUCCESS;
-}
-
-int hour_to_days_test(test_count *t) {
-    int one_day = to_days_rounding_up(3);
-
-    ASSERT_INT_EQUAL(one_day, 1, "hour_to_days_test");
-
-    int two_days = to_days_rounding_up(25);
-
-    ASSERT_INT_EQUAL(two_days, 2, "hour_to_days_test");
-
-    int zero_days = to_days_rounding_up(0);
-
-    ASSERT_INT_EQUAL(zero_days, 0, "hour_to_days_test");
-
 
     SUCCESS;
 }

@@ -7,12 +7,12 @@ double get_simulation_visit(network *canteen, block_type block_type) {
         arrivals_to_block += (long) canteen->blocks[i]->count_to_next[block_type];
     }
 
-    block * consumazione = canteen->blocks[CONSUMAZIONE];
+    block *consumazione = canteen->blocks[CONSUMAZIONE];
     long int rejected_jobs = consumazione->rejected_jobs;
     long int entered_jobs = (consumazione->completed_jobs + rejected_jobs);
 
 #ifdef EXTENDED
-    block * consumazione2 = canteen->blocks[CONSUMAZIONE_2];
+    block *consumazione2 = canteen->blocks[CONSUMAZIONE_2];
     long int rejected_jobs2 = consumazione2->rejected_jobs;
     entered_jobs += (consumazione2->completed_jobs + rejected_jobs2);
 #endif
@@ -36,7 +36,7 @@ double get_simulation_routing_prob(network *n, block_type from, block_type to) {
                (double) jobs_entered_in_network;
     } else if (to == ESTERNO) {
 #ifndef EXTENDED
-        block * consumazione = n->blocks[CONSUMAZIONE];
+        block *consumazione = n->blocks[CONSUMAZIONE];
         return (double) jobs_entered_in_network / (double) (consumazione->completed_jobs + consumazione->rejected_jobs);
 #else
         block *consumazione = n->blocks[CONSUMAZIONE];
@@ -169,7 +169,7 @@ void validate_global_population(block **blocks) {
 }
 
 /**
- *
+ * Validates that response time is equal to wait
  * @param response_time
  * @param network_servers
  */
@@ -182,19 +182,31 @@ void validate_global_response_time(double response_time, int *network_servers) {
 }
 
 /**
- *
- * @param response_time
- * @param network_servers
+ * This function validates the ploss of the canteen
+ * @param canteen the network
  */
-void validate_ploss(double ploss, int m) {
-    // CONSUMAZIONE   : completed 500 rejected 100 -> ploss = 1/6
-    // CONSUMAZIONE 2 : completed 600 rejected 200 -> ploss = 1/4
-    // TUTTO: completed 1100 rejected 300 -> ploss = 300/1400 = 3/14
-    // 4/24 + 6/24 = 10/24 = 5/12
+void validate_ploss(network *canteen) {
+#ifndef EXTENDED
 
-    // TODO: COME SI FA A CALCOLARE LA PLOSS per 2 blocchi separati???
-    long double ploss_theoretical = erlang_b_loss_probability(m, get_theoretical_lambda(CONSUMAZIONE, m),
+    int m = canteen->blocks[CONSUMAZIONE]->num_servers;
+    long double ploss_theoretical = erlang_b_loss_probability(m, get_theoretical_lambda_raw(CONSUMAZIONE),
                                                               get_theoretical_mhu(CONSUMAZIONE));
+#else
+    // the loss probability is the sum for each i of (probability at block i multiplied by the visits)
+    int m_1 = canteen->blocks[CONSUMAZIONE]->num_servers;
+    int m_2 = canteen->blocks[CONSUMAZIONE_2]->num_servers;
+
+    long double ploss_theoretical_1 = erlang_b_loss_probability(m_1, get_theoretical_lambda_raw(CONSUMAZIONE),
+                                                                get_theoretical_mhu(CONSUMAZIONE));
+    long double ploss_theoretical_2 = erlang_b_loss_probability(m_2, get_theoretical_lambda_raw(CONSUMAZIONE_2),
+                                                                get_theoretical_mhu(CONSUMAZIONE_2));
+
+    long double ploss_theoretical = ploss_theoretical_1 * get_theoretical_visits(CONSUMAZIONE)
+                                     + ploss_theoretical_2 * get_theoretical_visits(CONSUMAZIONE_2);
+#endif
+
+    long double ploss = canteen->global_loss_probability;
+
     if (IS_NOT_EQUAL(ploss_theoretical, ploss)) {
         printf("\tThe computed loss probability (%Lf) doesn't match with the theoretical loss probability (%Lf)\n",
                (long double) ploss, ploss_theoretical);
@@ -213,7 +225,7 @@ double probe_global_simulation_response_time(network *canteen, long int period) 
 
     for (int i = 0; i < BLOCKS; i++) {
         get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
-        global_wait += stats.wait * get_theoretical_visits(i, canteen->blocks[i]->num_servers);
+        global_wait += stats.wait * get_theoretical_visits(i);
         clear_stats(&stats);
     }
     return global_wait;
@@ -236,20 +248,19 @@ double probe_global_simulation_loss_probability(network *canteen) {
 #ifdef EXTENDED
     block *b2 = canteen->blocks[CONSUMAZIONE_2];
     rejected_jobs += b2->rejected_jobs;
-    total_jobs += b2->completed_jobs  + b2->rejected_jobs;
+    total_jobs += b2->completed_jobs + b2->rejected_jobs;
 #endif
 
     partial_loss_probability = (double) rejected_jobs / (double) total_jobs;
     return partial_loss_probability;
 }
 
-void
-validate_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], int network_servers[BLOCKS],
-                                   const double batch_response_times[K_BATCH]) {
+void validate_batch_means_response_time(area area[6], const long completed_jobs[6],
+                                        const double batch_response_times[1250]) {
     double total_response_time = 0.0;
     // Calculate response time from the entire simulation
     for (int i = 0; i < BLOCKS; i++) {
-        double visits = get_theoretical_visits(i, network_servers[i]);
+        double visits = get_theoretical_visits(i);
         double block_resp_time = (double) (area[i].node / (long double) completed_jobs[i]);
         total_response_time += block_resp_time * visits;
     }

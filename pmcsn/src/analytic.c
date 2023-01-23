@@ -9,10 +9,6 @@ double factorial(int n) {
     return tgamma((double) n + 1.0);
 }
 
-int to_days_rounding_up(int hours) {
-    return (int) ceil((double) hours / 24.);
-}
-
 /**
  * Computes utilization for a server or multiserver
  * @param num_servers number of server in the node
@@ -24,17 +20,31 @@ double utilization(int num_servers, double lambda, double mhu) {
     return lambda / (num_servers * mhu);
 }
 
-// Computes the theoretical utilization of the block, even if it's a multiserver block.
+/**
+ * Computes the theoretical utilization of the block, even if it's a multiserver block.
+ * @param block_type
+ * @param num_servers
+ * @return the theoretical utilization of a multiserver node or a single server node.
+ */
 double get_theoretical_rho(block_type block_type, int num_servers) {
-    double lambda = get_theoretical_lambda(block_type, num_servers);
+    double lambda = get_theoretical_lambda(block_type, num_servers); // including rejected jobs
     double mhu = get_theoretical_mhu(block_type);
     return utilization(num_servers, lambda, mhu);
 }
 
+/**
+ * Returns the theoretical service frequency
+ * @param type the block type
+ * @return the service frequency of the block
+ */
 double get_theoretical_mhu(block_type type) {
     return 1.0 / get_theoretical_service(type);
 }
-
+/**
+ * Returns the service time
+ * @param type block type
+ * @return the service time of the block
+ */
 double get_theoretical_service(block_type type) {
     switch (type) {
         case PRIMO:
@@ -56,7 +66,11 @@ double get_theoretical_service(block_type type) {
             return 0.0;
     }
 }
-
+/**
+ * Returns the arrival frequency, including the rejected jobs
+ * @param type block type
+ * @return the raw arrival frequency
+ */
 double get_theoretical_lambda_raw(block_type type) {
     double lambda1 = LAMBDA * P_PRIMO_FUORI;
     double lambda2 = LAMBDA * P_SECONDO_FUORI + lambda1 * P_SECONDO_PRIMO;
@@ -85,7 +99,12 @@ double get_theoretical_lambda_raw(block_type type) {
             return (0.0);
     }
 }
-
+/**
+ * Computes the theoretical lambda, excluding the rejected jobs
+ * @param type block type
+ * @param num_servers number of servers in the block
+ * @return the arrival frequency to the block
+ */
 double get_theoretical_lambda(block_type type, int num_servers) {
     double lambda_raw = get_theoretical_lambda_raw(type);
     if (!IS_CONSUMAZIONE(type)) {
@@ -93,10 +112,20 @@ double get_theoretical_lambda(block_type type, int num_servers) {
     }
     return lambda_raw * (1 - (double) erlang_b_loss_probability(num_servers, lambda_raw, get_theoretical_mhu(type)));
 }
-
-double get_theoretical_visits(block_type type, int num_servers) {
-    return get_theoretical_lambda(type, num_servers) / LAMBDA;
+/**
+ * Computes the mean number of visits to a server
+ * @param type the block type
+ * @return number of visits
+ */
+double get_theoretical_visits(block_type type) {
+    // return get_theoretical_lambda(type, num_servers) / LAMBDA;
+    return get_theoretical_lambda_raw(type) / LAMBDA;
 }
+// With LAMBDA RAW
+// The computed global response time (712.541879) doesn't match with the theoretical global response time (688.336224)
+
+// WITH LAMBDA
+// The computed global response time (697.250604) doesn't match with the theoretical global response time (673.217853)
 
 /**
  * Computes the probability that all the servers are full and that queue will start growing
@@ -113,14 +142,35 @@ double erlang_c_block_probability(int m, double rho) {
     return coefficient / (sum + coefficient);
 }
 
+/**
+ * Computes erlang c queue time, using the theoretic formula
+ * @param block_probability the probability that all servers are busy
+ * @param service_time_multi the service time divided by number of server
+ * @param rho the utilization (lambda/(mhu*m))
+ * @return the queue time for a multiserver with infinite queue
+ */
 double erlang_c_queue_time(double block_probability, double service_time_multi, double rho) {
     return block_probability * service_time_multi / (1.0 - rho);
 }
 
+/**
+ * Computes erlang c response time as the sum of queue time and service time
+ * @param queue_time the mean time spent in queue
+ * @param service_time the mean time spent in service
+ * @return the response time for a multiserver with infinite queue
+ */
 double erlang_c_response_time(double queue_time, double service_time) {
     return queue_time + service_time;
 }
 
+/**
+ * Computes erlang b loss probability, that is the probability that all servers are busy
+ * and a new job will be lost.
+ * @param m the number of server
+ * @param lambda the raw lambda, that is all jobs that try to enter the node
+ * @param mhu the serving frequency
+ * @return erlang b loss probability of a multiserver without queue
+ */
 long double erlang_b_loss_probability(int m, double lambda, double mhu) {
     long double pi_0 = 0.0, pi_m;
     double rho;
@@ -160,7 +210,7 @@ double get_theoretical_global_response_time(int *network_servers) {
     double global_wait = 0.0;
     for (int i = 0; i < BLOCKS; i++) {
         global_wait +=
-                get_theoretical_response_time(i, network_servers[i]) * get_theoretical_visits(i, network_servers[i]);
+                get_theoretical_response_time(i, network_servers[i]) * get_theoretical_visits(i);
     }
     return global_wait;
 }
@@ -225,9 +275,9 @@ void calculate_autocorrelation_for_stats(const char *stat_name, const double *re
         i++;
     }
 
-    mean = sum / n;
+    mean = sum / (double) n;
     for (j = 0; j <= K_BATCH - 1; j++)
-        cosum[j] = (cosum[j] / (n - j)) - (mean * mean);
+        cosum[j] = (cosum[j] / (double) (n - j)) - (mean * mean);
 
     printf("\n============== Ensemble %s =============\n", stat_name);
     printf("for %ld data points\n", n);

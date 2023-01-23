@@ -271,7 +271,7 @@ int start_infinite_horizon_simulation(int config, FILE *file_resptime, FILE *fil
         write_result(file_resptime, grt[batch_number - 1], batch_number);
         write_result(file_ploss, ploss[batch_number - 1], batch_number);
     }
-    validate_batch_means_response_time(whole_simulation_area_stats, completed_jobs, canteen->network_servers, grt);
+    validate_batch_means_response_time(whole_simulation_area_stats, completed_jobs, grt);
     validate_batch_means_loss_probability(rejected_jobs, total_jobs, ploss);
 
     // if |auto-correlation for lag 1| < 0.2,
