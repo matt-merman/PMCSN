@@ -25,8 +25,7 @@ void validate_ploss(network *canteen);
 double probe_global_simulation_response_time(network *canteen, long int period);
 double probe_global_simulation_loss_probability(network *canteen);
 // infinite-horizon
-void
-validate_batch_means_response_time(area area[6], const long completed_jobs[6], const double batch_response_times[1250]);
+void validate_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH]);
 void validate_batch_means_loss_probability(long long int rejected_jobs, long long int total_jobs, const double batch_loss_probabilities[K_BATCH]);
 
 #endif

@@ -176,7 +176,6 @@ void show_stats(network *canteen, long int period) {
 }
 
 void validate_stats(network *canteen, long int period) {
-
     statistics stats;
     int i;
 
@@ -189,11 +188,7 @@ void validate_stats(network *canteen, long int period) {
     // validates global population and response time
     validate_global_population(canteen->blocks);
     validate_global_response_time(canteen->global_response_time, canteen->network_servers);
-#ifndef EXTENDED
     validate_ploss(canteen);
-#else
-    validate_ploss(canteen);
-#endif
 }
 
 /**

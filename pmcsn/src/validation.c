@@ -255,8 +255,7 @@ double probe_global_simulation_loss_probability(network *canteen) {
     return partial_loss_probability;
 }
 
-void validate_batch_means_response_time(area area[6], const long completed_jobs[6],
-                                        const double batch_response_times[1250]) {
+void validate_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH]) {
     double total_response_time = 0.0;
     // Calculate response time from the entire simulation
     for (int i = 0; i < BLOCKS; i++) {

@@ -294,7 +294,7 @@ int start_infinite_horizon_simulation(int config, FILE *file_grt, FILE *file_plo
         }
 
         if (seed == SEEDS[0]){
-            validate_batch_means_response_time(whole_simulation_area_stats, completed_jobs, canteen->network_servers, grt);
+            validate_batch_means_response_time(whole_simulation_area_stats, completed_jobs, grt);
             validate_batch_means_loss_probability(rejected_jobs, total_jobs, ploss);
 
             // if |auto-correlation for lag 1| < 0.2,
