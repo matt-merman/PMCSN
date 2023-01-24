@@ -181,14 +181,14 @@ void validate_stats(network *canteen, long int period) {
 
     for (i = 0; i < BLOCKS; i++) {
         get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
-        validate_block(canteen->blocks[i], &stats);
+        verify_block(canteen->blocks[i], &stats);
         clear_stats(&stats);
     }
 
     // validates global population and response time
-    validate_global_population(canteen->blocks);
-    validate_global_response_time(canteen->global_response_time, canteen->network_servers);
-    validate_ploss(canteen);
+    verify_global_population(canteen->blocks);
+    verify_global_response_time(canteen->global_response_time, canteen->network_servers);
+    verify_ploss(canteen);
 }
 
 /**
