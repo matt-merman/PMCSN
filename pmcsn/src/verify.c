@@ -242,6 +242,7 @@ double probe_global_simulation_loss_probability(network *canteen) {
     long rejected_jobs;
     long total_jobs;
     block *b = canteen->blocks[CONSUMAZIONE];
+
     rejected_jobs = b->rejected_jobs;
     total_jobs = b->completed_jobs + b->rejected_jobs;
 

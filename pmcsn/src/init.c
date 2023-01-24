@@ -145,8 +145,25 @@ int	network_status[] = {0, 0, 0, 0, 0, 0, 0};
 
 int *	init_network(int config)
 {
-	int	base[] = {3, 3, 2, 1, 4, 150};
+	int	base[] = {3, 3, 2, 1, 4, 150}; // (con 150) ploss =  0.007182 +/-   0.000403. Tempo di risposta = 688.933988 +/-   1.022940
 	int	extended[] = {3, 3, 2, 1, 4, 75, 75};
+
+    // RANDOM
+    // --> con (100,100) ploss = 0.000125 +/-   0.000035. tempo di risposta = 688.785767 +/-   1.058442
+    // con (80,80) ploss = 0.023251 +/-   0.000591. tempo di risposta = 688.795854 +/-   1.047489
+    // con (75,75) ploss = 0.048587 +/-   0.000888. tempo di risposta = 689.082532 +/-   1.066723
+
+    // CHOOSE_LEAST_BUSY
+    // con (150,150)  ploss = 0.000000 +/- 0.00000. tempo di risposta = 688.231544 +/-   0.998496
+    // --> con (100,100)  ploss = 0.000000 +/- 0.00000. tempo di risposta = 688.231544 +/-   0.998496
+    // con (80,80) ploss = 0.007313 +/-   0.000396. tempo di risposta = 688.402334 +/-   0.977708
+    // con (75,75). ploss = 0.025203 +/-   0.000734. tempo di risposta = 689.020532 +/-   1.052190
+    // con (100,50). ploss = 0.025179 +/-   0.000739. tempo di risposta = 688.147515 +/-   1.046816
+
+    // Migliorativo:
+    // --> Base con 150 posti
+    // --> Extended con 2 mense: 100 e 100 + RANDOM
+    // --> Extended con 2 mense: 100 e 100 + CHOOSE_LEAST_BUSY
 
 	switch (config)
 	{

@@ -2,7 +2,8 @@
 #define PMCSN_CONSTANTS_H
 
 #define NAME_SIZE 32                                // Size of block name string
-// #define EXTENDED
+#define EXTENDED
+// #define CHOOSE_LEAST_BUSY // ricontrollare
 
 #ifndef EXTENDED
 #define BLOCKS 6

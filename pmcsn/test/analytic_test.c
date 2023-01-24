@@ -14,7 +14,7 @@ const char *block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", 
 
 network *mock_network() {
     if (n != NULL) {
-        return n; // return the cache if i hits
+        return n; // return the cache if it hits
     }
     // re-run simulation otherwise.
     network *canteen = create_network((const char **) block_names, TEST_CONFIGURATION);

@@ -50,13 +50,13 @@ int main(int argc, __attribute__((unused)) char **argv) {
     if (strcmp(parameter, "finite") == 0) {
         j = i = 1;
 
-        #ifdef EXTENDED
+#ifdef EXTENDED
         char path_grt[100] = "./result/finite/ext_grt_";
         char path_ploss[100] = "./result/finite/ext_ploss_";
-        #else
+#else
         char path_grt[100] = "./result/finite/grt_";
         char path_ploss[100] = "./result/finite/ploss_";
-        #endif
+#endif
 
         while (i <= MAX_REPLICAS) {
     
@@ -207,7 +207,7 @@ int start_infinite_horizon_simulation(int config, long int period) {
 
     network *canteen;
     int batch_number, i, c, s, num_servers;
-    double grt[K_BATCH], ploss[K_BATCH], grt_value, ploss_value;
+    double grt[K_BATCH], ploss[K_BATCH];
     long arrived_jobs, completed_jobs[BLOCKS], seed;
     long long rejected_jobs, total_jobs;
     char file_name_grt[100], file_name_ploss[100];

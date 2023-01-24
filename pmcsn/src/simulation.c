@@ -75,7 +75,7 @@ simulation(network *canteen, long starting_jobs, long *arrived_jobs, sim_type ty
 				break;
 			case COMPLETION:
 				// schedule the next completion and generate an immediate arrival
-                process_completion(current_event, canteen->system_clock, canteen->blocks[btype]);
+                process_completion(current_event, canteen->blocks[btype], canteen);
 				break;
 			default:
 				break;
@@ -159,26 +159,21 @@ void process_immediate_arrival(event *arrival_event, timer *c, block *block)
 
 	block->jobs++;
 	s_index = retrieve_idle_server(block);
-	if (s_index != -1)
-	{
-		s = block->servers[s_index];
-		next_completion_event = create_insert_event(block->type, s_index, COMPLETION, c, arrival_event);
-		if (next_completion_event != NULL)
-		{
-			next_completion_time = (next_completion_event->time - c->current);
+    if (s_index != -1) {
+        s = block->servers[s_index];
+        next_completion_event = create_insert_event(block->type, s_index, COMPLETION, c, arrival_event);
+        if (next_completion_event != NULL) {
+            next_completion_time = (next_completion_event->time - c->current);
             //printf("%Lf", s->sum->service);
-			s->sum->service += next_completion_time;
-			s->sum->served++;
+            s->sum->service += next_completion_time;
+            s->sum->served++;
             block->block_area->service += next_completion_time;
-		}
-	}
-	else if (IS_CONSUMAZIONE(block->type))
-	{
-		block->jobs--;
-		block->rejected_jobs++;
-	}
-	else
-		block->queue_jobs++;
+        }
+    } else if (IS_CONSUMAZIONE(block->type)) {
+        block->jobs--;
+        block->rejected_jobs++;
+    } else
+        block->queue_jobs++;
 }
 
 /**
@@ -187,12 +182,14 @@ void process_immediate_arrival(event *arrival_event, timer *c, block *block)
  * @param c
  * @param block
  */
-void process_completion(event *completion_event, timer *c, block *block)
+void process_completion(event *completion_event, block *block, network *canteen)
 {
 	event	*next_completion_event;
 	double	next_completion_time;
 	server	*s;
 	int		serv_id;
+
+    timer *c = canteen->system_clock;
 
 	next_completion_event = NULL;
 	block->completed_jobs++;
@@ -224,7 +221,7 @@ void process_completion(event *completion_event, timer *c, block *block)
 			}
 		}
 	}
-    schedule_immediate_arrival(block, c, completion_event);
+    schedule_immediate_arrival(block, c, completion_event, canteen);
 }
 
 /**
@@ -234,12 +231,13 @@ void process_completion(event *completion_event, timer *c, block *block)
  * @param c the pointer to system clock 
  * @param triggering_event 
  */
-void schedule_immediate_arrival(block *block, timer *c, event *triggering_event)
+void schedule_immediate_arrival(block *block, timer *c, event *triggering_event, network *canteen)
 {
 	double	p;
 	int		next_type;
 
 	p = Random();
+    double busy_1 = 0., busy_2 = 0.;
 
 	switch (block->type)
 	{
@@ -267,11 +265,22 @@ void schedule_immediate_arrival(block *block, timer *c, event *triggering_event)
 #ifndef EXTENDED
         next_type = CONSUMAZIONE;
 #else
+#ifndef CHOOSE_LEAST_BUSY
         if (p < P_SCELTA_MENSA) {
             next_type = CONSUMAZIONE;
         } else {
             next_type = CONSUMAZIONE_2;
         }
+#else
+        busy_1 = (double) get_busy_server_num_for_block(canteen->blocks[CONSUMAZIONE]) / canteen->blocks[CONSUMAZIONE]->num_servers;
+        busy_2 = (double) get_busy_server_num_for_block(canteen->blocks[CONSUMAZIONE_2]) / canteen->blocks[CONSUMAZIONE_2]->num_servers;
+        // choose the least busy node
+        if (busy_1 <= busy_2) {
+            next_type = CONSUMAZIONE;
+        } else {
+            next_type = CONSUMAZIONE_2;
+        }
+#endif
 #endif
 		break ;
 	default:

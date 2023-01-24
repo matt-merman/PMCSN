@@ -1,6 +1,11 @@
 #include "./server.h"
 
+#ifndef EXTENDED
 int busy_servers[BLOCKS] = {0,0,0,0,0,0};
+#else
+int busy_servers[BLOCKS] = {0,0,0,0,0,0,0};
+#endif
+
 
 int	get_busy_server(server **multi_servers, int num)
 {
@@ -11,7 +16,11 @@ int	get_busy_server(server **multi_servers, int num)
 	}
 	return (-1);
 }
-
+/**
+ * Returns the number of busy server in the block
+ * @param b
+ * @return
+ */
 int get_busy_server_num_for_block(block * b){
     return busy_servers[b->type];
 }
