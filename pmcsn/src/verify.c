@@ -1,4 +1,4 @@
-#include "validation.h"
+#include "verify.h"
 
 double get_simulation_visit(network *canteen, block_type block_type) {
     // count arrivals from each block to the target block
@@ -52,25 +52,25 @@ double get_simulation_routing_prob(network *n, block_type from, block_type to) {
     return (double) exiting_jobs / (double) entering_jobs;
 }
 
-void validate_block(block *block, statistics *stats) {
+void verify_block(block *block, statistics *stats) {
     if (block->num_servers == 1) {
-        validate_MM1(block, stats);
+        verify_MM1(block, stats);
     } else {
-        validate_MMk(block, stats);
+        verify_MMk(block, stats);
     }
 }
 
-void validate_MM1(block *block, statistics *stats) {
+void verify_MM1(block *block, statistics *stats) {
     is_wait_delay_plus_service(block, stats);
     is_node_population_queue_pop_plus_service_pop(block, stats);
-    validate_theoretical_arrival_time(block, stats);
-    validate_theoretical_service_time(block, stats);
-    validate_theoretical_utilizazion(block, stats);
+    verify_theoretical_arrival_time(block, stats);
+    verify_theoretical_service_time(block, stats);
+    verify_theoretical_utilizazion(block, stats);
     is_ergodic(block);
 }
 
 // Erlang-C infinity queue or Erlang-B for CONSUMAZIONE
-void validate_MMk(block *block, statistics *stats) {
+void verify_MMk(block *block, statistics *stats) {
     int m = block->num_servers;
     double rho_theoretical = get_theoretical_rho(block->type, block->num_servers);
     double service_theoretical = get_theoretical_service(block->type);
@@ -91,9 +91,9 @@ void validate_MMk(block *block, statistics *stats) {
 
     CHECK_DOUBLE_EQUAL(response_time_theoretical, stats->wait, block->name, 0.001, "response time");
 
-    validate_theoretical_arrival_time(block, stats);
-    validate_theoretical_service_time(block, stats);
-    validate_theoretical_utilizazion(block, stats);
+    verify_theoretical_arrival_time(block, stats);
+    verify_theoretical_service_time(block, stats);
+    verify_theoretical_utilizazion(block, stats);
     is_ergodic(block);
 }
 
@@ -129,7 +129,7 @@ void is_ergodic(block *block) {
 }
 
 // Checks that computed service time is approximately equal to theorical service time defined in constants.h
-void validate_theoretical_service_time(block *block, statistics *stats) {
+void verify_theoretical_service_time(block *block, statistics *stats) {
     double service_theoretical = get_theoretical_service(block->type);
     if (IS_NOT_APPROX_EQUAL(stats->service_time, service_theoretical)) {
         printf("\tBlock %s: theoretical service time (%g) doesn't match computed service time (%g)\n",
@@ -137,7 +137,7 @@ void validate_theoretical_service_time(block *block, statistics *stats) {
     }
 }
 
-void validate_theoretical_arrival_time(block *block, statistics *stats) {
+void verify_theoretical_arrival_time(block *block, statistics *stats) {
     double lambda_theoretical = get_theoretical_lambda(block->type, block->num_servers);
     double lambda = 1.0 / stats->interarrival_time;
     if (IS_NOT_EQUAL(lambda, lambda_theoretical)) {
@@ -146,7 +146,7 @@ void validate_theoretical_arrival_time(block *block, statistics *stats) {
     }
 }
 
-void validate_theoretical_utilizazion(block *block, statistics *stats) {
+void verify_theoretical_utilizazion(block *block, statistics *stats) {
     double utilization_theoretical = get_theoretical_rho(block->type, block->num_servers);
     double utilization = stats->utilization;
     if (IS_NOT_EQUAL(utilization, utilization_theoretical)) {
@@ -156,7 +156,7 @@ void validate_theoretical_utilizazion(block *block, statistics *stats) {
 }
 
 // Check if the entering population is equal to the exiting population.
-void validate_global_population(block **blocks) {
+void verify_global_population(block **blocks) {
     long total_population = blocks[CASSA_FAST]->completed_jobs + blocks[CASSA_STD]->completed_jobs;
     long computed_tot_pop = blocks[CONSUMAZIONE]->completed_jobs + blocks[CONSUMAZIONE]->rejected_jobs;
 #ifdef EXTENDED
@@ -173,7 +173,7 @@ void validate_global_population(block **blocks) {
  * @param response_time
  * @param network_servers
  */
-void validate_global_response_time(double response_time, int *network_servers) {
+void verify_global_response_time(double response_time, int *network_servers) {
     double global_wait_theoretical = get_theoretical_global_response_time(network_servers);
     if (IS_NOT_EQUAL(global_wait_theoretical, response_time)) {
         printf("\tThe computed global response time (%f) doesn't match with the theoretical global response time (%f)\n",
@@ -185,7 +185,7 @@ void validate_global_response_time(double response_time, int *network_servers) {
  * This function validates the ploss of the canteen
  * @param canteen the network
  */
-void validate_ploss(network *canteen) {
+void verify_ploss(network *canteen) {
 #ifndef EXTENDED
 
     int m = canteen->blocks[CONSUMAZIONE]->num_servers;
@@ -255,7 +255,7 @@ double probe_global_simulation_loss_probability(network *canteen) {
     return partial_loss_probability;
 }
 
-void validate_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH]) {
+void verify_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH]) {
     double total_response_time = 0.0;
     // Calculate response time from the entire simulation
     for (int i = 0; i < BLOCKS; i++) {
@@ -275,8 +275,8 @@ void validate_batch_means_response_time(area area[BLOCKS], const long completed_
     }
 }
 
-void validate_batch_means_loss_probability(long long int rejected_jobs, long long int total_jobs,
-                                           const double batch_loss_probabilities[K_BATCH]) {
+void verify_batch_means_loss_probability(long long int rejected_jobs, long long int total_jobs,
+                                         const double batch_loss_probabilities[K_BATCH]) {
 
     double total_ploss = (double) ((long double) rejected_jobs / (long double) total_jobs);
 

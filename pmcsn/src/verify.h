@@ -10,22 +10,22 @@
 
 double get_simulation_visit(network *canteen, block_type block);
 double get_simulation_routing_prob(network *n, block_type from, block_type to);
-void validate_block(block * block, statistics *stats);
-void validate_MM1(block* block, statistics* stats);
-void validate_MMk(block *block, statistics *stats);
+void verify_block(block * block, statistics *stats);
+void verify_MM1(block* block, statistics* stats);
+void verify_MMk(block *block, statistics *stats);
 void is_ergodic(block *block);
-void validate_theoretical_service_time(block *block, statistics *stats);
-void validate_theoretical_arrival_time(block *block, statistics *stats);
-void validate_theoretical_utilizazion(block *block, statistics *stats);
+void verify_theoretical_service_time(block *block, statistics *stats);
+void verify_theoretical_arrival_time(block *block, statistics *stats);
+void verify_theoretical_utilizazion(block *block, statistics *stats);
 void is_wait_delay_plus_service(block *block, statistics *stats);
 void is_node_population_queue_pop_plus_service_pop(block *block, statistics *stats);
-void validate_global_population(block **blocks);
-void validate_global_response_time(double response_time, int *network_servers);
-void validate_ploss(network *canteen);
+void verify_global_population(block **blocks);
+void verify_global_response_time(double response_time, int *network_servers);
+void verify_ploss(network *canteen);
 double probe_global_simulation_response_time(network *canteen, long int period);
 double probe_global_simulation_loss_probability(network *canteen);
 // infinite-horizon
-void validate_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH]);
-void validate_batch_means_loss_probability(long long int rejected_jobs, long long int total_jobs, const double batch_loss_probabilities[K_BATCH]);
+void verify_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH]);
+void verify_batch_means_loss_probability(long long int rejected_jobs, long long int total_jobs, const double batch_loss_probabilities[K_BATCH]);
 
 #endif

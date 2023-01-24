@@ -158,7 +158,7 @@ typedef enum sim_type_t {
 #endif
 
 #ifndef _VALIDATION_H_
-#include "../src/validation.h"
+#include "../src/verify.h"
 #endif
 
 #ifndef _TEST_H_
