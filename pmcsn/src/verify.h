@@ -1,5 +1,5 @@
-#ifndef _VALIDATION_H_
-#define _VALIDATION_H_
+#ifndef _VERIFY_H_
+#define _VERIFY_H_
 
 #include "../utils/structs.h"
 

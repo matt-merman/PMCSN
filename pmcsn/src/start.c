@@ -49,10 +49,19 @@ int main(int argc, __attribute__((unused)) char **argv) {
 
     if (strcmp(parameter, "finite") == 0) {
         j = i = 1;
-        while (i <= MAX_REPLICAS) {
 
-            create_file_name("./result/finite/grt_", i, file_name_grt);
-            create_file_name("./result/finite/ploss_", i, file_name_ploss);
+        #ifdef EXTENDED
+        char path_grt[100] = "./result/finite/ext_grt_";
+        char path_ploss[100] = "./result/finite/ext_ploss_";
+        #else
+        char path_grt[100] = "./result/finite/grt_";
+        char path_ploss[100] = "./result/finite/ploss_";
+        #endif
+
+        while (i <= MAX_REPLICAS) {
+    
+            create_file_name(path_grt, i, file_name_grt);
+            create_file_name(path_ploss, i, file_name_ploss);
 
             file_resp_time = open_file("w", file_name_grt);
             fprintf(file_resp_time, "%s", "grt,replica\n");
@@ -70,20 +79,8 @@ int main(int argc, __attribute__((unused)) char **argv) {
         }
     } else if (strcmp(parameter, "infinite") == 0) {
 
-        strncpy(file_name_grt, "./result/infinite/grt", strlen("./result/infinite/grt") + 1);
-        file_resp_time = open_file("w", file_name_grt);
+        start_infinite_horizon_simulation(NETWORK_CONFIGURATION, PERIOD);
 
-        strncpy(file_name_ploss, "./result/infinite/ploss", strlen("./result/infinite/ploss") + 1);
-
-        file_ploss = open_file("w", file_name_ploss);
-
-        fprintf(file_resp_time, "%s", "grt,batch_index\n");
-        fprintf(file_ploss, "%s", "ploss,batch_index\n");
-
-        start_infinite_horizon_simulation(NETWORK_CONFIGURATION, file_resp_time, file_ploss, PERIOD);
-
-        fclose(file_resp_time);
-        fclose(file_ploss);
     } else
         printf("Usage: ./start -s [finite/infinite]\n");
 
@@ -104,8 +101,16 @@ int start_standard_simulation(int config) {
         seed = SEEDS[seed_index];
         PlantSeeds(seed);
 
-        create_file_name("./result/standard/grt_", seed, file_name_grt);
-        create_file_name("./result/standard/ploss_", seed, file_name_ploss);
+        #ifdef EXTENDED
+        char path_grt[100] = "./result/standard/ext_grt_";
+        char path_ploss[100] = "./result/standard/ext_ploss_";
+        #else
+        char path_grt[100] = "./result/standard/grt_";
+        char path_ploss[100] = "./result/standard/ploss_";
+        #endif
+        
+        create_file_name(path_grt, seed, file_name_grt);
+        create_file_name(path_ploss, seed, file_name_ploss);
 
         file_grt = open_file("w", file_name_grt);
         fprintf(file_grt, "%s", "grt,period\n");
@@ -147,7 +152,7 @@ int start_standard_simulation(int config) {
  * @param num_replicas number of replicas for this finite horizon simulation
  * @return
  */
-int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, int num_replicas) {
+int start_finite_horizon_simulation(int config, FILE *file_grt, FILE *file_ploss, int num_replicas) {
     network *canteen;
     int replica;
 
@@ -183,7 +188,7 @@ int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, in
 
         compute_replica_statistics(canteen, replica, PERIOD); // period is not used
 
-        write_result(file, canteen->replicas_response_time[replica], num_replicas);
+        write_result(file_grt, canteen->replicas_response_time[replica], num_replicas);
         write_result(file_ploss, canteen->replicas_loss_probability[replica], num_replicas);
 
         free(canteen->system_clock);
@@ -198,7 +203,7 @@ int start_finite_horizon_simulation(int config, FILE *file, FILE *file_ploss, in
     return (0);
 }
 
-int start_infinite_horizon_simulation(int config, FILE *file_grt, FILE *file_ploss, long int period) {
+int start_infinite_horizon_simulation(int config, long int period) {
 
     network *canteen;
     int batch_number, i, c, s, num_servers;
@@ -208,13 +213,21 @@ int start_infinite_horizon_simulation(int config, FILE *file_grt, FILE *file_plo
     char file_name_grt[100], file_name_ploss[100];
     FILE *file_g, *file_p;
 
+    #ifdef EXTENDED
+    char path_grt[100] = "./result/infinite/ext_grt_";
+    char path_ploss[100] = "./result/infinite/ext_ploss_";
+    #else
+    char path_grt[100] = "./result/infinite/grt_";
+    char path_ploss[100] = "./result/infinite/ploss_";
+    #endif
+
     for (int seed_index = 0; seed_index < NUM_SEED; seed_index++){
 
         seed = SEEDS[seed_index];
         PlantSeeds(seed);
 
-        create_file_name("./result/infinite/grt_", seed, file_name_grt);
-        create_file_name("./result/infinite/ploss_", seed, file_name_ploss);
+        create_file_name(path_grt, seed, file_name_grt);
+        create_file_name(path_ploss, seed, file_name_ploss);
 
         file_g = open_file("w", file_name_grt);
         fprintf(file_g, "%s", "grt,batch\n");
@@ -282,12 +295,6 @@ int start_infinite_horizon_simulation(int config, FILE *file_grt, FILE *file_plo
 
             grt[batch_number - 1] = canteen->batch_response_time[batch_number - 1];
             ploss[batch_number - 1] = canteen->batch_loss_probability[batch_number - 1];
-
-            if (seed == SEEDS[0]){
-                // we also write the sample point to the respective files
-                write_result(file_grt, grt[batch_number - 1], batch_number);
-                write_result(file_ploss, ploss[batch_number - 1], batch_number);
-            }
 
             write_result(file_g, grt[batch_number - 1], batch_number);
             write_result(file_p, ploss[batch_number - 1], batch_number);
