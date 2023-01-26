@@ -1,12 +1,12 @@
 #include "init.h"
 
-network *create_network(const char** block_names, int config) {
+network *create_network(const char** block_names) {
 	network* canteen = (network *) malloc(sizeof(network));
     if (canteen == NULL) {
         perror("Error in allocation of canteen queue network ");
         exit(-1);
     }
-	canteen->network_servers = init_network(config);
+	canteen->network_servers = init_network();
     canteen->system_clock = init_clock(); // also sets next arrival time
 	if (canteen->system_clock == NULL) {
         perror("Error on system clock\n");
@@ -143,10 +143,18 @@ int	network_status[] = {0, 0, 0, 0, 0, 0};
 int	network_status[] = {0, 0, 0, 0, 0, 0, 0};
 #endif
 
-int *	init_network(int config)
+int *	init_network()
 {
-	int	base[] = {3, 3, 2, 1, 4, 150}; // (con 150) ploss =  0.007182 +/-   0.000403. Tempo di risposta = 688.933988 +/-   1.022940
-	int	extended[] = {3, 3, 2, 1, 4, 75, 75};
+	
+#ifndef EXTENDED
+	int	configuration[] = {3, 3, 2, 1, 4, 150}; // (con 150) ploss =  0.007182 +/-   0.000403. Tempo di risposta = 688.933988 +/-   1.022940
+	memcpy(network_status, configuration, sizeof(network_status));
+#else
+	int	extended[] = {3, 3, 2, 1, 4, 100, 100};
+	memcpy(network_status, extended, sizeof(network_status));
+#endif
+	return network_status;
+	
 
     // RANDOM
     // --> con (100,100) ploss = 0.000125 +/-   0.000035. tempo di risposta = 688.785767 +/-   1.058442
@@ -164,17 +172,4 @@ int *	init_network(int config)
     // --> Base con 150 posti
     // --> Extended con 2 mense: 100 e 100 + RANDOM
     // --> Extended con 2 mense: 100 e 100 + CHOOSE_LEAST_BUSY
-
-	switch (config)
-	{
-	case CONFIG_1:
-		memcpy(network_status, base, sizeof(network_status));
-		break ;
-	case CONFIG_2:
-		memcpy(network_status, extended, sizeof(network_status));
-		break ;
-	default:
-		break ;
-	}
-    return network_status;
 }

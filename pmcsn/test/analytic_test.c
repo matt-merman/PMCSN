@@ -6,10 +6,8 @@
 network *n = NULL;
 #ifndef EXTENDED
 const char *block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE"};
-#define TEST_CONFIGURATION CONFIG_1
 #else
 const char *block_names[BLOCKS] = {"PRIMO", "SECONDO", "DESSERT", "CASSA_FAST", "CASSA_STD", "CONSUMAZIONE", "CONSUMAZIONE_2"};
-#define TEST_CONFIGURATION CONFIG_2
 #endif
 
 network *mock_network() {
@@ -17,7 +15,7 @@ network *mock_network() {
         return n; // return the cache if it hits
     }
     // re-run simulation otherwise.
-    network *canteen = create_network((const char **) block_names, TEST_CONFIGURATION);
+    network *canteen = create_network((const char **) block_names);
     simulation(canteen, 0, NULL, STANDARD, PERIOD, 0, 1);
     n = canteen;
     return canteen;
@@ -44,8 +42,8 @@ int simulation_visits_test(test_count *t) {
 #ifndef EXTENDED
     ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.935746984, "visitsS");
 #else
-    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.935746984, "visitsS"); //TODO: ricalcolare per il modello esteso
-    ASSERT_DOUBLE_APPROX_EQUAL(visits7, 0.935746984, "visitsS");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.509634, "visitsS1"); //TODO: ricalcolare per il modello esteso
+    ASSERT_DOUBLE_APPROX_EQUAL(visits7, 0.5, "visitsS2");
 #endif
 
 #ifndef EXTENDED
@@ -144,8 +142,8 @@ int lambda_test(test_count *t) {
 #ifndef EXTENDED
     ASSERT_DOUBLE_EQUAL(lambdaS, 0.231481481, "lambdaS");
 #else
-    ASSERT_DOUBLE_EQUAL(lambdaS, 0.231481481, "lambdaS"); //TODO: ricalcola
-    ASSERT_DOUBLE_EQUAL(lambdaS2, 0.231481481, "lambdaS2");
+    ASSERT_DOUBLE_EQUAL(lambdaS, 0.115741, "lambdaS");
+    ASSERT_DOUBLE_EQUAL(lambdaS2, 0.115741, "lambdaS2");
 #endif
     SUCCESS;
 }
@@ -197,8 +195,8 @@ int rho_test(test_count *t) {
 #ifndef EXTENDED
     ASSERT_DOUBLE_EQUAL(rhoS, 0.934999, "rhoS");
 #else
-    ASSERT_DOUBLE_EQUAL(rhoS, 0.934999, "rhoS"); // TODO: ricalcola
-    ASSERT_DOUBLE_EQUAL(rhoS2, 0.934999, "rhoS2");
+    ASSERT_DOUBLE_EQUAL(rhoS, 0.881319, "rhoS"); // TODO: ricalcola
+    ASSERT_DOUBLE_EQUAL(rhoS2, 0.881319, "rhoS2");
 #endif
 
     SUCCESS;
@@ -225,8 +223,8 @@ int visits_test(test_count *t) {
 #ifndef EXTENDED
     ASSERT_DOUBLE_EQUAL(visitsS, 0.974803, "visitsS");
 #else
-    ASSERT_DOUBLE_EQUAL(visitsS, 0.935746984, "visitsS"); // TODO: ricalcola
-    ASSERT_DOUBLE_EQUAL(visitsS2, 0.935746984, "visitsS2"); // TODO: ricalcola
+    ASSERT_DOUBLE_EQUAL(visitsS, 0.5, "visitsS");
+    ASSERT_DOUBLE_EQUAL(visitsS2, 0.5, "visitsS2");
 #endif
     SUCCESS;
 }
@@ -273,14 +271,16 @@ int erlang_b_loss_probability_test(test_count *t) {
 }
 
 int global_response_time_test(test_count *t) {
-#ifndef EXTENDED
-    int net_servers[] = {3, 3, 2, 1, 4, 139};
-#else
-    int net_servers[] = {3, 3, 2, 1, 4, 75, 75};
-#endif
+// #ifndef EXTENDED
+//     int net_servers[] = {3, 3, 2, 1, 4, 139};
+// #else
+//     int net_servers[] = {3, 3, 2, 1, 4, 75, 75};
+// #endif
+    int *net_servers = init_network();
+
     double response_time = get_theoretical_global_response_time(net_servers);
 
-    ASSERT_DOUBLE_EQUAL(response_time, 649.78441, "global_response_time");
+    ASSERT_DOUBLE_EQUAL(response_time, 688.336, "global_response_time");
 
     SUCCESS;
 }
@@ -309,7 +309,7 @@ network *mock_infinite_network() {
     network *canteen;
     int batch_index;
 
-    canteen = create_network(block_names, CONFIG_1);
+    canteen = create_network(block_names);
 
     long arrived_jobs = 0;
     for (batch_index = 1; batch_index <= K_BATCH; batch_index++) {

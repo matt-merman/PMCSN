@@ -30,6 +30,6 @@ int main(){
     };
     all_tests(&t);
 
-    printf("---------------------------\nSuccessful tests: \t%d/%d\n---------------------------\n", t.success, t.tests); // variables defined only once in test_definitions.h
+    printf("-------------------------------------\nSuccessful tests: \t%d/%d\n-------------------------------------\n", t.success, t.tests); // variables defined only once in test_definitions.h
     return 0;
 }

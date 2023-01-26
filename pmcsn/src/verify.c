@@ -225,7 +225,7 @@ double probe_global_simulation_response_time(network *canteen, long int period) 
 
     for (int i = 0; i < BLOCKS; i++) {
         get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
-        global_wait += stats.wait * get_theoretical_visits(i);
+        global_wait += stats.wait * get_simulation_visit(canteen, i);
         clear_stats(&stats);
     }
     return global_wait;

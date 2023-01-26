@@ -2,7 +2,7 @@
 #define PMCSN_CONSTANTS_H
 
 #define NAME_SIZE 32                                // Size of block name string
-#define EXTENDED
+// #define EXTENDED
 // #define CHOOSE_LEAST_BUSY // ricontrollare
 
 #ifndef EXTENDED
@@ -86,7 +86,7 @@
 #define B 2000L
 #define K_BATCH (long) (INF_USER / B)
 
-#define NUM_SEED 5
+#define NUM_SEED 1
 #define MAX_SEED 5
 #define PERIOD_INTERVALS 12
 

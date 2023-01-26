@@ -221,7 +221,7 @@ void process_completion(event *completion_event, block *block, network *canteen)
 			}
 		}
 	}
-    schedule_immediate_arrival(block, c, completion_event, canteen);
+    schedule_immediate_arrival(block->type, c, completion_event, canteen);
 }
 
 /**
@@ -231,15 +231,18 @@ void process_completion(event *completion_event, block *block, network *canteen)
  * @param c the pointer to system clock 
  * @param triggering_event 
  */
-void schedule_immediate_arrival(block *block, timer *c, event *triggering_event, network *canteen)
+void schedule_immediate_arrival(block_type btype, timer *c, event *triggering_event, network *canteen)
 {
 	double	p;
 	int		next_type;
 
 	p = Random();
-    double busy_1 = 0., busy_2 = 0.;
 
-	switch (block->type)
+#ifdef CHOOSE_LEAST_BUSY
+	double busy_1 = 0., busy_2 = 0.;
+#endif
+
+	switch (btype)
 	{
 	case PRIMO:
 		if (p < P_SECONDO_PRIMO)
@@ -287,7 +290,7 @@ void schedule_immediate_arrival(block *block, timer *c, event *triggering_event,
 		return ;
 	}
 
-	block->count_to_next[next_type]++;
+	canteen->blocks[btype]->count_to_next[next_type]++;
     create_insert_event(next_type, -1, IMMEDIATE_ARRIVAL, c, triggering_event);
 
 }

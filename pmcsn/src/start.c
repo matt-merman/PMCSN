@@ -19,12 +19,6 @@ const char *BLOCK_NAMES[BLOCKS] = {"Primi", "Secondi e Contorni", "Frutta e Dess
 
 const long int SEEDS[MAX_SEED] = {123456789, 196747722, 315255074, 987654321, 484067034};
 
-#ifndef EXTENDED
-#define NETWORK_CONFIGURATION CONFIG_1
-#else
-#define NETWORK_CONFIGURATION CONFIG_2
-#endif
-
 int main(int argc, __attribute__((unused)) char **argv) {
     int c, j, i;
     char *parameter;
@@ -39,7 +33,7 @@ int main(int argc, __attribute__((unused)) char **argv) {
             break;
         case '?':
         default:
-            start_standard_simulation(NETWORK_CONFIGURATION);
+            start_standard_simulation();
             printf("\nTo run finite or infinite horizon simulation, use:\n./start -s [finite/infinite]\n");
             return 0;
     }
@@ -69,7 +63,7 @@ int main(int argc, __attribute__((unused)) char **argv) {
             file_ploss = open_file("w", file_name_ploss);
             fprintf(file_ploss, "%s", "ploss,replica\n");
 
-            start_finite_horizon_simulation(NETWORK_CONFIGURATION, file_resp_time, file_ploss, i);
+            start_finite_horizon_simulation(file_resp_time, file_ploss, i);
 
             fclose(file_resp_time);
             fclose(file_ploss);
@@ -79,7 +73,7 @@ int main(int argc, __attribute__((unused)) char **argv) {
         }
     } else if (strcmp(parameter, "infinite") == 0) {
 
-        start_infinite_horizon_simulation(NETWORK_CONFIGURATION, PERIOD);
+        start_infinite_horizon_simulation(PERIOD);
 
     } else
         printf("Usage: ./start -s [finite/infinite]\n");
@@ -87,7 +81,7 @@ int main(int argc, __attribute__((unused)) char **argv) {
     return (0);
 }
 
-int start_standard_simulation(int config) {
+int start_standard_simulation() {
     char file_name_grt[100], file_name_ploss[100];
     FILE *file_grt, *file_ploss;
     long seed;
@@ -119,7 +113,7 @@ int start_standard_simulation(int config) {
         fprintf(file_ploss, "%s", "ploss,period\n");
 
         for (remaining_periods = PERIOD_INTERVALS; remaining_periods > 0; remaining_periods--) {
-            canteen = create_network(BLOCK_NAMES, config);
+            canteen = create_network(BLOCK_NAMES);
 
             period = PERIOD / remaining_periods;
 
@@ -152,7 +146,7 @@ int start_standard_simulation(int config) {
  * @param num_replicas number of replicas for this finite horizon simulation
  * @return
  */
-int start_finite_horizon_simulation(int config, FILE *file_grt, FILE *file_ploss, int num_replicas) {
+int start_finite_horizon_simulation(FILE *file_grt, FILE *file_ploss, int num_replicas) {
     network *canteen;
     int replica;
 
@@ -164,7 +158,7 @@ int start_finite_horizon_simulation(int config, FILE *file_grt, FILE *file_ploss
         return -1;
     }
 
-    canteen->network_servers = init_network(config);
+    canteen->network_servers = init_network();
 
     for (replica = 0; replica < num_replicas; replica++) {
         canteen->system_clock = init_clock();
@@ -203,7 +197,7 @@ int start_finite_horizon_simulation(int config, FILE *file_grt, FILE *file_ploss
     return (0);
 }
 
-int start_infinite_horizon_simulation(int config, long int period) {
+int start_infinite_horizon_simulation(long int period) {
 
     network *canteen;
     int batch_number, i, c, s, num_servers;
@@ -237,7 +231,7 @@ int start_infinite_horizon_simulation(int config, long int period) {
 
         rejected_jobs = total_jobs = 0LL;
 
-        canteen = create_network(BLOCK_NAMES, config);
+        canteen = create_network(BLOCK_NAMES);
         arrived_jobs = 0;
 
         // those are the global area stats
