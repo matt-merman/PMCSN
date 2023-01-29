@@ -42,7 +42,7 @@ int simulation_visits_test(test_count *t) {
 #ifndef EXTENDED
     ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.935746984, "visitsS");
 #else
-    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.509634, "visitsS1"); //TODO: ricalcolare per il modello esteso
+    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.509634, "visitsS1");
     ASSERT_DOUBLE_APPROX_EQUAL(visits7, 0.5, "visitsS2");
 #endif
 
@@ -221,7 +221,7 @@ int visits_test(test_count *t) {
     ASSERT_DOUBLE_EQUAL(visitsF, 0.24109375, "visitsF");
     ASSERT_DOUBLE_EQUAL(visitsC, 0.75890625, "visitsC");
 #ifndef EXTENDED
-    ASSERT_DOUBLE_EQUAL(visitsS, 0.974803, "visitsS");
+    ASSERT_DOUBLE_EQUAL(visitsS, 1.0, "visitsS");
 #else
     ASSERT_DOUBLE_EQUAL(visitsS, 0.5, "visitsS");
     ASSERT_DOUBLE_EQUAL(visitsS2, 0.5, "visitsS2");

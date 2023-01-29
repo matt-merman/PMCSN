@@ -53,7 +53,7 @@ int main(int argc, __attribute__((unused)) char **argv) {
 #endif
 
         while (i <= MAX_REPLICAS) {
-    
+
             create_file_name(path_grt, i, file_name_grt);
             create_file_name(path_ploss, i, file_name_ploss);
 
@@ -87,37 +87,33 @@ int start_standard_simulation() {
     long seed;
     double grt, ploss;
     long int period;
-    int seed_index, remaining_periods;
+    int seed_index;
     network *canteen;
+    for (period = PERIOD; period <= PERIOD * PERIOD_INTERVALS; period += PERIOD) {
+        printf("Period: %ld (%2.1f h)\nSeed\t\tGlobal Wait\t\tLoss Probability\n", period, (double) period / 3600.);
+        for (seed_index = 0; seed_index < NUM_SEED; seed_index++) {
+            seed = SEEDS[seed_index];
+            PlantSeeds(seed);
 
-    for (seed_index = 0; seed_index < NUM_SEED; seed_index++) {
-
-        seed = SEEDS[seed_index];
-        PlantSeeds(seed);
-
-        #ifdef EXTENDED
-        char path_grt[100] = "./result/standard/ext_grt_";
+#ifdef EXTENDED
+            char path_grt[100] = "./result/standard/ext_grt_";
         char path_ploss[100] = "./result/standard/ext_ploss_";
-        #else
-        char path_grt[100] = "./result/standard/grt_";
-        char path_ploss[100] = "./result/standard/ploss_";
-        #endif
-        
-        create_file_name(path_grt, seed, file_name_grt);
-        create_file_name(path_ploss, seed, file_name_ploss);
+#else
+            char path_grt[100] = "./result/standard/grt_";
+            char path_ploss[100] = "./result/standard/ploss_";
+#endif
 
-        file_grt = open_file("w", file_name_grt);
-        fprintf(file_grt, "%s", "grt,period\n");
+            create_file_name(path_grt, seed, file_name_grt);
+            create_file_name(path_ploss, seed, file_name_ploss);
 
-        file_ploss = open_file("w", file_name_ploss);
-        fprintf(file_ploss, "%s", "ploss,period\n");
+            file_grt = open_file("w", file_name_grt);
+            fprintf(file_grt, "%s", "grt,period\n");
 
-        for (remaining_periods = PERIOD_INTERVALS; remaining_periods > 0; remaining_periods--) {
+            file_ploss = open_file("w", file_name_ploss);
+            fprintf(file_ploss, "%s", "ploss,period\n");
             canteen = create_network(BLOCK_NAMES);
 
-            period = PERIOD / remaining_periods;
-
-            simulation(canteen, 0, NULL, STANDARD, period, PERIOD_INTERVALS - remaining_periods - 1, PERIOD_INTERVALS);
+            simulation(canteen, 0, NULL, STANDARD, period, 0, 1);
 
             grt = probe_global_simulation_response_time(canteen, period);
             write_result(file_grt, grt, period);
@@ -125,16 +121,20 @@ int start_standard_simulation() {
             ploss = probe_global_simulation_loss_probability(canteen);
             write_result(file_ploss, ploss, period);
 
-            if (NUM_SEED == 1 && remaining_periods == 1) {
+            if (NUM_SEED == 1) {
                 show_stats(canteen, period);
                 validate_stats(canteen, period);
+            } else {
+                printf("%ld\t%f\t\t%f\n", seed, grt, ploss);
             }
 
             clear_network(canteen, TRUE);
-        }
 
-        fclose(file_grt);
-        fclose(file_ploss);
+            fclose(file_grt);
+            fclose(file_ploss);
+
+            if (NUM_SEED == 1) return 0;
+        }
     }
     return (0);
 }
@@ -207,15 +207,15 @@ int start_infinite_horizon_simulation(long int period) {
     char file_name_grt[100], file_name_ploss[100];
     FILE *file_g, *file_p;
 
-    #ifdef EXTENDED
+#ifdef EXTENDED
     char path_grt[100] = "./result/infinite/ext_grt_";
     char path_ploss[100] = "./result/infinite/ext_ploss_";
-    #else
+#else
     char path_grt[100] = "./result/infinite/grt_";
     char path_ploss[100] = "./result/infinite/ploss_";
-    #endif
+#endif
 
-    for (int seed_index = 0; seed_index < NUM_SEED; seed_index++){
+    for (int seed_index = 0; seed_index < NUM_SEED; seed_index++) {
 
         seed = SEEDS[seed_index];
         PlantSeeds(seed);
@@ -267,7 +267,7 @@ int start_infinite_horizon_simulation(long int period) {
             // the simulation will not wait for jobs to exit the canteen, instead the next batch will continue
             // with the STATE of the previous (but output statistics are all set to 0).
             simulation(canteen, batch_number * B, &arrived_jobs, INFINITE,
-                    (long) ((double) (K_BATCH * B) / LAMBDA), batch_number, K_BATCH);
+                       (long) ((double) (K_BATCH * B) / LAMBDA), batch_number, K_BATCH);
 
             // then, we increment the global simulation stats, from the result of the batch.
             for (i = 0; i < BLOCKS; i++) {
@@ -276,14 +276,14 @@ int start_infinite_horizon_simulation(long int period) {
                 whole_simulation_area_stats[i].service += canteen->blocks[i]->block_area->service;
                 completed_jobs[i] += canteen->blocks[i]->completed_jobs;
             }
-    #ifndef EXTENDED
+#ifndef EXTENDED
             rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs;
             total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs;
-    #else
+#else
             rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->rejected_jobs;
             total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs +
                         canteen->blocks[CONSUMAZIONE_2]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->completed_jobs;
-    #endif
+#endif
             // here we compute batch response time and loss probability
             compute_batch_statistics(canteen, batch_number - 1, period); // period is not used
 
@@ -294,7 +294,7 @@ int start_infinite_horizon_simulation(long int period) {
             write_result(file_p, ploss[batch_number - 1], batch_number);
         }
 
-        if (seed == SEEDS[0]){
+        if (seed == SEEDS[0]) {
             verify_batch_means_response_time(whole_simulation_area_stats, completed_jobs, grt);
             verify_batch_means_loss_probability(rejected_jobs, total_jobs, ploss);
 
