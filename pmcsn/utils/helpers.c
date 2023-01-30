@@ -117,8 +117,11 @@ void show_stats(network *canteen, long int period) {
     for (int i = 0; i < BLOCKS; i++) {
         // at each iteration we overwrite the statistics struct
         get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
-        double visits = get_theoretical_visits(canteen->blocks[i]->type);
+
+        // double visits = get_theoretical_visits(canteen->blocks[i]->type);
+        double visits = get_simulation_visit(canteen, canteen->blocks[i]->type);
         network_response_time += stats.wait * visits;
+        
         printf("\t----------------------------------------------------------\n");
         printf("\t'%s' block info:\n\n", canteen->blocks[i]->name);
         printf("\t\tpeople in the block ..... = % 10ld\tpeople\n", stats.completed_jobs);
@@ -187,7 +190,7 @@ void validate_stats(network *canteen, long int period) {
 
     // validates global population and response time
     verify_global_population(canteen->blocks);
-    verify_global_response_time(canteen->global_response_time, canteen->network_servers);
+    verify_global_response_time(canteen->global_response_time, canteen->network_servers, canteen);
     verify_ploss(canteen);
 }
 

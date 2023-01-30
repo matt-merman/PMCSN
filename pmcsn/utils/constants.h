@@ -49,7 +49,7 @@
 #endif
 
 // Probability of not eating in the dining room
-#define P_ALTROVE 0.05
+// #define P_ALTROVE 0.05
 #define MAX_GLOBAL_MEAN_RESPONSE_TIME (10*60*30) // 30 min [s] average global response time of entire canteen
 
 // Service time for each server in each block
@@ -88,6 +88,6 @@
 
 #define NUM_SEED 1
 #define MAX_SEED 5
-#define PERIOD_INTERVALS 12
+#define PERIOD_INTERVALS 1
 
 #endif

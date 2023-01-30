@@ -89,37 +89,49 @@ int start_standard_simulation() {
     long int period;
     int seed_index;
     network *canteen;
-    for (period = PERIOD; period <= PERIOD * PERIOD_INTERVALS; period += PERIOD) {
+
+    FILE *files_grt[NUM_SEED], *files_ploss[NUM_SEED];
+
+    for(int i = 0; i < NUM_SEED; i++){
+
+#ifdef EXTENDED
+        char path_grt[100] = "./result/standard/ext_grt_";
+        char path_ploss[100] = "./result/standard/ext_ploss_";
+#else
+        char path_grt[100] = "./result/standard/grt_";
+        char path_ploss[100] = "./result/standard/ploss_";
+#endif
+        create_file_name(path_grt, SEEDS[i], file_name_grt);
+        create_file_name(path_ploss, SEEDS[i], file_name_ploss);
+
+        file_grt = open_file("w", file_name_grt);
+        fprintf(file_grt, "%s", "grt,period\n");
+
+        file_ploss = open_file("w", file_name_ploss);
+        fprintf(file_ploss, "%s", "ploss,period\n");
+
+        files_grt[i] = file_grt;
+        files_ploss[i] = file_ploss;
+
+    }
+        
+    for (period = PERIOD; period <= 2*PERIOD; period += PERIOD/(PERIOD_INTERVALS*2)) { 
+    
         printf("Period: %ld (%2.1f h)\nSeed\t\tGlobal Wait\t\tLoss Probability\n", period, (double) period / 3600.);
+        
         for (seed_index = 0; seed_index < NUM_SEED; seed_index++) {
             seed = SEEDS[seed_index];
             PlantSeeds(seed);
-
-#ifdef EXTENDED
-            char path_grt[100] = "./result/standard/ext_grt_";
-        char path_ploss[100] = "./result/standard/ext_ploss_";
-#else
-            char path_grt[100] = "./result/standard/grt_";
-            char path_ploss[100] = "./result/standard/ploss_";
-#endif
-
-            create_file_name(path_grt, seed, file_name_grt);
-            create_file_name(path_ploss, seed, file_name_ploss);
-
-            file_grt = open_file("w", file_name_grt);
-            fprintf(file_grt, "%s", "grt,period\n");
-
-            file_ploss = open_file("w", file_name_ploss);
-            fprintf(file_ploss, "%s", "ploss,period\n");
+            
             canteen = create_network(BLOCK_NAMES);
 
             simulation(canteen, 0, NULL, STANDARD, period, 0, 1);
 
             grt = probe_global_simulation_response_time(canteen, period);
-            write_result(file_grt, grt, period);
+            write_result(files_grt[seed_index], grt, period);
 
             ploss = probe_global_simulation_loss_probability(canteen);
-            write_result(file_ploss, ploss, period);
+            write_result(files_ploss[seed_index], ploss, period);
 
             if (NUM_SEED == 1) {
                 show_stats(canteen, period);
@@ -130,12 +142,17 @@ int start_standard_simulation() {
 
             clear_network(canteen, TRUE);
 
-            fclose(file_grt);
-            fclose(file_ploss);
-
-            if (NUM_SEED == 1) return 0;
+            if (NUM_SEED == 1) goto end;
         }
     }
+
+end:
+
+    for(int i = 0; i < NUM_SEED; i++){
+        fclose(files_grt[i]);
+        fclose(files_ploss[i]); 
+    }
+
     return (0);
 }
 
@@ -295,7 +312,7 @@ int start_infinite_horizon_simulation(long int period) {
         }
 
         if (seed == SEEDS[0]) {
-            verify_batch_means_response_time(whole_simulation_area_stats, completed_jobs, grt);
+            verify_batch_means_response_time(whole_simulation_area_stats, completed_jobs, grt, canteen);
             verify_batch_means_loss_probability(rejected_jobs, total_jobs, ploss);
 
             // if |auto-correlation for lag 1| < 0.2,

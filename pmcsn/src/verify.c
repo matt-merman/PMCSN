@@ -173,8 +173,8 @@ void verify_global_population(block **blocks) {
  * @param response_time
  * @param network_servers
  */
-void verify_global_response_time(double response_time, int *network_servers) {
-    double global_wait_theoretical = get_theoretical_global_response_time(network_servers);
+void verify_global_response_time(double response_time, int *network_servers, network *canteen) {
+    double global_wait_theoretical = get_theoretical_global_response_time(network_servers, canteen);
     if (IS_NOT_EQUAL(global_wait_theoretical, response_time)) {
         printf("\tThe computed global response time (%f) doesn't match with the theoretical global response time (%f)\n",
                response_time, global_wait_theoretical);
@@ -201,8 +201,8 @@ void verify_ploss(network *canteen) {
     long double ploss_theoretical_2 = erlang_b_loss_probability(m_2, get_theoretical_lambda_raw(CONSUMAZIONE_2),
                                                                 get_theoretical_mhu(CONSUMAZIONE_2));
 
-    long double ploss_theoretical = ploss_theoretical_1 * get_theoretical_visits(CONSUMAZIONE)
-                                     + ploss_theoretical_2 * get_theoretical_visits(CONSUMAZIONE_2);
+    long double ploss_theoretical = ploss_theoretical_1 * get_theoretical_visits(CONSUMAZIONE, canteen)
+                                     + ploss_theoretical_2 * get_theoretical_visits(CONSUMAZIONE_2, canteen);
 #endif
 
     long double ploss = canteen->global_loss_probability;
@@ -226,6 +226,8 @@ double probe_global_simulation_response_time(network *canteen, long int period) 
     for (int i = 0; i < BLOCKS; i++) {
         get_stats(canteen->blocks[i], canteen->system_clock, &stats, period);
         global_wait += stats.wait * get_simulation_visit(canteen, i);
+        // global_wait += stats.wait * get_theoretical_visits(i);
+        
         clear_stats(&stats);
     }
     return global_wait;
@@ -256,11 +258,11 @@ double probe_global_simulation_loss_probability(network *canteen) {
     return partial_loss_probability;
 }
 
-void verify_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH]) {
+void verify_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH], network * canteen) {
     double total_response_time = 0.0;
     // Calculate response time from the entire simulation
     for (int i = 0; i < BLOCKS; i++) {
-        double visits = get_theoretical_visits(i);
+        double visits = get_theoretical_visits(i, canteen);
         double block_resp_time = (double) (area[i].node / (long double) completed_jobs[i]);
         total_response_time += block_resp_time * visits;
     }

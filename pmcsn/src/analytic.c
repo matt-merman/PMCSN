@@ -117,10 +117,17 @@ double get_theoretical_lambda(block_type type, int num_servers) {
  * @param type the block type
  * @return number of visits
  */
-double get_theoretical_visits(block_type type) {
+double get_theoretical_visits(block_type type, network *canteen) {
     // return get_theoretical_lambda(type, num_servers) / LAMBDA;
+
+    if (IS_CONSUMAZIONE(type)){
+        int m = canteen->blocks[type]->num_servers;
+        long double ploss_theoretical = erlang_b_loss_probability(m, get_theoretical_lambda_raw(type),                                                          get_theoretical_mhu(CONSUMAZIONE));
+        return (1 - ploss_theoretical) * get_theoretical_lambda_raw(type) / LAMBDA;
+    }
     return get_theoretical_lambda_raw(type) / LAMBDA;
 }
+
 // With LAMBDA RAW
 // The computed global response time (712.541879) doesn't match with the theoretical global response time (688.336224)
 
@@ -206,11 +213,11 @@ double get_theoretical_response_time(block_type type, int m) {
     return erlang_c_response_time(queue_time, service_time);
 }
 
-double get_theoretical_global_response_time(int *network_servers) {
+double get_theoretical_global_response_time(int *network_servers, network *canteen) {
     double global_wait = 0.0;
     for (int i = 0; i < BLOCKS; i++) {
         global_wait +=
-                get_theoretical_response_time(i, network_servers[i]) * get_theoretical_visits(i);
+                get_theoretical_response_time(i, network_servers[i]) * get_theoretical_visits(i, canteen);
     }
     return global_wait;
 }

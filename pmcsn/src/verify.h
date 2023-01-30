@@ -20,12 +20,12 @@ void verify_theoretical_utilizazion(block *block, statistics *stats);
 void is_wait_delay_plus_service(block *block, statistics *stats);
 void is_node_population_queue_pop_plus_service_pop(block *block, statistics *stats);
 void verify_global_population(block **blocks);
-void verify_global_response_time(double response_time, int *network_servers);
+void verify_global_response_time(double response_time, int *network_servers, network *canteen);
 void verify_ploss(network *canteen);
 double probe_global_simulation_response_time(network *canteen, long int period);
 double probe_global_simulation_loss_probability(network *canteen);
 // infinite-horizon
-void verify_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH]);
+void verify_batch_means_response_time(area area[BLOCKS], const long completed_jobs[BLOCKS], const double batch_response_times[K_BATCH], network* canteen);
 void verify_batch_means_loss_probability(long long int rejected_jobs, long long int total_jobs, const double batch_loss_probabilities[K_BATCH]);
 
 #endif
