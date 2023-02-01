@@ -42,14 +42,26 @@ int main(int argc, __attribute__((unused)) char **argv) {
     PlantSeeds(SEEDS[0]);
 
     if (strcmp(parameter, "finite") == 0) {
-        j = i = 1;
+        j = 2;
+        i = 50;
 
+#ifdef BASE
+    char path_grt[100] = "./result/finite/grt_";
+    char path_ploss[100] = "./result/finite/ploss_";
+#endif
+#ifdef MIGLIORATIVO_1
+        char path_grt[100] = "./result/finite/ext_grt_200_";
+        char path_ploss[100] = "./result/finite/ext_ploss_200_";
+#endif
 #ifdef EXTENDED
-        char path_grt[100] = "./result/finite/ext_grt_";
-        char path_ploss[100] = "./result/finite/ext_ploss_";
-#else
-        char path_grt[100] = "./result/finite/grt_";
-        char path_ploss[100] = "./result/finite/ploss_";
+#ifdef MIGLIORATIVO_2_1
+        char path_grt[100] = "./result/finite/ext_grt_m21_";
+        char path_ploss[100] = "./result/finite/ext_ploss_m21_";
+#endif
+#ifdef CHOOSE_LEAST_BUSY
+        char path_grt[100] = "./result/finite/ext_grt_m22_";
+        char path_ploss[100] = "./result/finite/ext_ploss_m22_";
+#endif
 #endif
 
         while (i <= MAX_REPLICAS) {
@@ -94,13 +106,25 @@ int start_standard_simulation() {
 
     for(int i = 0; i < NUM_SEED; i++){
 
-#ifdef EXTENDED
-        char path_grt[100] = "./result/standard/ext_grt_";
-        char path_ploss[100] = "./result/standard/ext_ploss_";
-#else
-        char path_grt[100] = "./result/standard/grt_";
-        char path_ploss[100] = "./result/standard/ploss_";
+#ifdef BASE
+    char path_grt[100] = "./result/standard/grt_";
+    char path_ploss[100] = "./result/standard/ploss_";
 #endif
+#ifdef MIGLIORATIVO_1
+        char path_grt[100] = "./result/standard/ext_grt_200_";
+        char path_ploss[100] = "./result/standard/ext_ploss_200_";
+#endif
+#ifdef EXTENDED
+#ifdef MIGLIORATIVO_2_1
+        char path_grt[100] = "./result/standard/ext_grt_m21_";
+        char path_ploss[100] = "./result/standard/ext_ploss_m21_";
+#endif
+#ifdef CHOOSE_LEAST_BUSY
+        char path_grt[100] = "./result/standard/ext_grt_m22_";
+        char path_ploss[100] = "./result/standard/ext_ploss_m22_";
+#endif
+#endif
+
         create_file_name(path_grt, SEEDS[i], file_name_grt);
         create_file_name(path_ploss, SEEDS[i], file_name_ploss);
 
@@ -147,7 +171,6 @@ int start_standard_simulation() {
     }
 
 end:
-
     for(int i = 0; i < NUM_SEED; i++){
         fclose(files_grt[i]);
         fclose(files_ploss[i]); 
@@ -224,12 +247,23 @@ int start_infinite_horizon_simulation(long int period) {
     char file_name_grt[100], file_name_ploss[100];
     FILE *file_g, *file_p;
 
-#ifdef EXTENDED
-    char path_grt[100] = "./result/infinite/ext_grt_";
-    char path_ploss[100] = "./result/infinite/ext_ploss_";
-#else
+#ifdef BASE
     char path_grt[100] = "./result/infinite/grt_";
     char path_ploss[100] = "./result/infinite/ploss_";
+#endif
+#ifdef MIGLIORATIVO_1
+        char path_grt[100] = "./result/infinite/ext_grt_200_";
+        char path_ploss[100] = "./result/infinite/ext_ploss_200_";
+#endif
+#ifdef EXTENDED
+#ifdef MIGLIORATIVO_2_1
+        char path_grt[100] = "./result/infinite/ext_grt_m21_";
+        char path_ploss[100] = "./result/infinite/ext_ploss_m21_";
+#endif
+#ifdef CHOOSE_LEAST_BUSY
+        char path_grt[100] = "./result/infinite/ext_grt_m22_";
+        char path_ploss[100] = "./result/infinite/ext_ploss_m22_";
+#endif
 #endif
 
     for (int seed_index = 0; seed_index < NUM_SEED; seed_index++) {

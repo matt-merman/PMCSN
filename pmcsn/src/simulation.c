@@ -141,7 +141,7 @@ void	process_arrival(event *current_event, timer *c, block *block, sim_type sim_
 		return;
 	}
 	insert_event_ordered(new_event);
-    block->count_to_next[ESTERNO]++;
+     block->count_to_next[ESTERNO]++;
 }
 
 /**
@@ -163,6 +163,7 @@ void process_immediate_arrival(event *arrival_event, timer *c, block *block)
 	s_index = retrieve_idle_server(block);
     if (s_index != -1) {
         s = block->servers[s_index];
+	   
         next_completion_event = create_insert_event(block->type, s_index, COMPLETION, c, arrival_event);
         if (next_completion_event != NULL) {
             next_completion_time = (next_completion_event->time - c->current);

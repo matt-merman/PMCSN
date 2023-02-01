@@ -136,7 +136,7 @@ void show_stats(network *canteen, long int period) {
                                ((double) canteen->blocks[cons_type]->completed_jobs +
                                 (double) canteen->blocks[cons_type]->rejected_jobs);
             printf("\t\trejected people ......... = % 10ld\tpeople\n", canteen->blocks[cons_type]->rejected_jobs);
-            printf("\t\tloss probability ....... = % 10g\tpeople\n", loss_probability);
+            printf("\t\tloss probability ........ = % 10g\tpeople\n", loss_probability);
         }
 
         printf("\n\tjob averaged statistics:\n");
@@ -162,8 +162,20 @@ void show_stats(network *canteen, long int period) {
             printf("\t\tP2(to DESSERT) ...... = %6.4Lf\n", stats.routing_probability[DESSERT]);
         } else if (canteen->blocks[i]->type == DESSERT) {
             printf("\n\trouting probabilities statistics:\n");
-            printf("\t\tP(to CASSA STD) ..... = %6.4Lf\ts\n", stats.routing_probability[4]);
+            printf("\t\tP(to CASSA STD) ..... = %6.4Lf\ts\n", stats.routing_probability[CASSA_STD]);
         }
+
+#ifdef EXTENDED
+        if (canteen->blocks[i]->type == CASSA_FAST) {
+            printf("\n\trouting probabilities statistics:\n");
+            printf("\t\tP(to CONSUMAZIONE 1) ....... = %6.4Lf\n", stats.routing_probability[CONSUMAZIONE]);
+            printf("\t\tP(to CONSUMAZIONE 2) ....... = %6.4Lf\n", stats.routing_probability[CONSUMAZIONE_2]);
+        } else if (canteen->blocks[i]->type == CASSA_STD) {
+            printf("\n\trouting probabilities statistics:\n");
+            printf("\t\tP(to CONSUMAZIONE 1) ....... = %6.4Lf\n", stats.routing_probability[CONSUMAZIONE]);
+            printf("\t\tP(to CONSUMAZIONE 2) ....... = %6.4Lf\n", stats.routing_probability[CONSUMAZIONE_2]);
+        }
+#endif
 
         printf("\n\t\tMulti-server statistics:\n");
         printf("\t\t    server     utilization     avg service\n");
