@@ -146,17 +146,17 @@ int	network_status[] = {0, 0, 0, 0, 0, 0, 0};
 int *	init_network()
 {
 	
-#ifdef BASE
-	int	configuration[] = {3, 3, 2, 1, 4, 150};
-	memcpy(network_status, configuration, sizeof(network_status));
-#endif
-#ifdef MIGLIORATIVO_1
-	int	configuration[] = {3, 3, 2, 1, 4, 200};
-	memcpy(network_status, configuration, sizeof(network_status));
-#endif
 #ifdef EXTENDED
 	int	extended[] = {3, 3, 2, 1, 4, 100, 100};
 	memcpy(network_status, extended, sizeof(network_status));
+#else
+#ifdef BASE_200
+    int	configuration[] = {3, 3, 2, 1, 4, 200};
+	memcpy(network_status, configuration, sizeof(network_status));
+#else
+    int	configuration[] = {3, 3, 2, 1, 4, 150};
+    memcpy(network_status, configuration, sizeof(network_status));
+#endif
 #endif
 	return network_status;
 }

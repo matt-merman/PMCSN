@@ -202,7 +202,7 @@ void validate_stats(network *canteen, long int period) {
 
     // validates global population and response time
     verify_global_population(canteen->blocks);
-    verify_global_response_time(canteen->global_response_time, canteen->network_servers, canteen);
+    verify_global_response_time(canteen->global_response_time, canteen->network_servers);
     verify_ploss(canteen);
 }
 

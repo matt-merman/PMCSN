@@ -181,7 +181,7 @@ int rho_test(test_count *t) {
     double rhoF = get_theoretical_rho(CASSA_FAST, 1);
     double rhoC = get_theoretical_rho(CASSA_STD, 4);
 #ifndef EXTENDED
-    double rhoS = get_theoretical_rho(CONSUMAZIONE, 139);
+    double rhoS = get_theoretical_rho(CONSUMAZIONE, 150);
 #else
     double rhoS = get_theoretical_rho(CONSUMAZIONE, 75);
     double rhoS2 = get_theoretical_rho(CONSUMAZIONE_2, 75);
@@ -193,7 +193,7 @@ int rho_test(test_count *t) {
     ASSERT_DOUBLE_EQUAL(rhoF, 0.613896123, "rhoF");
     ASSERT_DOUBLE_EQUAL(rhoC, 0.790527344, "rhoC");
 #ifndef EXTENDED
-    ASSERT_DOUBLE_EQUAL(rhoS, 0.934999, "rhoS");
+    ASSERT_DOUBLE_EQUAL(rhoS, 0.902595, "rhoS");
 #else
     ASSERT_DOUBLE_EQUAL(rhoS, 0.881319, "rhoS"); // TODO: ricalcola
     ASSERT_DOUBLE_EQUAL(rhoS2, 0.881319, "rhoS2");
@@ -203,16 +203,16 @@ int rho_test(test_count *t) {
 }
 
 int visits_test(test_count *t) {
-    double visits1 = get_theoretical_visits(PRIMO);
-    double visits2 = get_theoretical_visits(SECONDO);
-    double visits3 = get_theoretical_visits(DESSERT);
-    double visitsF = get_theoretical_visits(CASSA_FAST);
-    double visitsC = get_theoretical_visits(CASSA_STD);
+    double visits1 = get_theoretical_visits(PRIMO, 3);
+    double visits2 = get_theoretical_visits(SECONDO, 3);
+    double visits3 = get_theoretical_visits(DESSERT, 2);
+    double visitsF = get_theoretical_visits(CASSA_FAST, 1);
+    double visitsC = get_theoretical_visits(CASSA_STD, 4);
 #ifndef EXTENDED
-    double visitsS = get_theoretical_visits(CONSUMAZIONE);
+    double visitsS = get_theoretical_visits(CONSUMAZIONE, 150);
 #else
-    double visitsS = get_theoretical_visits(CONSUMAZIONE);
-    double visitsS2 = get_theoretical_visits(CONSUMAZIONE_2);
+    double visitsS = get_theoretical_visits(CONSUMAZIONE, 100);
+    double visitsS2 = get_theoretical_visits(CONSUMAZIONE_2, 100);
 #endif
     // expected values computed from analytic model
     ASSERT_DOUBLE_EQUAL(visits1, 0.75, "visits1");
@@ -221,7 +221,7 @@ int visits_test(test_count *t) {
     ASSERT_DOUBLE_EQUAL(visitsF, 0.24109375, "visitsF");
     ASSERT_DOUBLE_EQUAL(visitsC, 0.75890625, "visitsC");
 #ifndef EXTENDED
-    ASSERT_DOUBLE_EQUAL(visitsS, 1.0, "visitsS");
+    ASSERT_DOUBLE_EQUAL(visitsS, 0.974803, "visitsS");
 #else
     ASSERT_DOUBLE_EQUAL(visitsS, 0.5, "visitsS");
     ASSERT_DOUBLE_EQUAL(visitsS2, 0.5, "visitsS2");
@@ -279,8 +279,14 @@ int global_response_time_test(test_count *t) {
     int *net_servers = init_network();
 
     double response_time = get_theoretical_global_response_time(net_servers);
-
-    ASSERT_DOUBLE_EQUAL(response_time, 688.336, "global_response_time");
+#ifdef EXTENDED
+    double expected_resp_time = 688.271;
+#elif defined(BASE_200)
+    double expected_resp_time = 688.336;
+#else
+    double expected_resp_time = 673.218;
+#endif
+    ASSERT_DOUBLE_EQUAL(response_time, expected_resp_time, "global_response_time");
 
     SUCCESS;
 }

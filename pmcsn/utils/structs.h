@@ -45,9 +45,9 @@ typedef struct event_t {
 } event;
 
 typedef struct clock_t_n {
-    double last_arrival;            /* last arrival time: used to break */
+    double last_arrival;            /* last arrival time: used to break. At the end it should INF */
     double current;                 /* current time */
-    double last;                    /* last arrival time: used to compute interarrival time */
+    double last;                    /* last arrival time: used to compute interarrival tim. It should be near the PERIOD */
     block_type type;                /* the type of block for the first event */
 } timer;
 

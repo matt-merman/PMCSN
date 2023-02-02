@@ -169,12 +169,12 @@ void verify_global_population(block **blocks) {
 }
 
 /**
- * Validates that response time is equal to wait
- * @param response_time
- * @param network_servers
+ * Validates that theoretical response time is equal to simulated wait
+ * @param response_time the simulated response time
+ * @param network_servers the number of servers for each block
  */
-void verify_global_response_time(double response_time, int *network_servers, network *canteen) {
-    double global_wait_theoretical = get_theoretical_global_response_time(network_servers, canteen);
+void verify_global_response_time(double response_time, int *network_servers) {
+    double global_wait_theoretical = get_theoretical_global_response_time(network_servers);
     if (IS_NOT_EQUAL(global_wait_theoretical, response_time)) {
         printf("\tThe computed global response time (%f) doesn't match with the theoretical global response time (%f)\n",
                response_time, global_wait_theoretical);
@@ -201,8 +201,8 @@ void verify_ploss(network *canteen) {
     long double ploss_theoretical_2 = erlang_b_loss_probability(m_2, get_theoretical_lambda_raw(CONSUMAZIONE_2),
                                                                 get_theoretical_mhu(CONSUMAZIONE_2));
 
-    long double ploss_theoretical = ploss_theoretical_1 * get_theoretical_visits(CONSUMAZIONE, canteen)
-                                     + ploss_theoretical_2 * get_theoretical_visits(CONSUMAZIONE_2, canteen);
+    long double ploss_theoretical = ploss_theoretical_1 * get_theoretical_visits(CONSUMAZIONE, canteen->blocks[CONSUMAZIONE]->num_servers)
+                                     + ploss_theoretical_2 * get_theoretical_visits(CONSUMAZIONE_2, canteen->blocks[CONSUMAZIONE_2]->num_servers);
 #endif
 
     long double ploss = canteen->global_loss_probability;
@@ -262,7 +262,7 @@ void verify_batch_means_response_time(area area[BLOCKS], const long completed_jo
     double total_response_time = 0.0;
     // Calculate response time from the entire simulation
     for (int i = 0; i < BLOCKS; i++) {
-        double visits = get_theoretical_visits(i, canteen);
+        double visits = get_theoretical_visits(i, canteen->blocks[i]->num_servers);
         double block_resp_time = (double) (area[i].node / (long double) completed_jobs[i]);
         total_response_time += block_resp_time * visits;
     }

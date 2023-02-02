@@ -45,22 +45,24 @@ int main(int argc, __attribute__((unused)) char **argv) {
         j = 2;
         i = 50;
 
-#ifdef BASE
-    char path_grt[100] = "./result/finite/grt_";
-    char path_ploss[100] = "./result/finite/ploss_";
-#endif
-#ifdef MIGLIORATIVO_1
-        char path_grt[100] = "./result/finite/ext_grt_200_";
-        char path_ploss[100] = "./result/finite/ext_ploss_200_";
-#endif
+
+
 #ifdef EXTENDED
-#ifdef MIGLIORATIVO_2_1
-        char path_grt[100] = "./result/finite/ext_grt_m21_";
-        char path_ploss[100] = "./result/finite/ext_ploss_m21_";
-#endif
 #ifdef CHOOSE_LEAST_BUSY
         char path_grt[100] = "./result/finite/ext_grt_m22_";
         char path_ploss[100] = "./result/finite/ext_ploss_m22_";
+#else
+        // BASE
+        char path_grt[100] = "./result/finite/ext_grt_m21_";
+        char path_ploss[100] = "./result/finite/ext_ploss_m21_";
+#endif
+#else
+#ifdef BASE_200
+        char path_grt[100] = "./result/finite/ext_grt_200_";
+        char path_ploss[100] = "./result/finite/ext_ploss_200_";
+#else
+        char path_grt[100] = "./result/finite/grt_";
+        char path_ploss[100] = "./result/finite/ploss_";
 #endif
 #endif
 
@@ -104,24 +106,23 @@ int start_standard_simulation() {
 
     FILE *files_grt[NUM_SEED], *files_ploss[NUM_SEED];
 
-    for(int i = 0; i < NUM_SEED; i++){
+    for (int i = 0; i < NUM_SEED; i++) {
 
-#ifdef BASE
-    char path_grt[100] = "./result/standard/grt_";
-    char path_ploss[100] = "./result/standard/ploss_";
-#endif
-#ifdef MIGLIORATIVO_1
-        char path_grt[100] = "./result/standard/ext_grt_200_";
-        char path_ploss[100] = "./result/standard/ext_ploss_200_";
-#endif
 #ifdef EXTENDED
-#ifdef MIGLIORATIVO_2_1
-        char path_grt[100] = "./result/standard/ext_grt_m21_";
-        char path_ploss[100] = "./result/standard/ext_ploss_m21_";
-#endif
 #ifdef CHOOSE_LEAST_BUSY
         char path_grt[100] = "./result/standard/ext_grt_m22_";
         char path_ploss[100] = "./result/standard/ext_ploss_m22_";
+#else
+        char path_grt[100] = "./result/standard/ext_grt_m21_";
+        char path_ploss[100] = "./result/standard/ext_ploss_m21_";
+#endif
+#else
+#ifdef BASE_200
+        char path_grt[100] = "./result/standard/ext_grt_200_";
+        char path_ploss[100] = "./result/standard/ext_ploss_200_";
+#else
+        char path_grt[100] = "./result/standard/grt_";
+        char path_ploss[100] = "./result/standard/ploss_";
 #endif
 #endif
 
@@ -138,15 +139,15 @@ int start_standard_simulation() {
         files_ploss[i] = file_ploss;
 
     }
-        
-    for (period = PERIOD; period <= 2*PERIOD; period += PERIOD/(PERIOD_INTERVALS*2)) { 
-    
+
+    for (period = PERIOD; period <= 2 * PERIOD; period += PERIOD / (PERIOD_INTERVALS * 2)) {
+
         printf("Period: %ld (%2.1f h)\nSeed\t\tGlobal Wait\t\tLoss Probability\n", period, (double) period / 3600.);
-        
+
         for (seed_index = 0; seed_index < NUM_SEED; seed_index++) {
             seed = SEEDS[seed_index];
             PlantSeeds(seed);
-            
+
             canteen = create_network(BLOCK_NAMES);
 
             simulation(canteen, 0, NULL, STANDARD, period, 0, 1);
@@ -170,10 +171,10 @@ int start_standard_simulation() {
         }
     }
 
-end:
-    for(int i = 0; i < NUM_SEED; i++){
+    end:
+    for (int i = 0; i < NUM_SEED; i++) {
         fclose(files_grt[i]);
-        fclose(files_ploss[i]); 
+        fclose(files_ploss[i]);
     }
 
     return (0);
@@ -247,22 +248,23 @@ int start_infinite_horizon_simulation(long int period) {
     char file_name_grt[100], file_name_ploss[100];
     FILE *file_g, *file_p;
 
-#ifdef BASE
+
+
+#ifdef EXTENDED
+#ifdef CHOOSE_LEAST_BUSY
+    char path_grt[100] = "./result/infinite/ext_grt_m22_";
+    char path_ploss[100] = "./result/infinite/ext_ploss_m22_";
+#else
+    char path_grt[100] = "./result/infinite/ext_grt_m21_";
+    char path_ploss[100] = "./result/infinite/ext_ploss_m21_";
+#endif
+#else
+#ifdef BASE_200
+    char path_grt[100] = "./result/infinite/ext_grt_200_";
+    char path_ploss[100] = "./result/infinite/ext_ploss_200_";
+#else
     char path_grt[100] = "./result/infinite/grt_";
     char path_ploss[100] = "./result/infinite/ploss_";
-#endif
-#ifdef MIGLIORATIVO_1
-        char path_grt[100] = "./result/infinite/ext_grt_200_";
-        char path_ploss[100] = "./result/infinite/ext_ploss_200_";
-#endif
-#ifdef EXTENDED
-#ifdef MIGLIORATIVO_2_1
-        char path_grt[100] = "./result/infinite/ext_grt_m21_";
-        char path_ploss[100] = "./result/infinite/ext_ploss_m21_";
-#endif
-#ifdef CHOOSE_LEAST_BUSY
-        char path_grt[100] = "./result/infinite/ext_grt_m22_";
-        char path_ploss[100] = "./result/infinite/ext_ploss_m22_";
 #endif
 #endif
 
@@ -331,9 +333,11 @@ int start_infinite_horizon_simulation(long int period) {
             rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs;
             total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs;
 #else
-            rejected_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->rejected_jobs;
+            rejected_jobs +=
+                    canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->rejected_jobs;
             total_jobs += canteen->blocks[CONSUMAZIONE]->rejected_jobs + canteen->blocks[CONSUMAZIONE]->completed_jobs +
-                        canteen->blocks[CONSUMAZIONE_2]->rejected_jobs + canteen->blocks[CONSUMAZIONE_2]->completed_jobs;
+                          canteen->blocks[CONSUMAZIONE_2]->rejected_jobs +
+                          canteen->blocks[CONSUMAZIONE_2]->completed_jobs;
 #endif
             // here we compute batch response time and loss probability
             compute_batch_statistics(canteen, batch_number - 1, period); // period is not used

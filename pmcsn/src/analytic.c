@@ -59,13 +59,14 @@ double get_theoretical_service(block_type type) {
             return S_CASSA_STD;
         case CONSUMAZIONE:
 #ifdef EXTENDED
-        case CONSUMAZIONE_2:
+            case CONSUMAZIONE_2:
 #endif
             return S_CONSUMAZIONE;
         default:
             return 0.0;
     }
 }
+
 /**
  * Returns the arrival frequency, including the rejected jobs
  * @param type block type
@@ -92,13 +93,14 @@ double get_theoretical_lambda_raw(block_type type) {
         case CONSUMAZIONE: // the entire arrival flow will come to CONSUMAZIONE
             return lambdaS;
 #ifdef EXTENDED
-        case CONSUMAZIONE_2:
-            return lambdaS;
+            case CONSUMAZIONE_2:
+                return lambdaS;
 #endif
         default:
             return (0.0);
     }
 }
+
 /**
  * Computes the theoretical lambda, excluding the rejected jobs
  * @param type block type
@@ -112,18 +114,22 @@ double get_theoretical_lambda(block_type type, int num_servers) {
     }
     return lambda_raw * (1 - (double) erlang_b_loss_probability(num_servers, lambda_raw, get_theoretical_mhu(type)));
 }
+
 /**
- * Computes the mean number of visits to a server
+ * Computes the mean number of visits to a server.
+ * For CONSUMAZIONE block, the visits of rejected jobs MUST BE EXCLUDED,
+ *
+ * v_i = X_i / X = (lambda'_i)/LAMBDA
+ *
  * @param type the block type
  * @return number of visits
  */
-double get_theoretical_visits(block_type type, network *canteen) {
-    // return get_theoretical_lambda(type, num_servers) / LAMBDA;
-
-    if (IS_CONSUMAZIONE(type)){
-        int m = canteen->blocks[type]->num_servers;
-        long double ploss_theoretical = erlang_b_loss_probability(m, get_theoretical_lambda_raw(type),                                                          get_theoretical_mhu(CONSUMAZIONE));
-        return (1 - ploss_theoretical) * get_theoretical_lambda_raw(type) / LAMBDA;
+double get_theoretical_visits(block_type type, int m) {
+    if (IS_CONSUMAZIONE(type)) {
+        // this is correct because we must exclude rejected jobs for CONSUMAZIONE
+        long double ploss_theoretical = erlang_b_loss_probability(m, get_theoretical_lambda_raw(type),
+                                                                  get_theoretical_mhu(type));
+        return (double) (1.0L - ploss_theoretical) * get_theoretical_lambda_raw(type) / LAMBDA;
     }
     return get_theoretical_lambda_raw(type) / LAMBDA;
 }
@@ -199,11 +205,7 @@ long double erlang_b_loss_probability(int m, double lambda, double mhu) {
 double get_theoretical_response_time(block_type type, int m) {
 
     double service_time = get_theoretical_service(type);
-#ifndef EXTENDED
-    if (type == CONSUMAZIONE) {
-#else
-    if(type == CONSUMAZIONE || type == CONSUMAZIONE_2) {
-#endif
+    if(IS_CONSUMAZIONE(type)){
         return service_time;
     }
     double rho = get_theoretical_rho(type, m);
@@ -213,11 +215,16 @@ double get_theoretical_response_time(block_type type, int m) {
     return erlang_c_response_time(queue_time, service_time);
 }
 
-double get_theoretical_global_response_time(int *network_servers, network *canteen) {
+/**
+ * Computes the theoretical response time for the entire network
+ * @param network_servers a pointer to the list of server numbers for each block
+ * @return the theoretical global response time
+ */
+double get_theoretical_global_response_time(int *network_servers) {
     double global_wait = 0.0;
     for (int i = 0; i < BLOCKS; i++) {
         global_wait +=
-                get_theoretical_response_time(i, network_servers[i]) * get_theoretical_visits(i, canteen);
+                get_theoretical_response_time(i, network_servers[i]) * get_theoretical_visits(i, network_servers[i]);
     }
     return global_wait;
 }

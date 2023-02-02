@@ -240,9 +240,10 @@ void schedule_immediate_arrival(block_type btype, timer *c, event *triggering_ev
 	int		next_type;
 
 	p = Random();
-
+#ifdef EXTENDED
 #ifdef CHOOSE_LEAST_BUSY
 	double busy_1 = 0., busy_2 = 0.;
+#endif
 #endif
 
 	switch (btype)
