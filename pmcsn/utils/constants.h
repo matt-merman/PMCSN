@@ -10,7 +10,7 @@
 // #define EXTENDED
 
 // if this macro is commented out, the policy for choosing CONSUMAZIONE or CONSUMAZIONE_2 is RANDOM.
-#define CHOOSE_LEAST_BUSY
+// #define CHOOSE_LEAST_BUSY
 
 
 // needed to undefine BASE_200 when using extended model and to undefine CHOOSE_LEAST_BUSY when EXTENDED is not defined
@@ -33,7 +33,8 @@
 #define N_HOURS 3L
 #define PERIOD (N_HOURS*HOUR)                       // observation period in seconds
 #define INF (100L * PERIOD)                         // max int is 2147483647
-#define LAMBDA (0.2314814815)                        // Computed from USER / 3h (in seconds)
+// #define LAMBDA (0.2314814815)                        // Computed from USER / 3h (in seconds)
+#define LAMBDA (0.2)                        // Computed from USER / 3h (in seconds)
 
 // Nomenclature: P_[dest]_[source]
 #define P_PRIMO_FUORI 0.75      // Probability that a user buys first course from outside
