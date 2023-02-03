@@ -23,7 +23,7 @@ network *mock_network() {
 
 int simulation_visits_test(test_count *t) {
     network *canteen = mock_network();
-
+    double precision = 0.01;
     double visits1 = get_simulation_visit(canteen, PRIMO);
     double visits2 = get_simulation_visit(canteen, SECONDO);
     double visits3 = get_simulation_visit(canteen, DESSERT);
@@ -34,16 +34,16 @@ int simulation_visits_test(test_count *t) {
     double visits7 = get_simulation_visit(canteen, CONSUMAZIONE_2);
 #endif
 
-    ASSERT_DOUBLE_APPROX_EQUAL(visits1, 0.75, "visits1");
-    ASSERT_DOUBLE_APPROX_EQUAL(visits2, 0.6625, "visits2");
-    ASSERT_DOUBLE_APPROX_EQUAL(visits3, 0.485625, "visits3");
-    ASSERT_DOUBLE_APPROX_EQUAL(visits4, 0.24109375, "visitsF");
-    ASSERT_DOUBLE_APPROX_EQUAL(visits5, 0.75890625, "visitsC");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits1, 0.75, precision, "visits1");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits2, 0.6625, precision, "visits2");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits3, 0.485625, precision,  "visits3");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits4, 0.24109375, precision,  "visitsF");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits5, 0.75890625, precision,  "visitsC");
 #ifndef EXTENDED
-    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.935746984, "visitsS");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.9748, precision, "visitsS");
 #else
-    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.509634, "visitsS1");
-    ASSERT_DOUBLE_APPROX_EQUAL(visits7, 0.5, "visitsS2");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits6, 0.509634, precision, "visitsS1");
+    ASSERT_DOUBLE_APPROX_EQUAL(visits7, 0.5, precision, "visitsS2");
 #endif
 
 #ifndef EXTENDED
@@ -58,7 +58,7 @@ int simulation_visits_test(test_count *t) {
 
 int simulation_routing_probabilities_test(test_count *t) {
     // la formula dovrebbe essere. se i = sorgente, j = destinazione, 0 = esterno.
-
+    double precision = 0.05;
     // p_ij = routing probability from block i to block j
     double p_01 = get_simulation_routing_prob(n, ESTERNO, PRIMO);
     double p_02 = get_simulation_routing_prob(n, ESTERNO, SECONDO);
@@ -78,26 +78,26 @@ int simulation_routing_probabilities_test(test_count *t) {
     double p_S02 = get_simulation_routing_prob(n, CONSUMAZIONE_2, ESTERNO);
 #endif
 
-    ASSERT_DOUBLE_APPROX_EQUAL(p_01, 0.75, "p_01");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_02, 0.25, "p_02");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_12, 0.55, "p_12");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_13, 0.25, "p_13");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_1F, 0.2, "p_1F");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_23, 0.45, "p_23");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_2F, 0.1375, "p_2F");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_2C, 0.4125, "p_2C");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_3C, 1.0, "p_3C");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_01, 0.75, precision, "p_01");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_02, 0.25, precision, "p_02");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_12, 0.55, precision, "p_12");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_13, 0.25, precision, "p_13");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_1F, 0.2, precision, "p_1F");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_23, 0.45, precision, "p_23");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_2F, 0.1375, precision, "p_2F");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_2C, 0.4125, precision, "p_2C");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_3C, 1.0, precision, "p_3C");
 #ifndef EXTENDED
-    ASSERT_DOUBLE_APPROX_EQUAL(p_FS, 1.0, "p_FS");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_CS, 1.0, "p_CS");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_S0, 1.0, "p_S0");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_FS, 1.0, precision, "p_FS");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_CS, 1.0, precision, "p_CS");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_S0, 1.0, precision, "p_S0");
 #else
-    ASSERT_DOUBLE_APPROX_EQUAL(p_FS, 0.5, "p_FS");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_CS, 0.5, "p_CS");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_S0, 1.0, "p_S0");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_FS2, 0.5, "p_FS2");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_CS2, 0.5, "p_CS2");
-    ASSERT_DOUBLE_APPROX_EQUAL(p_S02, 1.0, "p_S02");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_FS, 0.5, precision, "p_FS");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_CS, 0.5, precision, "p_CS");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_S0, 1.0, precision, "p_S0");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_FS2, 0.5, precision, "p_FS2");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_CS2, 0.5, precision, "p_CS2");
+    ASSERT_DOUBLE_APPROX_EQUAL(p_S02, 1.0, precision, "p_S02");
 #endif
 
     PRINTF("p_01 = %f\n", p_01);

@@ -28,12 +28,12 @@
 
 #define START 0
 
-#define USER 2500L                                   // mean number of user in the observation period
+#define USER 2500L                                  // mean number of user in the observation period
 #define HOUR (60L*60L)
 #define N_HOURS 3L
 #define PERIOD (N_HOURS*HOUR)                       // observation period in seconds
 #define INF (100L * PERIOD)                         // max int is 2147483647
-#define LAMBDA 0.2314814815                         // Computed from USER / 3h (in seconds)
+#define LAMBDA (0.2314814815)                        // Computed from USER / 3h (in seconds)
 
 // Nomenclature: P_[dest]_[source]
 #define P_PRIMO_FUORI 0.75      // Probability that a user buys first course from outside

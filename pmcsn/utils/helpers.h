@@ -11,6 +11,7 @@
 #define IS_EQUAL(x, y) ((MAX((x),(y)) - MIN((x),(y)) <= EPSILON) ? 1 : 0)
 #define IS_NOT_EQUAL(x, y) ((MAX((x),(y)) - MIN((x),(y)) <= EPSILON) ? 0 : 1)
 #define IS_NOT_APPROX_EQUAL(x,y) ((MAX((x),(y)) - MIN((x),(y)) <= BIG_EPSILON) ? 0 : 1)
+#define IS_NOT_APPROX_EQUAL_PRECISION(x,y,p) ((MAX((x),(y)) - MIN((x),(y)) <= (p)) ? 0 : 1)
 
 #define FIND_SEGFAULT(x) printf("I'm here: %s\n", (x))
 

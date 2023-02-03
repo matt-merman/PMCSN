@@ -32,7 +32,8 @@ double get_simulation_routing_prob(network *n, block_type from, block_type to) {
         return (double) n->blocks[PRIMO]->completed_jobs / (double) jobs_entered_in_network;
     } else if (from == ESTERNO && to == SECONDO) {
         long jobs_from_primo_to_secondo = n->blocks[PRIMO]->count_to_next[SECONDO];
-        return (double) (n->blocks[PRIMO]->completed_jobs - jobs_from_primo_to_secondo) /
+        // job arrived to SECONDO except those from PRIMO
+        return (double) (n->blocks[SECONDO]->completed_jobs - jobs_from_primo_to_secondo) /
                (double) jobs_entered_in_network;
     } else if (to == ESTERNO) {
 #ifndef EXTENDED

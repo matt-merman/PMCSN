@@ -20,8 +20,8 @@ typedef struct test_count_t {
 // i used do {} while(0) to use ASSERT_DOUBLE_EQUAL() like a function (with ; at the end)!
 
 
-#define ASSERT_DOUBLE_APPROX_EQUAL(x, y, msg) do { \
-            if (IS_NOT_APPROX_EQUAL(x, y)) { \
+#define ASSERT_DOUBLE_APPROX_EQUAL(x, y, p, msg) do { \
+            if (IS_NOT_APPROX_EQUAL_PRECISION(x, y, p)) { \
                 printf("%s - Expected: %g Actual: %g\n", msg, y, x); \
                 FAILURE; \
             } \
