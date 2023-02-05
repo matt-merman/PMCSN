@@ -8,7 +8,7 @@ Il sistema considerato è una mensa aziendale composta da una zona ristorazione,
 
 L’obiettivo è analizzare le metriche (e.g., tempi di attesa in coda, utilizzazioni) del modello, considerando i seguenti requisiti di qualità:
 
-* QoS-1: il tempo di risposta del sistema deve essere inferiore a 15 min1;
+* QoS-1: il tempo di risposta del sistema deve essere inferiore a 15 min;
 * QoS-2: la percentuale di utenti che non trovano un posto a sedere deve essere inferiore al 5%;
 
 ## Running
