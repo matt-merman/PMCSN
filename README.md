@@ -43,6 +43,6 @@ La configurazione delle varie modalità operative è gestita con l'utilizzo di m
 
 ## Implementazione
 
-Si rimanda a [report](https://github.com/matt-merman/PMCSN/docs/report.pdf) per i dettagli.
+Si rimanda a [report](https://github.com/matt-merman/PMCSN/blob/main/docs/report.pdf) per i dettagli.
 
 
